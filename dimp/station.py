@@ -50,7 +50,9 @@ class Station(Account):
         network = identifier.address.network
         number = identifier.address.number
         name = self.name
-        return '<%s: %s(%d|%d) "%s" host="%s" port=%d />' % (clazz, identifier, network, number, name, self.host, self.port)
+        host = self.host
+        port = self.port
+        return '<%s: %s(%d|%d) "%s" host="%s" port=%d />' % (clazz, identifier, network, number, name, host, port)
 
     @classmethod
     def new(cls, station: dict):

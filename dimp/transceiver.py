@@ -33,6 +33,7 @@
 from dkd import SymmetricKey, PrivateKey, PublicKey
 from dkd import ID, Account, Group
 from dkd import InstantMessage, SecureMessage, ReliableMessage
+from dkd.transform import json_dict
 
 
 class KeyStore:
@@ -86,36 +87,6 @@ class Barrack:
         """
         pass
 
-    def public_key(self, identifier: ID) -> PublicKey:
-        """
-        Get public key for verifying reliable message, or encrypting password
-
-        :param identifier: Received message's sender, or sending out message's receiver
-        :return: PublicKey object
-        """
-        account = self.account(identifier=identifier)
-        if account:
-            return account.publicKey
-        else:
-            raise LookupError('Account not found: ' + identifier)
-
-    # @abstractmethod
-    def public_keys(self, identifier: ID) -> dict:
-        """
-        Get public keys for encrypting password (Group message)
-
-        :param identifier: Sending out message's sender
-        :return: A List of PublicKey objects
-        """
-        group = self.group(identifier=identifier)
-        if group:
-            keys = {}
-            for member in group.members:
-                keys[member] = self.public_key(identifier=member)
-            return keys
-        else:
-            raise LookupError('Group not found: ' + identifier)
-
 
 class Transceiver:
 
@@ -138,12 +109,25 @@ class Transceiver:
         password = self.store.symmetric_key(receiver=receiver)
         if receiver.address.network.is_communicator():
             # encrypt personal message
-            public_key = self.barrack.public_key(identifier=receiver)
-            return msg.encrypt(password=password, public_key=public_key)
+            account = self.barrack.account(identifier=receiver)
+            if account:
+                return msg.encrypt(password=password, public_key=account.publicKey)
+            else:
+                raise LookupError('Account not found: ' + receiver)
         elif receiver.address.network.is_group():
             # encrypt group message
-            public_keys = self.barrack.public_keys(identifier=receiver)
-            return msg.encrypt(password=password, public_keys=public_keys)
+            group = self.barrack.group(identifier=receiver)
+            if group:
+                keys = {}
+                for member in group.members:
+                    account = self.barrack.account(identifier=member)
+                    if account:
+                        keys[member] = account.publicKey
+                    else:
+                        raise LookupError('Group member not found: ' + member)
+                return msg.encrypt(password=password, public_keys=keys)
+            else:
+                raise LookupError('Group not found: ' + receiver)
         else:
             raise ValueError('Receiver error: ' + receiver)
 
@@ -151,15 +135,22 @@ class Transceiver:
         sender = msg.envelope.sender
         receiver = msg.envelope.receiver
         # trim message
-        if receiver.address.network.is_group():
+        if receiver.address.network.is_communicator():
+            group = None
+        elif receiver.address.network.is_group():
             group = self.barrack.group(receiver)
-            msg = msg.trim(member=self.account.identifier, group=group)
         else:
-            msg = msg.trim(member=self.account.identifier)
-
-        password = self.store.symmetric_key(sender=sender)
-        private_key = self.private_key
-        return msg.decrypt(password=password, private_key=private_key)
+            raise ValueError('Receiver error: ' + receiver)
+        msg = msg.trim(member=self.account.identifier, group=group)
+        # get password
+        if msg.key:
+            key = self.private_key.decrypt(msg.key)
+            password = SymmetricKey(json_dict(key))
+            # update password from message sender
+            self.store.save_symmetric_key(password=password, sender=sender)
+        else:
+            password = self.store.symmetric_key(sender=sender)
+        return msg.decrypt(password=password, private_key=self.private_key)
 
     def sign(self, msg: SecureMessage) -> ReliableMessage:
         private_key = self.private_key
