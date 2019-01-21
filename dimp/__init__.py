@@ -37,9 +37,11 @@ from dkd import TextContent, CommandContent, ForwardContent
 from dkd import Envelope, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 
+from dimp.certificate import CASubject, CAValidity, CAData, CertificateAuthority
+from dimp.station import ServiceProvider, Station
 from dimp.commands import handshake_start_command, handshake_again_command, handshake_success_command
 from dimp.commands import invite_command, expel_command, quit_command
-from dimp.commands import broadcast_command
+from dimp.commands import broadcast_command, login_command
 
 name = "DIMP"
 
@@ -63,7 +65,10 @@ __all__ = [
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     # DIMP
+    'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
+    'ServiceProvider', 'Station',
+
     'handshake_start_command', 'handshake_again_command', 'handshake_success_command',
     'invite_command', 'expel_command', 'quit_command',
-    'broadcast_command',
+    'broadcast_command', 'login_command',
 ]

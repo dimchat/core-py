@@ -176,7 +176,7 @@ def login_command(account: ID, private_key: PrivateKey,
         # 'terminal': 'DEVICE_ID',
         # 'user_agent': 'USER_AGENT',
     }
-    info = json_str(login)
+    info = json_str(login).encode('utf-8')
     signature = private_key.sign(info)
     broadcast = {
         'login': info,
