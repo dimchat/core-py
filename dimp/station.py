@@ -44,6 +44,14 @@ class Station(Account):
         self.host = host
         self.port = port
 
+    def __str__(self):
+        clazz = self.__class__.__name__
+        identifier = self.identifier
+        network = identifier.address.network
+        number = identifier.address.number
+        name = self.name
+        return '<%s: %s(%d|%d) "%s" host="%s" port=%d />' % (clazz, identifier, network, number, name, self.host, self.port)
+
     @classmethod
     def new(cls, station: dict):
         # ID

@@ -12,9 +12,9 @@ import unittest
 
 from mkm.immortals import *
 from mkm.utils import *
+from dkd.transform import json_str
 
 import dimp
-from dkd.transform import json_str
 
 
 def print_data(data: dimp.CAData):
@@ -119,6 +119,11 @@ class CATestCase(unittest.TestCase):
 
         self.assertTrue(Common.ca.verify(moki.publicKey))
 
+
+class TransceiverTestCase(unittest.TestCase):
+
+    def test_trans(self):
+        print('\n---------------- %s' % self)
 
 
 if __name__ == '__main__':
