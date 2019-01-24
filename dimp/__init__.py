@@ -43,6 +43,7 @@ from dimp.transceiver import Barrack, KeyStore, Transceiver
 from dimp.commands import handshake_start_command, handshake_again_command, handshake_success_command
 from dimp.commands import invite_command, expel_command, quit_command
 from dimp.commands import broadcast_command, login_command
+from dimp.commands import meta_command
 
 name = "DIMP"
 
@@ -73,4 +74,5 @@ __all__ = [
     'handshake_start_command', 'handshake_again_command', 'handshake_success_command',
     'invite_command', 'expel_command', 'quit_command',
     'broadcast_command', 'login_command',
+    'meta_command',
 ]

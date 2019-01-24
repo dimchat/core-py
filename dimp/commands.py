@@ -30,12 +30,15 @@
     Extents Commands for Message Content
 """
 
-from mkm import ID, PrivateKey
 from mkm.utils import base64_encode
 
-from dkd import MessageType, CommandContent
 from dkd.transform import json_str
 from dkd.contents import serial_number
+
+from dkd import PrivateKey
+from dkd import ID, Meta
+
+from dkd import MessageType, CommandContent
 
 
 """
@@ -183,3 +186,24 @@ def login_command(account: ID, private_key: PrivateKey,
         'signature': base64_encode(signature),
     }
     return broadcast_command(broadcast=broadcast)
+
+
+"""
+    Meta Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~
+    
+    1. contains 'identifier' only, means query meta for ID
+    2. contains 'meta' (must match), means reply
+"""
+
+
+def meta_command(identifier: ID, meta: Meta=None) -> CommandContent:
+    content = {
+        'type': MessageType.Command,
+        'sn': serial_number(),
+        'command': 'meta',
+        'identifier': identifier,
+    }
+    if meta:  # and meta.match_identifier(identifier):
+        content['meta'] = meta
+    return CommandContent(content)
