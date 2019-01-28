@@ -30,10 +30,12 @@
     Delegate to process message transforming
 """
 
-from dkd import SymmetricKey, PrivateKey, PublicKey
-from dkd import ID, Account, Group
-from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd.transform import json_dict
+
+from mkm import SymmetricKey, PrivateKey
+from mkm import ID, Account, Group
+
+from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 
 class KeyStore:

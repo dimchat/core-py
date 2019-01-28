@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-#   DIMP : Decentralized Instant Messaging Protocol
-#
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
-#
 # ==============================================================================
 # MIT License
 #
@@ -28,44 +23,19 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm import SymmetricKey, PrivateKey, PublicKey
-from mkm import NetworkID, Address, ID, Meta, Entity
-from mkm import Account, User, Group
+"""
+    Commands
+    ~~~~~~~~
 
-from dkd import MessageType, Content
-from dkd import TextContent, CommandContent, ForwardContent
-from dkd import Envelope, Message
-from dkd import InstantMessage, SecureMessage, ReliableMessage
+    Extents Commands for Message Content
+"""
 
-from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
-from .station import ServiceProvider, Station
-from .transceiver import Barrack, KeyStore, Transceiver
-from .commands import HandshakeCommand, MetaCommand, BroadcastCommand, GroupCommand
+from .handshake import HandshakeCommand
+from .meta import MetaCommand
+from .broadcast import BroadcastCommand
+from .group import GroupCommand
 
-name = "DIMP"
-
-__author__ = 'Albert Moky'
 
 __all__ = [
-    # Crypto
-    'SymmetricKey',
-    'PrivateKey', 'PublicKey',
-
-    # MingKeMing
-    'NetworkID', 'Address', 'ID', 'Meta',
-    'Entity',
-    'Account', 'User',
-    'Group',
-
-    # DaoKeDao
-    'MessageType', 'Content',
-    'TextContent', 'CommandContent', 'ForwardContent',
-    'Envelope', 'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-
-    # DIMP
-    'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
-    'ServiceProvider', 'Station',
-    'Barrack', 'KeyStore', 'Transceiver',
     'HandshakeCommand', 'MetaCommand', 'BroadcastCommand', 'GroupCommand',
 ]

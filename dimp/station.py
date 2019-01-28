@@ -31,10 +31,10 @@
     SP      : DIM network service provider
 """
 
-from dkd import PublicKey
-from dkd import ID, Account, Group
+from mkm import PublicKey
+from mkm import ID, Account, Group
 
-from dimp.certificate import CertificateAuthority
+from .certificate import CertificateAuthority
 
 
 class Station(Account):

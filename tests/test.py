@@ -268,5 +268,24 @@ class TransceiverTestCase(unittest.TestCase):
         self.assertEqual(i_msg.content, content)
 
 
+class CommandTestCase(unittest.TestCase):
+
+    def test_handshake(self):
+        print('\n---------------- %s' % self)
+        cmd = dimp.HandshakeCommand.start(session='1234567890')
+        print(cmd)
+        cmd = dimp.HandshakeCommand.again(session='1234567890')
+        print(cmd)
+        cmd = dimp.HandshakeCommand.success()
+        print(cmd)
+
+    def test_meta(self):
+        print('\n---------------- %s' % self)
+        cmd = dimp.MetaCommand.query(identifier=moki_id)
+        print(cmd)
+        cmd = dimp.MetaCommand.response(identifier=moki_id, meta=moki_meta)
+        print(cmd)
+
+
 if __name__ == '__main__':
     unittest.main()

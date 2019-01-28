@@ -1,0 +1,90 @@
+# -*- coding: utf-8 -*-
+# ==============================================================================
+# MIT License
+#
+# Copyright (c) 2019 Albert Moky
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ==============================================================================
+
+"""
+    Handshake Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    1. (C-S) handshake start
+    2. (S-C) handshake again with new session
+    3. (C-S) handshake start with new session
+    4. (S-C) handshake success
+"""
+
+from dkd.contents import serial_number
+
+from dkd import MessageType, CommandContent
+
+
+class HandshakeCommand(CommandContent):
+
+    def __init__(self, content: dict):
+        super().__init__(content)
+        self.message = content['message']
+        if 'session' in content:
+            self.session = content['session']
+        else:
+            self.session = None
+
+    @classmethod
+    def handshake(cls, message: str='Hello world!', session: str=None) -> CommandContent:
+        content = {
+            'type': MessageType.Command,
+            'sn': serial_number(),
+            'command': 'handshake',
+            'message': message,
+        }
+        if session:
+            content['session'] = session
+        return HandshakeCommand(content)
+
+    @classmethod
+    def start(cls, session: str =None) -> CommandContent:
+        """
+        Create client-station handshake start
+
+        :param session: Old session key
+        :return: HandshakeCommand object
+        """
+        return cls.handshake(session=session)
+
+    @classmethod
+    def again(cls, session: str) -> CommandContent:
+        """
+        Create station-client handshake again with new session
+
+        :param session: New session key
+        :return: HandshakeCommand object
+        """
+        return cls.handshake(message='DIM?', session=session)
+
+    @classmethod
+    def success(cls) -> CommandContent:
+        """
+        Create station-client handshake success notice
+
+        :return: HandshakeCommand object
+        """
+        return cls.handshake(message='DIM!')
