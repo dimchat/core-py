@@ -272,11 +272,13 @@ class CommandTestCase(unittest.TestCase):
 
     def test_handshake(self):
         print('\n---------------- %s' % self)
-        cmd = dimp.HandshakeCommand.start(session='1234567890')
+        cmd = dimp.HandshakeCommand.start()
         print(cmd)
         cmd = dimp.HandshakeCommand.again(session='1234567890')
         print(cmd)
-        cmd = dimp.HandshakeCommand.success()
+        cmd = dimp.HandshakeCommand.restart(session='1234567890')
+        print(cmd)
+        cmd = dimp.HandshakeCommand.accepted()
         print(cmd)
 
     def test_meta(self):

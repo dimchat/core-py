@@ -61,9 +61,9 @@ class HandshakeCommand(CommandContent):
         return HandshakeCommand(content)
 
     @classmethod
-    def start(cls, session: str =None) -> CommandContent:
+    def offer(cls, session: str =None) -> CommandContent:
         """
-        Create client-station handshake start
+        Create client-station handshake offer
 
         :param session: Old session key
         :return: HandshakeCommand object
@@ -71,7 +71,7 @@ class HandshakeCommand(CommandContent):
         return cls.handshake(session=session)
 
     @classmethod
-    def again(cls, session: str) -> CommandContent:
+    def ask(cls, session: str) -> CommandContent:
         """
         Create station-client handshake again with new session
 
@@ -88,3 +88,8 @@ class HandshakeCommand(CommandContent):
         :return: HandshakeCommand object
         """
         return cls.handshake(message='DIM!')
+
+    start = offer       # (1. C->S) first handshake, without session
+    again = ask         # (2. S->C) ask client to handshake with new session key
+    restart = offer     # (3. C->S) handshake with new session key
+    accepted = success  # (4. S->C) notice the client that handshake accepted
