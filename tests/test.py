@@ -211,7 +211,7 @@ class TransceiverTestCase(unittest.TestCase):
     def test_trans(self):
         print('\n---------------- %s' % self)
 
-        trans = dimp.Transceiver(account=moki, private_key=moki.privateKey,
+        trans = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
                                  barrack=Common.common, store=Common.common)
         Common.transceiver = trans
 
@@ -230,7 +230,7 @@ class TransceiverTestCase(unittest.TestCase):
         msg_r1 = trans.sign(msg_s1)
         print_msg(msg_r1)
 
-        trans = dimp.Transceiver(account=hulk, private_key=hulk.privateKey,
+        trans = dimp.Transceiver(identifier=hulk.identifier, private_key=hulk.privateKey,
                                  barrack=Common.common, store=Common.common)
         Common.transceiver = trans
 
@@ -245,7 +245,7 @@ class TransceiverTestCase(unittest.TestCase):
     def test_receive(self):
         print('\n---------------- %s' % self)
 
-        trans = dimp.Transceiver(account=hulk, private_key=hulk.privateKey,
+        trans = dimp.Transceiver(identifier=hulk.identifier, private_key=hulk.privateKey,
                                  barrack=Common.common, store=Common.common)
         Common.transceiver = trans
 
@@ -298,6 +298,21 @@ class CommandTestCase(unittest.TestCase):
         print(cmd)
         cmd = dimp.MetaCommand.response(identifier=moki_id, meta=moki_meta)
         print(cmd)
+
+    def test_profile(self):
+        print('\n---------------- %s' % self)
+        id1 = dimp.ID(moki_id)
+        sk1 = dimp.PrivateKey(moki_sk)
+        pk1 = sk1.publicKey
+        profile = {
+            'names': ['moky', 'albert']
+        }
+        cmd = dimp.ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
+        print(cmd)
+        string = cmd['profile']
+        signature = cmd['signature']
+        print('profile: %s, signature: %s' %(string, signature))
+        self.assertTrue(pk1.verify(string.encode('utf-8'), base64_decode(signature)))
 
 
 if __name__ == '__main__':

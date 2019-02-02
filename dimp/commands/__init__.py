@@ -32,10 +32,12 @@
 
 from .handshake import HandshakeCommand
 from .meta import MetaCommand
+from .profile import ProfileCommand
 from .broadcast import BroadcastCommand
 from .group import GroupCommand
 
 
 __all__ = [
-    'HandshakeCommand', 'MetaCommand', 'BroadcastCommand', 'GroupCommand',
+    'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
+    'BroadcastCommand', 'GroupCommand',
 ]

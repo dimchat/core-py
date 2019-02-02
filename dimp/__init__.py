@@ -40,7 +40,8 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
 from .station import ServiceProvider, Station
 from .transceiver import Barrack, KeyStore, Transceiver
-from .commands import HandshakeCommand, MetaCommand, BroadcastCommand, GroupCommand
+from .commands import HandshakeCommand, MetaCommand, ProfileCommand
+from .commands import BroadcastCommand, GroupCommand
 
 name = "DIMP"
 
@@ -67,5 +68,6 @@ __all__ = [
     'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
     'ServiceProvider', 'Station',
     'Barrack', 'KeyStore', 'Transceiver',
-    'HandshakeCommand', 'MetaCommand', 'BroadcastCommand', 'GroupCommand',
+    'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
+    'BroadcastCommand', 'GroupCommand',
 ]

@@ -92,16 +92,17 @@ class Barrack:
 
 class Transceiver:
 
-    def __init__(self, account: Account, private_key: PrivateKey,
+    def __init__(self, identifier: ID, private_key: PrivateKey,
                  barrack: Barrack, store: KeyStore):
         """
 
-        :param account: Current account
+        :param identifier: Current account's ID
+        :param private_key: Current account's Private Key
         :param barrack: Factory for getting accounts
-        :param store: Database for getting keys
+        :param store: Database for getting symmetric keys
         """
         super().__init__()
-        self.account = account
+        self.identifier = identifier
         self.private_key = private_key
         self.barrack = barrack
         self.store = store
@@ -143,7 +144,7 @@ class Transceiver:
             group = self.barrack.group(receiver)
         else:
             raise ValueError('Receiver error: ' + receiver)
-        msg = msg.trim(member=self.account.identifier, group=group)
+        msg = msg.trim(member=self.identifier, group=group)
         # get password
         if msg.key:
             key = self.private_key.decrypt(msg.key)
@@ -155,8 +156,7 @@ class Transceiver:
         return msg.decrypt(password=password, private_key=self.private_key)
 
     def sign(self, msg: SecureMessage) -> ReliableMessage:
-        private_key = self.private_key
-        return msg.sign(private_key=private_key)
+        return msg.sign(private_key=self.private_key)
 
     def verify(self, msg: ReliableMessage) -> SecureMessage:
         sender = msg.envelope.sender
