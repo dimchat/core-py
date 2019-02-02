@@ -50,21 +50,22 @@ class MetaCommand(CommandContent):
             self.meta = None
 
     @classmethod
-    def meta(cls, identifier: ID, meta: Meta=None) -> CommandContent:
+    def query(cls, identifier: ID) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
             'command': 'meta',
             'ID': identifier,
         }
-        if meta:
-            content['meta'] = meta
         return MetaCommand(content)
 
     @classmethod
-    def query(cls, identifier: ID) -> CommandContent:
-        return cls.meta(identifier=identifier)
-
-    @classmethod
     def response(cls, identifier: ID, meta: Meta) -> CommandContent:
-        return cls.meta(identifier=identifier, meta=meta)
+        content = {
+            'type': MessageType.Command,
+            'sn': serial_number(),
+            'command': 'meta',
+            'ID': identifier,
+            'meta': meta,
+        }
+        return MetaCommand(content)
