@@ -27,7 +27,7 @@
     Meta Command Protocol
     ~~~~~~~~~~~~~~~~~~~~~
 
-    1. contains 'identifier' only, means query meta for ID
+    1. contains 'ID' only, means query meta for ID
     2. contains 'meta' (must match), means reply
 """
 
@@ -41,10 +41,9 @@ class MetaCommand(CommandContent):
 
     def __init__(self, content: dict):
         super().__init__(content)
-        if 'ID' in content:
-            self.identifier = ID(content['ID'])
-        else:
-            self.identifier = ID(content['identifier'])
+        # ID
+        self.identifier = ID(content['ID'])
+        # meta
         if 'meta' in content:
             self.meta = Meta(content['meta'])
         else:
@@ -56,7 +55,7 @@ class MetaCommand(CommandContent):
             'type': MessageType.Command,
             'sn': serial_number(),
             'command': 'meta',
-            'identifier': identifier,
+            'ID': identifier,
         }
         if meta:
             content['meta'] = meta
