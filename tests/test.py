@@ -270,6 +270,17 @@ class TransceiverTestCase(unittest.TestCase):
 
 class CommandTestCase(unittest.TestCase):
 
+    def test_group(self):
+        print('\n---------------- %s' % self)
+        gid = 'immortals@7WxUCsdaNnr5DyYsVS3Ct6w2TMupBNJVNu'
+        mid = 'hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj'
+        cmd = dimp.GroupCommand.invite(group=gid, member=mid)
+        print(cmd)
+        cmd = dimp.GroupCommand.expel(group=gid, member=mid)
+        print(cmd)
+        cmd = dimp.GroupCommand.quit(group=gid)
+        print(cmd)
+
     def test_handshake(self):
         print('\n---------------- %s' % self)
         cmd = dimp.HandshakeCommand.start()

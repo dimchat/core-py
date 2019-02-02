@@ -42,20 +42,23 @@ class GroupCommand(CommandContent):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # group ID already fetched in Command.__init__
+        # now fetch member ID
         if 'member' in content:
             self.member = ID(content['member'])
         else:
             self.member = None
 
     @classmethod
-    def group(cls, command: str, group: ID, member: ID=None) -> CommandContent:
+    def membership(cls, command: str, group: ID, member: ID=None) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
             'command': command,
             'group': group,
-            'member': member,
         }
+        if member:
+            content['member'] = member
         return GroupCommand(content)
 
     @classmethod
@@ -67,7 +70,7 @@ class GroupCommand(CommandContent):
         :param member: Member ID
         :return: GroupCommand object
         """
-        return cls.group(command='invite', group=group, member=member)
+        return cls.membership(command='invite', group=group, member=member)
 
     @classmethod
     def expel(cls, group: ID, member: ID) -> CommandContent:
@@ -78,7 +81,7 @@ class GroupCommand(CommandContent):
         :param member: Member ID
         :return: GroupCommand object
         """
-        return cls.group(command='expel', group=group, member=member)
+        return cls.membership(command='expel', group=group, member=member)
 
     @classmethod
     def quit(cls, group: ID) -> CommandContent:
@@ -88,10 +91,4 @@ class GroupCommand(CommandContent):
         :param group: Group ID
         :return: GroupCommand object
         """
-        content = {
-            'type': MessageType.Command,
-            'sn': serial_number(),
-            'command': 'quit',
-            'group': group,
-        }
-        return cls.group(command='quit', group=group)
+        return cls.membership(command='quit', group=group)
