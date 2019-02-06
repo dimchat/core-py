@@ -35,14 +35,14 @@
 from dkd.contents import serial_number
 
 from mkm import ID
-from dkd import MessageType, CommandContent
+from dkd import MessageType, HistoryContent
 
 
-class GroupCommand(CommandContent):
+class GroupCommand(HistoryContent):
 
     def __init__(self, content: dict):
         super().__init__(content)
-        # group ID already fetched in Command.__init__
+        # group ID already fetched in Content.__init__
         # now fetch member ID
         if 'member' in content:
             self.member = ID(content['member'])
@@ -50,11 +50,12 @@ class GroupCommand(CommandContent):
             self.member = None
 
     @classmethod
-    def membership(cls, command: str, group: ID, member: ID=None) -> CommandContent:
+    def membership(cls, command: str, group: ID, member: ID=None, time: int=0) -> HistoryContent:
         content = {
-            'type': MessageType.Command,
+            'type': MessageType.History,
             'sn': serial_number(),
             'command': command,
+            'time': time,
             'group': group,
         }
         if member:
@@ -62,33 +63,36 @@ class GroupCommand(CommandContent):
         return GroupCommand(content)
 
     @classmethod
-    def invite(cls, group: ID, member: ID) -> CommandContent:
+    def invite(cls, group: ID, member: ID, time: int=0) -> HistoryContent:
         """
         Create invite group member command
 
         :param group: Group ID
         :param member: Member ID
+        :param time: Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='invite', group=group, member=member)
+        return cls.membership(command='invite', group=group, member=member, time=time)
 
     @classmethod
-    def expel(cls, group: ID, member: ID) -> CommandContent:
+    def expel(cls, group: ID, member: ID, time: int=0) -> HistoryContent:
         """
         Create expel group member command
 
         :param group: Group ID
         :param member: Member ID
+        :param time: Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='expel', group=group, member=member)
+        return cls.membership(command='expel', group=group, member=member, time=time)
 
     @classmethod
-    def quit(cls, group: ID) -> CommandContent:
+    def quit(cls, group: ID, time: int=0) -> HistoryContent:
         """
         Create member quit command
 
         :param group: Group ID
+        :param time: Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='quit', group=group)
+        return cls.membership(command='quit', group=group, time=time)
