@@ -80,6 +80,11 @@ class ProfileCommand(CommandContent):
 
     @classmethod
     def pack(cls, identifier: ID, private_key: PrivateKey, profile: dict) -> CommandContent:
+        if 'ID' in profile:
+            if identifier != profile['ID']:
+                raise AssertionError('ID not match:', profile)
+        else:
+            profile['ID'] = identifier
         string = json_str(profile)
         sig = private_key.sign(string.encode('utf-8'))
         sig = base64_encode(sig)
