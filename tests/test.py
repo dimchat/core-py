@@ -66,7 +66,8 @@ barrack.save_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
 barrack.save_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
 barrack.save_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
 
-transceiver = dimp.Transceiver(current_user=moki, barrack=barrack, key_store=key_store)
+transceiver = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
+                               barrack=barrack, key_store=key_store)
 moki.delegate = barrack
 
 common = {}
