@@ -34,7 +34,6 @@
 
 from dkd.contents import serial_number
 
-from mkm import ID
 from dkd import MessageType, HistoryContent
 
 
@@ -44,13 +43,10 @@ class GroupCommand(HistoryContent):
         super().__init__(content)
         # group ID already fetched in Content.__init__
         # now fetch member ID
-        if 'member' in content:
-            self.member = ID(content['member'])
-        else:
-            self.member = None
+        self.member = content.get('member')
 
     @classmethod
-    def membership(cls, command: str, group: ID, member: ID=None, time: int=0) -> HistoryContent:
+    def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryContent:
         content = {
             'type': MessageType.History,
             'sn': serial_number(),
@@ -63,7 +59,7 @@ class GroupCommand(HistoryContent):
         return GroupCommand(content)
 
     @classmethod
-    def invite(cls, group: ID, member: ID, time: int=0) -> HistoryContent:
+    def invite(cls, group: str, member: str, time: int=0) -> HistoryContent:
         """
         Create invite group member command
 
@@ -75,7 +71,7 @@ class GroupCommand(HistoryContent):
         return cls.membership(command='invite', group=group, member=member, time=time)
 
     @classmethod
-    def expel(cls, group: ID, member: ID, time: int=0) -> HistoryContent:
+    def expel(cls, group: str, member: str, time: int=0) -> HistoryContent:
         """
         Create expel group member command
 
@@ -87,7 +83,7 @@ class GroupCommand(HistoryContent):
         return cls.membership(command='expel', group=group, member=member, time=time)
 
     @classmethod
-    def quit(cls, group: ID, time: int=0) -> HistoryContent:
+    def quit(cls, group: str, time: int=0) -> HistoryContent:
         """
         Create member quit command
 

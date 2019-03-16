@@ -39,8 +39,8 @@ from .certificate import CertificateAuthority
 
 class Station(Account):
 
-    def __init__(self, identifier: ID, public_key: PublicKey, host: str, port: int=9394):
-        super().__init__(identifier=identifier, public_key=public_key)
+    def __init__(self, identifier: ID, host: str, port: int=9394):
+        super().__init__(identifier=identifier)
         self.host = host
         self.port = port
 
@@ -65,19 +65,9 @@ class Station(Account):
             port = int(station['port'])
         else:
             port = 9394
-        # Public Key
-        if 'publicKey' in station:
-            public_key = PublicKey(station['publicKey'])
-        elif 'PK' in station:
-            public_key = PublicKey(station['PK'])
-        else:
-            public_key = None
         # Certificate Authority
         if 'CA' in station['CA']:
             certificate = CertificateAuthority(station['CA'])
-            if public_key is None:
-                # get public key from the CA info
-                public_key = certificate.info.key
         else:
             certificate = None
         # Service Provider's ID
@@ -94,7 +84,7 @@ class Station(Account):
 
         # create Station object
         if identifier.address.network.is_provider():
-            self = Station(identifier=identifier, public_key=public_key, host=host, port=port)
+            self = Station(identifier=identifier, host=host, port=port)
             self.provider = provider
             self.certificate = certificate
             return self
@@ -107,18 +97,6 @@ class ServiceProvider(Group):
     @property
     def stations(self):
         return self.members
-
-    def addStation(self, station: ID):
-        if station.address.network.is_station():
-            self.addMember(member=station)
-        else:
-            raise ValueError('Station ID error')
-
-    def removeStation(self, station: ID):
-        self.removeMember(member=station)
-
-    def hasStation(self, station: ID):
-        return self.hasMember(member=station)
 
     @classmethod
     def new(cls, provider: dict):
@@ -139,24 +117,12 @@ class ServiceProvider(Group):
                 public_key = certificate.info.key
         else:
             certificate = None
-        # stations's IDs
-        stations = []
-        for item in provider['stations']:
-            if isinstance(item, dict):
-                sid = item['ID']
-            elif isinstance(item, str):
-                sid = item
-            else:
-                raise TypeError('Stations error')
-            stations.append(sid)
 
         # create ServiceProvider object
         if identifier.address.network.is_provider():
             self = ServiceProvider(identifier=identifier)
             self.publicKey = public_key
             self.certificate = certificate
-            for station in stations:
-                self.addStation(ID(station))
             return self
         else:
             raise ValueError('Service provider ID error')

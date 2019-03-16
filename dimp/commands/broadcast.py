@@ -30,13 +30,13 @@
     Broadcast information to the whole network (e.g.: User Login Information)
 """
 
-from mkm.utils import base64_encode
+from dkd.utils import base64_encode
 from dkd.transform import json_str
 from dkd.contents import serial_number
 
-from mkm import PrivateKey
-from mkm import ID
 from dkd import MessageType, CommandContent
+
+from mkm import PrivateKey
 
 
 class BroadcastCommand(CommandContent):
@@ -69,12 +69,12 @@ class BroadcastCommand(CommandContent):
         return BroadcastCommand(content)
 
     @classmethod
-    def login(cls, account: ID, private_key: PrivateKey,
+    def login(cls, account: str, private_key: PrivateKey,
               host: str, port: int =9394, time: int =0) -> CommandContent:
         """
         Create broadcast command for login connection
 
-        :param account: Login account
+        :param account: Login account ID
         :param private_key: Login account's private key to sign the connection info
         :param host: Login station's IP
         :param port: Login station's port

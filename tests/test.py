@@ -58,45 +58,18 @@ def print_msg(msg: dimp.Message):
     print('</%s>' % clazz)
 
 
-class Common(dimp.Barrack, dimp.KeyStore):
+key_store = dimp.KeyStore()
 
-    issuer = None
-    subject = None
-    validity = None
-    key = None
+barrack = dimp.Barrack()
+barrack.save_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
+barrack.save_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
+barrack.save_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
+barrack.save_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
 
-    info = None
-    ca = None
+transceiver = dimp.Transceiver(current_user=moki, barrack=barrack, key_store=key_store)
+moki.delegate = barrack
 
-    users = {}
-    received_keys = {}
-    sent_keys = {}
-
-    transceiver: dimp.Transceiver = None
-
-    def account(self, identifier: dimp.ID) -> dimp.Account:
-        return Common.users[identifier]
-
-    def group(self, identifier: dimp.ID) -> dimp.Group:
-        pass
-
-    def symmetric_key(self, sender: dimp.ID=None, receiver: dimp.ID=None) -> dimp.SymmetricKey:
-        if sender:
-            if sender in Common.received_keys:
-                return Common.received_keys[sender]
-        else:
-            if receiver in Common.sent_keys:
-                return Common.sent_keys[receiver]
-            else:
-                password = dimp.SymmetricKey.generate({'algorithm': 'AES'})
-                Common.sent_keys[receiver] = password
-                return password
-
-    def save_symmetric_key(self, password: dimp.SymmetricKey, sender: dimp.ID=None, receiver: dimp.ID=None):
-        if sender:
-            Common.received_keys[sender] = password
-        else:
-            Common.sent_keys[receiver] = password
+common = {}
 
 
 class CATestCase(unittest.TestCase):
@@ -110,9 +83,9 @@ class CATestCase(unittest.TestCase):
             'CN': 'dim.chat',
         }
 
-        Common.issuer = dimp.CASubject(issuer)
-        print('issuer: ', Common.issuer)
-        self.assertEqual(Common.issuer.organization, issuer['O'])
+        common['issuer'] = dimp.CASubject(issuer)
+        print('issuer: ', common['issuer'])
+        self.assertEqual(common['issuer'].organization, issuer['O'])
 
         subject = {
             'C': 'CN',
@@ -124,9 +97,9 @@ class CATestCase(unittest.TestCase):
             'CN': '127.0.0.1',
         }
 
-        Common.subject = dimp.CASubject(subject)
-        print('subject: ', Common.subject)
-        self.assertEqual(Common.subject.organization, subject['O'])
+        common['subject'] = dimp.CASubject(subject)
+        print('subject: ', common['subject'])
+        self.assertEqual(common['subject'].organization, subject['O'])
 
     def test2_validity(self):
         print('\n---------------- %s' % self)
@@ -135,29 +108,29 @@ class CATestCase(unittest.TestCase):
             'NotBefore': 123,
             'NotAfter': 456,
         }
-        Common.validity = dimp.CAValidity(validity)
-        print('validity: ', Common.validity)
+        common['validity'] = dimp.CAValidity(validity)
+        print('validity: ', common['validity'])
 
     def test3_key(self):
         print('\n---------------- %s' % self)
 
         key = moki_pk
-        Common.key = dimp.PublicKey(key)
-        print('pubic key: ', Common.key)
+        common['key'] = dimp.PublicKey(key)
+        print('pubic key: ', common['key'])
 
     def test4_ca(self):
         print('\n---------------- %s' % self)
 
         info = {
-            'Issuer': Common.issuer,
-            'Validity': Common.validity,
-            'Subject': Common.subject,
-            'Key': Common.key,
+            'Issuer': common['issuer'],
+            'Validity': common['validity'],
+            'Subject': common['subject'],
+            'Key': common['key'],
         }
-        Common.info = dimp.CAData(info)
-        print_data(Common.info)
+        common['info'] = dimp.CAData(info)
+        print_data(common['info'])
 
-        string = json_str(Common.info).encode('utf-8')
+        string = json_str(common['info']).encode('utf-8')
         signature = moki.privateKey.sign(string)
         ca = {
             'version': 1,
@@ -165,107 +138,90 @@ class CATestCase(unittest.TestCase):
             'info': string,
             'signature': base64_encode(signature)
         }
-        Common.ca = dimp.CertificateAuthority(ca)
-        print_ca(Common.ca)
+        common['ca'] = dimp.CertificateAuthority(ca)
+        print_ca(common['ca'])
 
-        self.assertTrue(Common.ca.verify(moki.publicKey))
+        moki.delegate = barrack
+        self.assertTrue(common['ca'].verify(moki.publicKey))
 
 
 class TransceiverTestCase(unittest.TestCase):
 
+    envelope = None
+    content = None
+    command = None
+
+    i_msg: dimp.InstantMessage = None
+    s_msg: dimp.SecureMessage = None
+    r_msg: dimp.ReliableMessage = None
+
     @classmethod
     def setUpClass(cls):
-        print('\n================ %s' % cls)
+        sender = moki_id
+        receiver = hulk_id
+        cls.envelope = dimp.Envelope(sender=sender, receiver=receiver)
+        cls.content = None
+        cls.command = None
 
-        id1 = dimp.ID(moki_id)
-        sk1 = dimp.PrivateKey(moki_sk)
-        user1 = dimp.User(identifier=id1, private_key=sk1)
-        Common.users[id1] = user1
-
-        id2 = dimp.ID(hulk_id)
-        sk2 = dimp.PrivateKey(hulk_sk)
-        user2 = dimp.User(identifier=id2, private_key=sk2)
-        Common.users[id2] = user2
-
-        Common.common = Common()
-
-    def test_password(self):
+    def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        key = reliable_message['key']
-        print('key: ', key)
-        data = base64_decode(key)
-        data = hulk.privateKey.decrypt(data)
-        print('key: ', data)
+        content = dimp.TextContent.new('Hello')
+        print('text content: ', content)
+        self.assertEqual(content.type, dimp.MessageType.Text)
+        TransceiverTestCase.content = content
 
-        key = json_dict(data)
-        password = dimp.SymmetricKey(key)
-        # password.pop('iv')
-        print('password: ', password)
+        command = dimp.CommandContent.new('handshake')
+        print('command content: ', command)
+        self.assertEqual(command.type, dimp.MessageType.Command)
+        TransceiverTestCase.command = command
 
-        data = hulk.publicKey.encrypt(json_str(password).encode('utf-8'))
-        print('key data: ', base64_encode(data))
-
-        Common.common.save_symmetric_key(password=password, receiver=hulk.identifier)
-
-    def test_trans(self):
+    def test_2_instant(self):
         print('\n---------------- %s' % self)
 
-        trans = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
-                                 barrack=Common.common, store=Common.common)
-        Common.transceiver = trans
+        content = TransceiverTestCase.content
+        envelope = TransceiverTestCase.envelope
+        print('content: ', content)
+        print('envelope: ', envelope)
 
-        content = dimp.Content(text_content)
-        print(content)
+        i_msg = dimp.InstantMessage.new(content=content, envelope=envelope)
+        print_msg(i_msg)
+        TransceiverTestCase.i_msg = i_msg
 
-        msg_i1 = dimp.InstantMessage.new(content=content,
-                                         sender=moki.identifier,
-                                         receiver=hulk.identifier,
-                                         time=1545405083)
-        print_msg(msg_i1)
-
-        msg_s1 = trans.encrypt(msg_i1)
-        print_msg(msg_s1)
-
-        msg_r1 = trans.sign(msg_s1)
-        print_msg(msg_r1)
-
-        trans = dimp.Transceiver(identifier=hulk.identifier, private_key=hulk.privateKey,
-                                 barrack=Common.common, store=Common.common)
-        Common.transceiver = trans
-
-        msg_s2 = trans.verify(msg_r1)
-        print_msg(msg_s2)
-
-        msg_i2 = trans.decrypt(msg_s2)
-        print_msg(msg_i2)
-
-        self.assertEqual(msg_i2, msg_i1)
-
-    def test_receive(self):
+    def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        trans = dimp.Transceiver(identifier=hulk.identifier, private_key=hulk.privateKey,
-                                 barrack=Common.common, store=Common.common)
-        Common.transceiver = trans
+        pwd = dimp.SymmetricKey.generate({'algorithm': 'AES'})
+        print('password: %s' % pwd)
 
-        r_msg = dimp.ReliableMessage(reliable_message)
+        i_msg = TransceiverTestCase.i_msg
+        print_msg(i_msg)
+        i_msg.delegate = transceiver
+        s_msg = i_msg.encrypt(password=pwd)
+        print_msg(s_msg)
+        TransceiverTestCase.s_msg = s_msg
+
+        s_msg.delegate = transceiver
+        r_msg = s_msg.sign()
         print_msg(r_msg)
+        TransceiverTestCase.r_msg = r_msg
 
-        data = hulk.privateKey.decrypt(r_msg.key)
-        key = dimp.SymmetricKey(json_dict(data))
-        print(key)
+    def test_4_receive(self):
+        print('\n---------------- %s' % self)
 
-        s_msg = trans.verify(r_msg)
+        r_msg = TransceiverTestCase.r_msg
+        r_msg.delegate = transceiver
+        s_msg = r_msg.verify()
         print_msg(s_msg)
 
-        i_msg = trans.decrypt(s_msg)
+        s_msg.delegate = transceiver
+        i_msg = s_msg.decrypt()
         print_msg(i_msg)
 
-        content = dimp.Content(text_content)
-        print(content)
+        content = i_msg.content
+        print('receive message content: %s' % content)
+        self.assertEqual(content, TransceiverTestCase.content)
 
-        self.assertEqual(i_msg.content, content)
 
 
 class CommandTestCase(unittest.TestCase):

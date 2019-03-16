@@ -30,7 +30,7 @@
     Certificates for Stations and Service Providers
 """
 
-from mkm.utils import base64_decode
+from dkd.utils import base64_decode
 from dkd.transform import json_dict
 
 from mkm import PublicKey

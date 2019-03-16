@@ -33,24 +33,31 @@
 
 from dkd.contents import serial_number
 
-from mkm import ID, Meta
 from dkd import MessageType, CommandContent
 
 
 class MetaCommand(CommandContent):
+    """
+        Meta Command
+        ~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "meta", // command name
+            ID      : "{ID}", // contact's ID
+            meta    : {...}   // When meta is empty, means query meta for ID
+        }
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
-        # ID
-        self.identifier = ID(content['ID'])
-        # meta
-        if 'meta' in content:
-            self.meta = Meta(content['meta'])
-        else:
-            self.meta = None
+        self.identifier = content['ID']
+        self.meta = content.get('meta')
 
     @classmethod
-    def query(cls, identifier: ID) -> CommandContent:
+    def query(cls, identifier: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
@@ -60,7 +67,7 @@ class MetaCommand(CommandContent):
         return MetaCommand(content)
 
     @classmethod
-    def response(cls, identifier: ID, meta: Meta) -> CommandContent:
+    def response(cls, identifier: str, meta: dict) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),

@@ -31,33 +31,52 @@
     2. contains 'profile' and 'signature' (must match), means reply
 """
 
-from mkm.utils import base64_decode, base64_encode
+from dkd.utils import base64_encode, base64_decode
 from dkd.transform import json_dict, json_str
 from dkd.contents import serial_number
 
-from mkm import ID, PrivateKey
 from dkd import MessageType, CommandContent
+
+from mkm import PrivateKey
 
 
 class ProfileCommand(CommandContent):
+    """
+        Profile Command
+        ~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command   : "profile",  // command name
+            ID        : "{ID}",     // entity ID
+            meta      : {...},      // only for handshaking with new friend
+            profile   : "{...}",    // json(profile); when profile is empty, means query for ID
+            signature : "{BASE64}", // sign(json(profile))
+        }
+
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
         # ID
-        self.identifier = ID(content['ID'])
+        self.identifier = content['ID']
         # profile
-        if 'profile' in content:
-            self.profile = json_dict(content['profile'])
+        profile_json = content.get('profile')
+        if profile_json is not None:
+            self.profile = json_dict(profile_json)
         else:
             self.profile = None
         # signature
-        if 'signature' in content:
-            self.signature = base64_decode(content['signature'])
+        signature_base64 = content.get('signature')
+        if signature_base64 is not None:
+            self.signature = base64_decode(signature_base64)
         else:
             self.signature = None
 
     @classmethod
-    def query(cls, identifier: ID) -> CommandContent:
+    def query(cls, identifier: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
@@ -67,7 +86,7 @@ class ProfileCommand(CommandContent):
         return ProfileCommand(content)
 
     @classmethod
-    def response(cls, identifier: ID, profile: str, signature: str) -> CommandContent:
+    def response(cls, identifier: str, profile: str, signature: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
@@ -79,7 +98,7 @@ class ProfileCommand(CommandContent):
         return ProfileCommand(content)
 
     @classmethod
-    def pack(cls, identifier: ID, private_key: PrivateKey, profile: dict) -> CommandContent:
+    def pack(cls, identifier: str, private_key: PrivateKey, profile: dict) -> CommandContent:
         if 'ID' in profile:
             if identifier != profile['ID']:
                 raise AssertionError('ID not match:', profile)

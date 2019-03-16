@@ -30,138 +30,171 @@
     Delegate to process message transforming
 """
 
-from dkd.transform import json_dict
+from dkd.transform import json_dict, json_str
 
-from mkm import SymmetricKey, PrivateKey
-from mkm import ID, Account, Group
-
+from dkd import MessageType, Content, ForwardContent
 from dkd import InstantMessage, SecureMessage, ReliableMessage
+from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
+
+from mkm import SymmetricKey
+from mkm import Meta, ID, User
+
+from .keystore import KeyStore
+from .barrack import Barrack
 
 
-class KeyStore:
+class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):
 
-    # @abstractmethod
-    def symmetric_key(self, sender: ID=None, receiver: ID=None) -> SymmetricKey:
-        """
-        Get password for/from remote account.
-        1. when received a message (sender was set),
-           it's for decrypting secure message from sender
-        2. when sending out a message (receiver was set),
-           it's for encrypting instant message to receiver
-
-        :param sender:   Received message's sender
-        :param receiver: Sending out message's receiver
-        :return: SymmetricKey object
-        """
-        pass
-
-    # @abstractmethod
-    def save_symmetric_key(self, password: SymmetricKey, sender: ID=None, receiver: ID=None):
-        """
-        Save password for/from remote account.
-
-        :param password: SymmetricKey object
-        :param sender:   Received message's sender
-        :param receiver: Sending out message's receiver
-        """
-        pass
-
-
-class Barrack:
-
-    # @abstractmethod
-    def account(self, identifier: ID) -> Account:
-        """
-        Get account
-
-        :param identifier: Account's ID
-        :return: Account object
-        """
-        pass
-
-    # @abstractmethod
-    def group(self, identifier: ID) -> Group:
-        """
-        Get group
-
-        :param identifier: Group's ID
-        :return: Group object
-        """
-        pass
-
-
-class Transceiver:
-
-    def __init__(self, identifier: ID, private_key: PrivateKey,
-                 barrack: Barrack, store: KeyStore):
+    def __init__(self, current_user: User, barrack: Barrack, key_store: KeyStore):
         """
 
-        :param identifier: Current account's ID
-        :param private_key: Current account's Private Key
-        :param barrack: Factory for getting accounts
-        :param store: Database for getting symmetric keys
+        :param current_user: Current user
+        :param barrack:      Factory for getting accounts
+        :param key_store:    Database for getting symmetric keys
         """
         super().__init__()
-        self.identifier = identifier
-        self.private_key = private_key
+        self.current_user = current_user
+        # databases
         self.barrack = barrack
-        self.store = store
+        self.key_store = key_store
 
-    def encrypt(self, msg: InstantMessage) -> SecureMessage:
-        receiver = msg.envelope.receiver
-        password = self.store.symmetric_key(receiver=receiver)
-        if receiver.address.network.is_communicator():
-            # encrypt personal message
-            account = self.barrack.account(identifier=receiver)
-            if account:
-                return msg.encrypt(password=password, public_key=account.publicKey)
+    #
+    #   IInstantMessageDelegate
+    #
+    def message_encrypt_key(self, msg: InstantMessage, key: dict, receiver: str) -> bytes:
+        contact = self.barrack.account_create(identifier=ID(receiver))
+        pk = contact.publicKey
+        json = json_str(key)
+        return pk.encrypt(plaintext=json.encode('utf-8'))
+
+    def message_encrypt_content(self, msg: InstantMessage, content: Content, key: dict) -> bytes:
+        password = SymmetricKey(key)
+        json = json_str(content)
+        return password.encrypt(plaintext=json.encode('utf-8'))
+
+    #
+    #   ISecureMessageDelegate
+    #
+    def message_decrypt_key(self, msg: SecureMessage,
+                            key: bytes, sender: str, receiver: str, group: str = None) -> dict:
+        if key is None:
+            # the message contains no key, try reuse a key from local cache
+            return self.key_store.cipher_key(sender=sender, group=group)
+        # decrypt it with receiver's private key
+        identifier = ID(receiver)
+        if identifier == self.current_user.identifier:
+            sk = self.current_user.privateKey
+        else:
+            # get private key from database
+            sk = self.barrack.private_key(identifier=identifier)
+        data = sk.decrypt(data=key)
+        dictionary = json_dict(data)
+        pwd = SymmetricKey(dictionary)
+        if pwd:
+            # save the new key into local cache for reuse
+            self.key_store.save_key(key=pwd, sender=sender, group=group)
+        return pwd
+
+    def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
+        pwd = SymmetricKey(key)
+        plaintext = pwd.decrypt(data)
+        dictionary = json_dict(plaintext)
+        return Content(dictionary)
+
+    def message_sign(self, msg: SecureMessage, data: bytes, sender: str) -> bytes:
+        identifier = ID(sender)
+        if identifier == self.current_user.identifier:
+            sk = self.current_user.privateKey
+        else:
+            # get private key from database
+            sk = self.barrack.private_key(identifier=identifier)
+        return sk.sign(data)
+
+    #
+    #   IReliableMessageDelegate
+    #
+    def message_verify(self, msg: ReliableMessage, data: bytes, signature: bytes, sender: str) -> bool:
+        contact = self.barrack.account_create(identifier=ID(sender))
+        pk = contact.publicKey
+        return pk.verify(data=data, signature=signature)
+
+    #
+    #   Conveniences
+    #
+    def encrypt_sign(self, msg: InstantMessage) -> SecureMessage:
+        receiver = ID(msg.envelope.receiver)
+        group = msg.content.group
+        if group:
+            group = ID(group)
+        elif receiver.type.is_group():
+            group = receiver
+        # 1. encrypt 'content' to 'data' for receiver
+        if msg.delegate is None:
+            msg.delegate = self
+        if group:
+            # group message
+            key = self.key_store.cipher_key(group=group)
+            if key is None:
+                # create a new key & save it into the Key Store
+                key = SymmetricKey.generate({'algorithm': 'AES'})
+                self.key_store.save_key(key, group=group)
+            grp = self.barrack.group_create(identifier=group)
+            members = grp.members
+            msg = msg.encrypt(password=key, members=members)
+        else:
+            # personal message
+            key = self.key_store.cipher_key(receiver=receiver)
+            if key is None:
+                # create a new key & save it into the Key Store
+                key = SymmetricKey.generate({'algorithm': 'AES'})
+                self.key_store.save_key(key, group=group)
+            msg = msg.encrypt(password=key)
+        # 2. sign
+        msg.delegate = self
+        return msg.sign()
+
+    def verify_decrypt(self, msg: ReliableMessage) -> InstantMessage:
+        sender = ID(msg.envelope.sender)
+        receiver = ID(msg.envelope.receiver)
+        # [Meta Protocol] check meta in first contact message
+        meta = self.barrack.meta(identifier=sender)
+        if meta is None:
+            # first contact, try meta in message package
+            meta = msg.meta
+            if meta is None:
+                # TODO: query meta for sender from DIM network
+                raise LookupError('failed to get meta for sender: %s' % sender)
+            meta = Meta(meta)
+            if meta.match_identifier(identifier=sender):
+                self.barrack.save_meta(meta=meta, identifier=sender)
             else:
-                raise LookupError('Account not found: ' + receiver)
-        elif receiver.address.network.is_group():
-            # encrypt group message
-            group = self.barrack.group(identifier=receiver)
-            if group:
-                keys = {}
-                for member in group.members:
-                    account = self.barrack.account(identifier=member)
-                    if account:
-                        keys[member] = account.publicKey
-                    else:
-                        raise LookupError('Group member not found: ' + member)
-                return msg.encrypt(password=password, public_keys=keys)
-            else:
-                raise LookupError('Group not found: ' + receiver)
+                raise ValueError('meta not match %s, %s' % (sender, meta))
+        # 1. verify 'data' with 'signature'
+        if msg.delegate is None:
+            msg.delegate = self
+        msg = msg.verify()
+        # check recipient
+        if receiver.type.is_group():
+            group = receiver
+            # FIXME: maybe other user?
+            receiver = self.current_user.identifier
         else:
-            raise ValueError('Receiver error: ' + receiver)
-
-    def decrypt(self, msg: SecureMessage) -> InstantMessage:
-        sender = msg.envelope.sender
-        receiver = msg.envelope.receiver
-        # trim message
-        if receiver.address.network.is_communicator():
-            group = None
-        elif receiver.address.network.is_group():
-            group = self.barrack.group(receiver)
+            group = msg.group
+            if group is not None:
+                group = ID(group)
+        # 2. decrypt 'data' to 'content'
+        if group is not None:
+            # trim for user(group member)
+            msg = msg.trim(member=receiver)
+            msg.delegate = self
+            msg = msg.decrypt(member=receiver)
         else:
-            raise ValueError('Receiver error: ' + receiver)
-        msg = msg.trim(member=self.identifier, group=group)
-        # get password
-        if msg.key:
-            key = self.private_key.decrypt(msg.key)
-            password = SymmetricKey(json_dict(key))
-            # update password from message sender
-            self.store.save_symmetric_key(password=password, sender=sender)
-        else:
-            password = self.store.symmetric_key(sender=sender)
-        return msg.decrypt(password=password, private_key=self.private_key)
-
-    def sign(self, msg: SecureMessage) -> ReliableMessage:
-        return msg.sign(private_key=self.private_key)
-
-    def verify(self, msg: ReliableMessage) -> SecureMessage:
-        sender = msg.envelope.sender
-        account = self.barrack.account(identifier=sender)
-        if account:
-            return msg.verify(public_key=account.publicKey)
-        else:
-            raise LookupError('Sender not found: ' + sender)
+            # personal message
+            msg.delegate = self
+            msg = msg.decrypt()
+        # 3. check: top-secret message
+        if msg.content.type == MessageType.Forward:
+            content = ForwardContent(msg.content)
+            return self.verify_decrypt(content.forward)
+        # OK
+        return msg

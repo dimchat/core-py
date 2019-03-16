@@ -29,17 +29,22 @@
 # ==============================================================================
 
 from mkm import SymmetricKey, PrivateKey, PublicKey
-from mkm import NetworkID, Address, ID, Meta, Entity
-from mkm import Account, User, Group
+from mkm import NetworkID, Address, ID, Meta
+from mkm import Entity, IEntityDataSource
+from mkm import Account, User, IAccountDelegate, IUserDelegate, IUserDataSource
+from mkm import Group, IGroupDelegate, IGroupDataSource
 
 from dkd import MessageType, Content
-from dkd import TextContent, CommandContent, ForwardContent
-from dkd import Envelope, Message
+from dkd import TextContent, CommandContent, HistoryContent, ForwardContent
+from dkd import Envelope, Message, IMessageDelegate
 from dkd import InstantMessage, SecureMessage, ReliableMessage
+from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
 from .station import ServiceProvider, Station
-from .transceiver import Barrack, KeyStore, Transceiver
+from .barrack import Barrack
+from .keystore import KeyStore
+from .transceiver import Transceiver
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand
 from .commands import BroadcastCommand, GroupCommand
 
@@ -54,15 +59,17 @@ __all__ = [
 
     # MingKeMing
     'NetworkID', 'Address', 'ID', 'Meta',
-    'Entity',
-    'Account', 'User',
-    'Group',
+    'Entity', 'IEntityDataSource',
+    'Account', 'User', 'IAccountDelegate', 'IUserDelegate', 'IUserDataSource',
+    'Group', 'IGroupDelegate', 'IGroupDataSource',
 
     # DaoKeDao
     'MessageType', 'Content',
-    'TextContent', 'CommandContent', 'ForwardContent',
-    'Envelope', 'Message',
+    'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
+    'Envelope', 'Message', 'IMessageDelegate',
+    # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
     # DIMP
     'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
