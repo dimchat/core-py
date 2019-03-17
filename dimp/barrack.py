@@ -54,7 +54,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
         key = str(identifier.address)
         return self.metas.get(key)
 
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
+    def retain_meta(self, meta: Meta, identifier: ID) -> bool:
         if meta.match_identifier(identifier):
             key = str(identifier.address)
             self.metas[key] = meta
@@ -67,7 +67,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
         key = str(identifier.address)
         return self.profiles.get(key)
 
-    def save_profile(self, profile: dict, identifier: ID) -> bool:
+    def retain_profile(self, profile: dict, identifier: ID) -> bool:
         if profile is not None:
             key = str(identifier.address)
             self.profiles[key] = profile
@@ -80,7 +80,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
         key = str(identifier.address)
         return self.private_keys.get(key)
 
-    def save_private_key(self, private_key: PrivateKey, identifier: ID):
+    def retain_private_key(self, private_key: PrivateKey, identifier: ID):
         key = str(identifier.address)
         self.private_keys[key] = private_key
 

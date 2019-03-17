@@ -61,10 +61,10 @@ def print_msg(msg: dimp.Message):
 key_store = dimp.KeyStore()
 
 barrack = dimp.Barrack()
-barrack.save_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
-barrack.save_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
-barrack.save_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
-barrack.save_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
+barrack.retain_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
+barrack.retain_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
+barrack.retain_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
+barrack.retain_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
 
 transceiver = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
                                barrack=barrack, key_store=key_store)
@@ -240,21 +240,33 @@ class CommandTestCase(unittest.TestCase):
 
     def test_handshake(self):
         print('\n---------------- %s' % self)
-        cmd = dimp.HandshakeCommand.start()
+
+        cmd: dimp.HandshakeCommand = dimp.HandshakeCommand.start()
         print(cmd)
+
         cmd = dimp.HandshakeCommand.again(session='1234567890')
         print(cmd)
+        self.assertEqual(cmd.message, 'DIM?')
+
         cmd = dimp.HandshakeCommand.restart(session='1234567890')
         print(cmd)
+
         cmd = dimp.HandshakeCommand.accepted()
         print(cmd)
+        self.assertEqual(cmd.message, 'DIM!')
 
     def test_meta(self):
         print('\n---------------- %s' % self)
-        cmd = dimp.MetaCommand.query(identifier=moki_id)
+
+        cmd: dimp.MetaCommand = dimp.MetaCommand.query(identifier=moki_id)
         print(cmd)
+        self.assertEqual(cmd.identifier, moki_id)
+
         cmd = dimp.MetaCommand.response(identifier=moki_id, meta=moki_meta)
         print(cmd)
+        print('cmd.meta: %s' % cmd.meta)
+        self.assertEqual(cmd.meta, moki_meta)
+
 
     def test_profile(self):
         print('\n---------------- %s' % self)
@@ -264,12 +276,16 @@ class CommandTestCase(unittest.TestCase):
         profile = {
             'names': ['moky', 'albert']
         }
-        cmd = dimp.ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
+        cmd: dimp.ProfileCommand = dimp.ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
         print(cmd)
+        print('cmd.profile: %s' % cmd.profile)
+        self.assertEqual(cmd.profile, profile)
+
+        print('profile: %s\n-> %s' %(cmd['profile'], cmd.profile))
+        print('signature: %s\n-> %s' %(cmd['signature'], cmd.signature))
+
         string = cmd['profile']
-        signature = cmd['signature']
-        print('profile: %s, signature: %s' %(string, signature))
-        self.assertTrue(pk1.verify(string.encode('utf-8'), base64_decode(signature)))
+        self.assertTrue(pk1.verify(string.encode('utf-8'), cmd.signature))
 
 
 if __name__ == '__main__':

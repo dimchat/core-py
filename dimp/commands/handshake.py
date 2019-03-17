@@ -39,15 +39,51 @@ from dkd import MessageType, CommandContent
 
 
 class HandshakeCommand(CommandContent):
+    """
+        Handshake Command
+        ~~~~~~~~~~~~~~~~~
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.message = content['message']
-        if 'session' in content:
-            self.session = content['session']
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "handshake",    // command name
+            message : "Hello world!", // "DIM?", "DIM!"
+            session : "{SESSION_ID}", // session key
+        }
+    """
+
+    #
+    #   message
+    #
+    @property
+    def message(self) -> str:
+        return self.get('message')
+
+    @message.setter
+    def message(self, value: str):
+        if value:
+            self['message'] = value
         else:
-            self.session = None
+            self.pop('message')
 
+    #
+    #   session
+    #
+    @property
+    def session(self) -> str:
+        return self.get('session')
+
+    @session.setter
+    def session(self, value: str):
+        if value:
+            self['session'] = value
+        else:
+            self.pop('session')
+
+    #
+    #   Factories
+    #
     @classmethod
     def handshake(cls, message: str='Hello world!', session: str=None) -> CommandContent:
         content = {

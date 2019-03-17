@@ -38,6 +38,7 @@ from dkd.contents import serial_number
 from dkd import MessageType, CommandContent
 
 from mkm import PrivateKey
+from mkm import ID
 
 
 class ProfileCommand(CommandContent):
@@ -58,23 +59,57 @@ class ProfileCommand(CommandContent):
 
     """
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        # ID
-        self.identifier = content['ID']
-        # profile
-        profile_json = content.get('profile')
-        if profile_json is not None:
-            self.profile = json_dict(profile_json)
-        else:
-            self.profile = None
-        # signature
-        signature_base64 = content.get('signature')
-        if signature_base64 is not None:
-            self.signature = base64_decode(signature_base64)
-        else:
-            self.signature = None
+    #
+    #   ID
+    #
+    @property
+    def identifier(self) -> ID:
+        value = self.get('ID')
+        if value:
+            return ID(value)
 
+    @identifier.setter
+    def identifier(self, value: str):
+        if value:
+            self['ID'] = value
+        else:
+            self.pop('ID')
+
+    #
+    #   profile
+    #
+    @property
+    def profile(self) -> dict:
+        value = self.get('profile')
+        if value:
+            return json_dict(value)
+
+    @profile.setter
+    def profile(self, value: dict):
+        if value:
+            self['profile'] = json_str(value)
+        else:
+            self.pop('profile')
+
+    #
+    #   signature
+    #
+    @property
+    def signature(self) -> bytes:
+        value = self.get('signature')
+        if value:
+            return base64_decode(value)
+
+    @signature.setter
+    def signature(self, value: bytes):
+        if value:
+            self['signature'] = base64_encode(value)
+        else:
+            self.pop('signature')
+
+    #
+    #   Factories
+    #
     @classmethod
     def query(cls, identifier: str) -> CommandContent:
         content = {

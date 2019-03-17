@@ -35,6 +35,8 @@ from dkd.contents import serial_number
 
 from dkd import MessageType, CommandContent
 
+from mkm import ID, Meta
+
 
 class MetaCommand(CommandContent):
     """
@@ -51,11 +53,41 @@ class MetaCommand(CommandContent):
         }
     """
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.identifier = content['ID']
-        self.meta = content.get('meta')
+    #
+    #   ID
+    #
+    @property
+    def identifier(self) -> ID:
+        value = self.get('ID')
+        if value:
+            return ID(value)
 
+    @identifier.setter
+    def identifier(self, value: str):
+        if value:
+            self['ID'] = value
+        else:
+            self.pop('ID')
+
+    #
+    #   Meta
+    #
+    @property
+    def meta(self) -> Meta:
+        value = self.get('meta')
+        if value:
+            return Meta(value)
+
+    @meta.setter
+    def meta(self, value: dict):
+        if value:
+            self['meta'] = value
+        else:
+            self.pop('meta')
+
+    #
+    #   Factories
+    #
     @classmethod
     def query(cls, identifier: str) -> CommandContent:
         content = {

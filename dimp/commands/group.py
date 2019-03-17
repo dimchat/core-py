@@ -36,15 +36,48 @@ from dkd.contents import serial_number
 
 from dkd import MessageType, HistoryContent
 
+from mkm import ID
+
 
 class GroupCommand(HistoryContent):
+    """
+        Group Command
+        ~~~~~~~~~~~~~
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        # group ID already fetched in Content.__init__
-        # now fetch member ID
-        self.member = content.get('member')
+        data format: {
+            type : 0x89,
+            sn   : 123,
 
+            command : "invite",      // "expel", "quit"
+            time    : 0,             // timestamp
+            group   : "{GROUP_ID}",  // group ID
+            member  : "{MEMBER_ID}", // member ID
+        }
+    """
+
+    #
+    #   group (group ID already fetched in Content.__init__)
+    #
+
+    #
+    #   member
+    #
+    @property
+    def member(self) -> ID:
+        value = self.get('member')
+        if value:
+            return ID(value)
+
+    @member.setter
+    def member(self, value: str):
+        if value:
+            self['member'] = value
+        else:
+            self.pop('member')
+
+    #
+    #   Factories
+    #
     @classmethod
     def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryContent:
         content = {

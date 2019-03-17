@@ -40,15 +40,51 @@ from mkm import PrivateKey
 
 
 class BroadcastCommand(CommandContent):
+    """
+        Broadcast Command
+        ~~~~~~~~~~~~~~~~~
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.broadcast = content['broadcast']
-        if 'traces' in content:
-            self.traces = content['traces']
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command     : "broadcast", // command name
+            information : {...},       // broadcast information
+            traces      : [...],       // broadcast traces
+        }
+    """
+
+    #
+    #   broadcast information
+    #
+    @property
+    def information(self) -> dict:
+        return self.get('information')
+
+    @information.setter
+    def information(self, value: dict):
+        if value:
+            self['information'] = value
         else:
-            self.traces = []
+            self.pop('information')
 
+    #
+    #   broadcast traces
+    #
+    @property
+    def traces(self) -> list:
+        return self.get('traces')
+
+    @traces.setter
+    def traces(self, value):
+        if value:
+            self['traces'] = value
+        else:
+            self.pop('traces')
+
+    #
+    #   Factories
+    #
     @classmethod
     def broadcast(cls, information: dict, traces: list =None) -> CommandContent:
         """
@@ -62,7 +98,7 @@ class BroadcastCommand(CommandContent):
             'type': MessageType.Command,
             'sn': serial_number(),
             'command': 'broadcast',
-            'broadcast': information,
+            'information': information,
         }
         if traces:
             content['traces'] = traces

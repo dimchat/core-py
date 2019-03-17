@@ -64,7 +64,7 @@ class KeyStore:
                 # cipher key for group
                 return self.keys_for_groups.get(group)
 
-    def save_key(self, key: dict, sender: str=None, receiver: str=None, group: str=None):
+    def retain_cipher_key(self, key: dict, sender: str=None, receiver: str=None, group: str=None):
         if group is None:
             # personal message
             if sender:

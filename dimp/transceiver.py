@@ -94,7 +94,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         pwd = SymmetricKey(dictionary)
         if pwd:
             # save the new key into local cache for reuse
-            self.key_store.save_key(key=pwd, sender=sender, group=group)
+            self.key_store.retain_cipher_key(key=pwd, sender=sender, group=group)
         return pwd
 
     def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
@@ -139,7 +139,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             if key is None:
                 # create a new key & save it into the Key Store
                 key = SymmetricKey.generate({'algorithm': 'AES'})
-                self.key_store.save_key(key, group=group)
+                self.key_store.retain_cipher_key(key, group=group)
             grp = self.barrack.group_create(identifier=group)
             members = grp.members
             s_msg = msg.encrypt(password=key, members=members)
@@ -149,7 +149,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             if key is None:
                 # create a new key & save it into the Key Store
                 key = SymmetricKey.generate({'algorithm': 'AES'})
-                self.key_store.save_key(key, group=group)
+                self.key_store.retain_cipher_key(key, group=group)
             s_msg = msg.encrypt(password=key)
         # 2. sign
         s_msg.delegate = self
@@ -168,7 +168,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 raise LookupError('failed to get meta for sender: %s' % sender)
             meta = Meta(meta)
             if meta.match_identifier(identifier=sender):
-                self.barrack.save_meta(meta=meta, identifier=sender)
+                self.barrack.retain_meta(meta=meta, identifier=sender)
             else:
                 raise ValueError('meta not match %s, %s' % (sender, meta))
         # 1. verify 'data' with 'signature'
