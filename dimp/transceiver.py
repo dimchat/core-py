@@ -77,24 +77,35 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     #
     #   ISecureMessageDelegate
     #
-    def message_decrypt_key(self, msg: SecureMessage,
-                            key: bytes, sender: str, receiver: str, group: str = None) -> dict:
+    def message_decrypt_key(self, msg: SecureMessage, key: bytes, sender: str, receiver: str, group: str=None) -> dict:
+        sender = ID(sender)
+        receiver = ID(receiver)
+        if group:
+            group = ID(group)
         if key is None:
             # the message contains no key, try reuse a key from local cache
-            return self.key_store.cipher_key(sender=sender, group=group)
+            if group:
+                return self.key_store.cipher_key(sender=sender, receiver=group)
+            else:
+                return self.key_store.cipher_key(sender=sender, receiver=receiver)
         # decrypt it with receiver's private key
-        identifier = ID(receiver)
-        if identifier == self.identifier:
+        if receiver == self.identifier:
             sk = self.private_key
         else:
             # get private key from database
-            sk = self.barrack.private_key(identifier=identifier)
+            sk = self.barrack.private_key(identifier=receiver)
+        if sk is None:
+            raise LookupError('failed to get private key for %s' % receiver)
         data = sk.decrypt(data=key)
+        if data is None:
+            raise ValueError('failed to decrypt symmetric key: %s for %s' % (key, receiver))
         dictionary = json_dict(data)
         pwd = SymmetricKey(dictionary)
-        if pwd:
-            # save the new key into local cache for reuse
-            self.key_store.retain_cipher_key(key=pwd, sender=sender, group=group)
+        # save the new key into local cache for reuse
+        if group:
+            self.key_store.cache_cipher_key(key=pwd, sender=sender, receiver=group)
+        else:
+            self.key_store.cache_cipher_key(key=pwd, sender=sender, receiver=receiver)
         return pwd
 
     def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
@@ -124,6 +135,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     #   Conveniences
     #
     def encrypt_sign(self, msg: InstantMessage) -> ReliableMessage:
+        sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
         group = msg.content.group
         if group:
@@ -135,21 +147,12 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             msg.delegate = self
         if group:
             # group message
-            key = self.key_store.cipher_key(group=group)
-            if key is None:
-                # create a new key & save it into the Key Store
-                key = SymmetricKey.generate({'algorithm': 'AES'})
-                self.key_store.retain_cipher_key(key, group=group)
             grp = self.barrack.group_create(identifier=group)
-            members = grp.members
-            s_msg = msg.encrypt(password=key, members=members)
+            key = self.key_store.cipher_key(sender=sender, receiver=group)
+            s_msg = msg.encrypt(password=key, members=grp.members)
         else:
             # personal message
-            key = self.key_store.cipher_key(receiver=receiver)
-            if key is None:
-                # create a new key & save it into the Key Store
-                key = SymmetricKey.generate({'algorithm': 'AES'})
-                self.key_store.retain_cipher_key(key, group=group)
+            key = self.key_store.cipher_key(sender=sender, receiver=receiver)
             s_msg = msg.encrypt(password=key)
         # 2. sign
         s_msg.delegate = self
@@ -168,7 +171,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 raise LookupError('failed to get meta for sender: %s' % sender)
             meta = Meta(meta)
             if meta.match_identifier(identifier=sender):
-                self.barrack.retain_meta(meta=meta, identifier=sender)
+                self.barrack.cache_meta(meta=meta, identifier=sender)
             else:
                 raise ValueError('meta not match %s, %s' % (sender, meta))
         # 1. verify 'data' with 'signature'

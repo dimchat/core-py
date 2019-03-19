@@ -51,59 +51,49 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
 
     # meta
     def meta(self, identifier: ID) -> Meta:
-        key = str(identifier.address)
-        return self.metas.get(key)
+        return self.metas.get(str(identifier.address))
 
-    def retain_meta(self, meta: Meta, identifier: ID) -> bool:
+    def cache_meta(self, meta: Meta, identifier: ID) -> bool:
         if meta.match_identifier(identifier):
-            key = str(identifier.address)
-            self.metas[key] = meta
+            self.metas[str(identifier.address)] = meta
             return True
         else:
             return False
 
     # profile
     def profile(self, identifier: ID) -> dict:
-        key = str(identifier.address)
-        return self.profiles.get(key)
+        return self.profiles.get(str(identifier.address))
 
-    def retain_profile(self, profile: dict, identifier: ID) -> bool:
+    def cache_profile(self, profile: dict, identifier: ID) -> bool:
         if profile is not None:
-            key = str(identifier.address)
-            self.profiles[key] = profile
+            self.profiles[str(identifier.address)] = profile
             return True
         else:
             return False
 
     # private key
     def private_key(self, identifier: ID) -> PrivateKey:
-        key = str(identifier.address)
-        return self.private_keys.get(key)
+        return self.private_keys.get(str(identifier.address))
 
-    def retain_private_key(self, private_key: PrivateKey, identifier: ID):
-        key = str(identifier.address)
-        self.private_keys[key] = private_key
+    def cache_private_key(self, private_key: PrivateKey, identifier: ID):
+        self.private_keys[str(identifier.address)] = private_key
 
     # account
     def account(self, identifier: ID) -> Account:
-        key = str(identifier)
-        return self.accounts.get(key)
+        return self.accounts.get(str(identifier))
 
-    def retain_account(self, account: Account):
-        key = str(account.identifier)
-        self.accounts[key] = account
+    def cache_account(self, account: Account):
+        self.accounts[str(account.identifier)] = account
         # delegate
         if account.delegate is None:
             account.delegate = self
 
     # group
     def group(self, identifier: ID) -> Group:
-        key = str(identifier)
-        return self.groups.get(key)
+        return self.groups.get(str(identifier))
 
-    def retain_group(self, group: Group):
-        key = str(group.identifier)
-        self.groups[key] = group
+    def cache_group(self, group: Group):
+        self.groups[str(group.identifier)] = group
         # delegate
         if group.delegate is None:
             group.delegate = self
@@ -138,7 +128,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
             return entity
         # create
         entity = Account(identifier=identifier)
-        self.retain_account(entity)
+        self.cache_account(entity)
         return entity
 
     #
@@ -150,7 +140,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
             return entity
         # create
         entity = Group(identifier=identifier)
-        self.retain_group(entity)
+        self.cache_group(entity)
         return entity
 
     def group_add_member(self, group: Group, member: ID) -> bool:

@@ -61,10 +61,11 @@ class Station(Account):
         # host
         host = station['host']
         # port
-        if 'port' in station:
-            port = int(station['port'])
-        else:
+        port = station.get('port')
+        if port is None:
             port = 9394
+        else:
+            port = int(port)
         # Certificate Authority
         if 'CA' in station['CA']:
             certificate = CertificateAuthority(station['CA'])

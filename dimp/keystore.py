@@ -30,6 +30,8 @@
     Manage keys for conversations
 """
 
+from mkm import ID, SymmetricKey
+
 
 class KeyStore:
 
@@ -39,50 +41,30 @@ class KeyStore:
         self.user = None
 
         # memory cache
-        self.keys_for_accounts = {}
-        self.keys_from_accounts = {}
-        self.keys_for_groups = {}
-        self.tables_from_groups = {}
+        self.key_table = {}
+        self.dirty = False
 
-    def cipher_key(self, sender: str=None, receiver: str=None, group: str=None) -> dict:
-        if group is None:
-            # personal message
-            if sender:
-                # cipher key from contact
-                return self.keys_from_accounts.get(sender)
-            elif receiver:
-                # cipher key for contact
-                return self.keys_for_accounts.get(receiver)
-        else:
-            # group message
-            if sender:
-                # cipher key from group member(sender)
-                table = self.tables_from_groups.get(group)
-                if table:
-                    return table.get(sender)
-            else:
-                # cipher key for group
-                return self.keys_for_groups.get(group)
+    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+        key_map = self.key_table.get(str(sender.address))
+        if key_map:
+            return key_map.get(str(receiver.address))
 
-    def retain_cipher_key(self, key: dict, sender: str=None, receiver: str=None, group: str=None):
-        if group is None:
-            # personal message
-            if sender:
-                # cipher key from contact
-                self.keys_from_accounts[sender] = key
-            elif receiver:
-                # cipher key for contact
-                self.keys_for_accounts[receiver] = key
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        key_map = self.key_table.get(str(sender.address))
+        if key_map is None:
+            key_map = {}
+            self.key_table[str(sender.address)] = key_map
+        if key:
+            key_map[str(receiver.address)] = key
+            self.dirty = True
         else:
-            # group message
-            if sender:
-                # cipher key from group member(sender)
-                table = self.tables_from_groups.get(group)
-                if table:
-                    table[sender] = key
-                else:
-                    table = {sender: key}
-                self.tables_from_groups[group] = table
-            else:
-                # cipher key for group
-                self.keys_for_groups[group] = key
+            raise ValueError('cipher key cannot be empty')
+
+    def flush(self):
+        if self.dirty:
+            # write key table to persistent storage
+            pass
+
+    def reload(self):
+        # load key table from persistent storage
+        pass
