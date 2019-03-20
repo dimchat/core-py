@@ -30,7 +30,7 @@
     Delegate to process message transforming
 """
 
-from dkd.transform import json_dict, json_str
+import json
 
 from dkd import MessageType, Content, ForwardContent
 from dkd import InstantMessage, SecureMessage, ReliableMessage
@@ -66,13 +66,13 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     def message_encrypt_key(self, msg: InstantMessage, key: dict, receiver: str) -> bytes:
         contact = self.barrack.account_create(identifier=ID(receiver))
         pk = contact.publicKey
-        json = json_str(key)
-        return pk.encrypt(plaintext=json.encode('utf-8'))
+        string = json.dumps(key)
+        return pk.encrypt(plaintext=string.encode('utf-8'))
 
     def message_encrypt_content(self, msg: InstantMessage, content: Content, key: dict) -> bytes:
         password = SymmetricKey(key)
-        json = json_str(content)
-        return password.encrypt(plaintext=json.encode('utf-8'))
+        string = json.dumps(content)
+        return password.encrypt(plaintext=string.encode('utf-8'))
 
     #
     #   ISecureMessageDelegate
@@ -99,7 +99,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         data = sk.decrypt(data=key)
         if data is None:
             raise ValueError('failed to decrypt symmetric key: %s for %s' % (key, receiver))
-        dictionary = json_dict(data)
+        dictionary = json.loads(data)
         pwd = SymmetricKey(dictionary)
         # save the new key into local cache for reuse
         if group:
@@ -111,7 +111,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
         pwd = SymmetricKey(key)
         plaintext = pwd.decrypt(data)
-        dictionary = json_dict(plaintext)
+        dictionary = json.loads(plaintext)
         return Content(dictionary)
 
     def message_sign(self, msg: SecureMessage, data: bytes, sender: str) -> bytes:

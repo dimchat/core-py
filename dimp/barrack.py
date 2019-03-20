@@ -51,49 +51,49 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
 
     # meta
     def meta(self, identifier: ID) -> Meta:
-        return self.metas.get(str(identifier.address))
+        return self.metas.get(identifier.address)
 
     def cache_meta(self, meta: Meta, identifier: ID) -> bool:
         if meta.match_identifier(identifier):
-            self.metas[str(identifier.address)] = meta
+            self.metas[identifier.address] = meta
             return True
         else:
             return False
 
     # profile
     def profile(self, identifier: ID) -> dict:
-        return self.profiles.get(str(identifier.address))
+        return self.profiles.get(identifier.address)
 
     def cache_profile(self, profile: dict, identifier: ID) -> bool:
         if profile is not None:
-            self.profiles[str(identifier.address)] = profile
+            self.profiles[identifier.address] = profile
             return True
         else:
             return False
 
     # private key
     def private_key(self, identifier: ID) -> PrivateKey:
-        return self.private_keys.get(str(identifier.address))
+        return self.private_keys.get(identifier.address)
 
     def cache_private_key(self, private_key: PrivateKey, identifier: ID):
-        self.private_keys[str(identifier.address)] = private_key
+        self.private_keys[identifier.address] = private_key
 
     # account
     def account(self, identifier: ID) -> Account:
-        return self.accounts.get(str(identifier))
+        return self.accounts.get(identifier)
 
     def cache_account(self, account: Account):
-        self.accounts[str(account.identifier)] = account
+        self.accounts[account.identifier] = account
         # delegate
         if account.delegate is None:
             account.delegate = self
 
     # group
     def group(self, identifier: ID) -> Group:
-        return self.groups.get(str(identifier))
+        return self.groups.get(identifier)
 
     def cache_group(self, group: Group):
-        self.groups[str(group.identifier)] = group
+        self.groups[group.identifier] = group
         # delegate
         if group.delegate is None:
             group.delegate = self

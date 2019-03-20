@@ -30,8 +30,9 @@
     Certificates for Stations and Service Providers
 """
 
+import json
+
 from dkd.utils import base64_decode
-from dkd.transform import json_dict
 
 from mkm import PublicKey
 
@@ -95,7 +96,7 @@ class CertificateAuthority(dict):
         else:
             self.sn = ca['sn']
         # info (JsON string)
-        self.info = CAData(json_dict(ca['info']))
+        self.info = CAData(json.loads(ca['info']))
         # signature of info with Issuer's Public Key
         self.signature = base64_decode(ca['signature'])
         # extensions (dict)

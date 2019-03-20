@@ -8,15 +8,13 @@
     Unit test for DIMP
 """
 
+import json
 import unittest
 
 from mkm.immortals import *
 from mkm.utils import *
-from dkd.transform import json_str, json_dict
 
 import dimp
-
-from tests.data import *
 
 
 def print_data(data: dimp.CAData):
@@ -61,10 +59,10 @@ def print_msg(msg: dimp.Message):
 key_store = dimp.KeyStore()
 
 barrack = dimp.Barrack()
-barrack.retain_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
-barrack.retain_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
-barrack.retain_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
-barrack.retain_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
+barrack.cache_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
+barrack.cache_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
+barrack.cache_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
+barrack.cache_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
 
 transceiver = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
                                barrack=barrack, key_store=key_store)
@@ -131,7 +129,7 @@ class CATestCase(unittest.TestCase):
         common['info'] = dimp.CAData(info)
         print_data(common['info'])
 
-        string = json_str(common['info']).encode('utf-8')
+        string = json.dumps(common['info']).encode('utf-8')
         signature = moki.privateKey.sign(string)
         ca = {
             'version': 1,
@@ -224,7 +222,6 @@ class TransceiverTestCase(unittest.TestCase):
         self.assertEqual(content, TransceiverTestCase.content)
 
 
-
 class CommandTestCase(unittest.TestCase):
 
     def test_group(self):
@@ -267,7 +264,6 @@ class CommandTestCase(unittest.TestCase):
         print('cmd.meta: %s' % cmd.meta)
         self.assertEqual(cmd.meta, moki_meta)
 
-
     def test_profile(self):
         print('\n---------------- %s' % self)
         id1 = dimp.ID(moki_id)
@@ -281,11 +277,17 @@ class CommandTestCase(unittest.TestCase):
         print('cmd.profile: %s' % cmd.profile)
         self.assertEqual(cmd.profile, profile)
 
-        print('profile: %s\n-> %s' %(cmd['profile'], cmd.profile))
-        print('signature: %s\n-> %s' %(cmd['signature'], cmd.signature))
+        print('profile: %s\n-> %s' % (cmd['profile'], cmd.profile))
+        print('signature: %s\n-> %s' % (cmd['signature'], cmd.signature))
 
         string = cmd['profile']
         self.assertTrue(pk1.verify(string.encode('utf-8'), cmd.signature))
+
+    def test_private_key(self):
+        print('\n---------------- %s' % self)
+        id1 = dimp.ID(moki_id)
+        sk1 = barrack.private_key(id1)
+        print(sk1)
 
 
 if __name__ == '__main__':

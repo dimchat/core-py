@@ -45,17 +45,17 @@ class KeyStore:
         self.dirty = False
 
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        key_map = self.key_table.get(str(sender.address))
+        key_map = self.key_table.get(sender.address)
         if key_map:
-            return key_map.get(str(receiver.address))
+            return key_map.get(receiver.address)
 
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        key_map = self.key_table.get(str(sender.address))
+        key_map = self.key_table.get(sender.address)
         if key_map is None:
             key_map = {}
-            self.key_table[str(sender.address)] = key_map
+            self.key_table[sender.address] = key_map
         if key:
-            key_map[str(receiver.address)] = key
+            key_map[receiver.address] = key
             self.dirty = True
         else:
             raise ValueError('cipher key cannot be empty')

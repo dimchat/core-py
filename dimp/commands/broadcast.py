@@ -30,8 +30,9 @@
     Broadcast information to the whole network (e.g.: User Login Information)
 """
 
+import json
+
 from dkd.utils import base64_encode
-from dkd.transform import json_str
 from dkd.contents import serial_number
 
 from dkd import MessageType, CommandContent
@@ -127,7 +128,7 @@ class BroadcastCommand(CommandContent):
             # 'terminal': 'DEVICE_ID',
             # 'user_agent': 'USER_AGENT',
         }
-        data = json_str(connection).encode('utf-8')
+        data = json.dumps(connection).encode('utf-8')
         signature = private_key.sign(data)
         info = {
             'login': data,

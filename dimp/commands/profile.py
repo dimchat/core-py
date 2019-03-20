@@ -31,8 +31,9 @@
     2. contains 'profile' and 'signature' (must match), means reply
 """
 
+import json
+
 from dkd.utils import base64_encode, base64_decode
-from dkd.transform import json_dict, json_str
 from dkd.contents import serial_number
 
 from dkd import MessageType, CommandContent
@@ -82,12 +83,12 @@ class ProfileCommand(CommandContent):
     def profile(self) -> dict:
         value = self.get('profile')
         if value:
-            return json_dict(value)
+            return json.loads(value)
 
     @profile.setter
     def profile(self, value: dict):
         if value:
-            self['profile'] = json_str(value)
+            self['profile'] = json.dumps(value)
         else:
             self.pop('profile')
 
@@ -139,7 +140,7 @@ class ProfileCommand(CommandContent):
                 raise AssertionError('ID not match:', profile)
         else:
             profile['ID'] = identifier
-        string = json_str(profile)
+        string = json.dumps(profile)
         sig = private_key.sign(string.encode('utf-8'))
         sig = base64_encode(sig)
         return cls.response(identifier=identifier, profile=string, signature=sig)
