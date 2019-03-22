@@ -75,28 +75,35 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
     def private_key(self, identifier: ID) -> PrivateKey:
         return self.private_keys.get(identifier.address)
 
-    def cache_private_key(self, private_key: PrivateKey, identifier: ID):
-        self.private_keys[identifier.address] = private_key
+    def cache_private_key(self, private_key: PrivateKey, identifier: ID) -> bool:
+        meta = self.meta(identifier=identifier)
+        if meta and meta.key.match(private_key=private_key):
+            self.private_keys[identifier.address] = private_key
+            return True
+        else:
+            return False
 
     # account
     def account(self, identifier: ID) -> Account:
         return self.accounts.get(identifier)
 
-    def cache_account(self, account: Account):
+    def cache_account(self, account: Account) -> bool:
         self.accounts[account.identifier] = account
         # delegate
         if account.delegate is None:
             account.delegate = self
+        return True
 
     # group
     def group(self, identifier: ID) -> Group:
         return self.groups.get(identifier)
 
-    def cache_group(self, group: Group):
+    def cache_group(self, group: Group) -> bool:
         self.groups[group.identifier] = group
         # delegate
         if group.delegate is None:
             group.delegate = self
+        return True
 
     #
     #   IEntityDataSource

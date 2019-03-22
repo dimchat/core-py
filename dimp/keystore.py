@@ -49,7 +49,7 @@ class KeyStore:
         if key_map:
             return key_map.get(receiver.address)
 
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
         key_map = self.key_table.get(sender.address)
         if key_map is None:
             key_map = {}
@@ -57,6 +57,7 @@ class KeyStore:
         if key:
             key_map[receiver.address] = key
             self.dirty = True
+            return True
         else:
             raise ValueError('cipher key cannot be empty')
 
