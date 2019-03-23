@@ -118,7 +118,7 @@ class Barrack(IAccountDelegate, IGroupDelegate, IGroupDataSource):
             if name is not None:
                 return name
             names: list = profile.get('names')
-            if len(names) > 0:
+            if names and len(names) > 0:
                 return names[0]
         # profile not found
         if entity.identifier.name:
