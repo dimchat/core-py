@@ -24,21 +24,55 @@
 # ==============================================================================
 
 """
-    Commands
-    ~~~~~~~~
+    Meta Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~
 
-    Extents Commands for Message Content
+    1. contains 'ID' only, means query meta for ID
+    2. contains 'meta' (must match), means reply
 """
 
-from .handshake import HandshakeCommand
-from .meta import MetaCommand
-from .profile import ProfileCommand
-from .receipt import ReceiptCommand
-from .broadcast import BroadcastCommand
-from .group import GroupCommand
+from dkd.contents import serial_number
+
+from dkd import MessageType, CommandContent
 
 
-__all__ = [
-    'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
-    'BroadcastCommand', 'GroupCommand',
-]
+class ReceiptCommand(CommandContent):
+    """
+        Receipt Command
+        ~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "receipt", // command name
+            message : "...",
+        }
+    """
+
+    #
+    #   message
+    #
+    @property
+    def message(self) -> str:
+        return self.get('message')
+
+    @message.setter
+    def message(self, value: str):
+        if value:
+            self['message'] = value
+        else:
+            self.pop('message')
+
+    #
+    #   Factory
+    #
+    @classmethod
+    def receipt(cls, message: str) -> CommandContent:
+        content = {
+            'type': MessageType.Command,
+            'sn': serial_number(),
+            'command': 'receipt',
+            'message': message,
+        }
+        return ReceiptCommand(content)

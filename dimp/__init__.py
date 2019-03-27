@@ -45,7 +45,7 @@ from .station import ServiceProvider, Station
 from .barrack import Barrack
 from .keystore import KeyStore
 from .transceiver import Transceiver
-from .commands import HandshakeCommand, MetaCommand, ProfileCommand
+from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand
 from .commands import BroadcastCommand, GroupCommand
 
 name = "DIMP"
@@ -75,6 +75,6 @@ __all__ = [
     'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
     'ServiceProvider', 'Station',
     'Barrack', 'KeyStore', 'Transceiver',
-    'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
+    'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'BroadcastCommand', 'GroupCommand',
 ]

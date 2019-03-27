@@ -50,10 +50,25 @@ class BroadcastCommand(CommandContent):
             sn   : 123,
 
             command     : "broadcast", // command name
+            title       : "...",       // broadcast title
             information : {...},       // broadcast information
             traces      : [...],       // broadcast traces
         }
     """
+
+    #
+    #   broadcast title
+    #
+    @property
+    def title(self) -> str:
+        return self.get('title')
+
+    @title.setter
+    def title(self, value: str):
+        if value:
+            self['title'] = value
+        else:
+            self.pop('title')
 
     #
     #   broadcast information
@@ -87,20 +102,23 @@ class BroadcastCommand(CommandContent):
     #   Factories
     #
     @classmethod
-    def broadcast(cls, information: dict, traces: list =None) -> CommandContent:
+    def broadcast(cls, title: str, information: dict=None, traces: list =None) -> CommandContent:
         """
         Create broadcast command for information with traces
 
+        :param title:       Broadcast title
         :param information: Dictionary to broadcast
-        :param traces: The stations on the way
+        :param traces:      The stations on the way
         :return: BroadcastCommand object
         """
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
             'command': 'broadcast',
-            'information': information,
+            'title': title,
         }
+        if information:
+            content['information'] = information
         if traces:
             content['traces'] = traces
         return BroadcastCommand(content)
@@ -134,4 +152,4 @@ class BroadcastCommand(CommandContent):
             'login': data,
             'signature': base64_encode(signature),
         }
-        return cls.broadcast(information=info)
+        return cls.broadcast(title='login', information=info)
