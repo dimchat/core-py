@@ -11,13 +11,17 @@
 import json
 import unittest
 
-from mkm.immortals import *
 from mkm.utils import *
 
-import dimp
+from dimp.barrack import barrack
+from dimp.keystore import keystore
+from dimp.transceiver import transceiver
+
+from tests.immortals import *
+from tests.database import *
 
 
-def print_data(data: dimp.CAData):
+def print_data(data: CAData):
     clazz = data.__class__.__name__
     print('<%s>' % clazz)
     print('    <issuer>%s</issuer>' % data.issuer)
@@ -27,7 +31,7 @@ def print_data(data: dimp.CAData):
     print('</%s>' % clazz)
 
 
-def print_ca(ca: dimp.CertificateAuthority):
+def print_ca(ca: CertificateAuthority):
     clazz = ca.__class__.__name__
     print('<%s>' % clazz)
     print('    <version>%d</version>' % ca.version)
@@ -37,35 +41,31 @@ def print_ca(ca: dimp.CertificateAuthority):
     print('</%s>' % clazz)
 
 
-def print_msg(msg: dimp.Message):
+def print_msg(msg: Message):
     clazz = msg.__class__.__name__
     sender = msg.envelope.sender
     receiver = msg.envelope.receiver
     time = msg.envelope.time
     print('<%s sender="%s" receiver="%s" time=%d>' % (clazz, sender, receiver, time))
-    if isinstance(msg, dimp.InstantMessage):
+    if isinstance(msg, InstantMessage):
         print('    <content>%s</content>' % msg['content'])
-    if isinstance(msg, dimp.SecureMessage):
+    if isinstance(msg, SecureMessage):
         print('    <data>%s</data>' % msg['data'])
         if 'key' in msg:
             print('    <key>%s</key>' % msg['key'])
         if 'keys' in msg:
             print('    <keys>%s</keys>' % msg['keys'])
-    if isinstance(msg, dimp.ReliableMessage):
+    if isinstance(msg, ReliableMessage):
         print('    <signature>%s</signature>' % msg['signature'])
     print('</%s>' % clazz)
 
 
-key_store = dimp.KeyStore()
+barrack.cache_meta(meta=Meta(moki_meta), identifier=ID(moki_id))
+barrack.cache_meta(meta=Meta(hulk_meta), identifier=ID(hulk_id))
 
-barrack = dimp.Barrack()
-barrack.cache_meta(meta=dimp.Meta(moki_meta), identifier=dimp.ID(moki_id))
-barrack.cache_meta(meta=dimp.Meta(hulk_meta), identifier=dimp.ID(hulk_id))
-barrack.cache_private_key(private_key=dimp.PrivateKey(moki_sk), identifier=dimp.ID(moki_id))
-barrack.cache_private_key(private_key=dimp.PrivateKey(hulk_sk), identifier=dimp.ID(hulk_id))
+database.cache_private_key(private_key=PrivateKey(moki_sk), identifier=ID(moki_id))
+database.cache_private_key(private_key=PrivateKey(hulk_sk), identifier=ID(hulk_id))
 
-transceiver = dimp.Transceiver(identifier=moki.identifier, private_key=moki.privateKey,
-                               barrack=barrack, key_store=key_store)
 moki.delegate = barrack
 
 common = {}
@@ -82,7 +82,7 @@ class CATestCase(unittest.TestCase):
             'CN': 'dim.chat',
         }
 
-        common['issuer'] = dimp.CASubject(issuer)
+        common['issuer'] = CASubject(issuer)
         print('issuer: ', common['issuer'])
         self.assertEqual(common['issuer'].organization, issuer['O'])
 
@@ -96,7 +96,7 @@ class CATestCase(unittest.TestCase):
             'CN': '127.0.0.1',
         }
 
-        common['subject'] = dimp.CASubject(subject)
+        common['subject'] = CASubject(subject)
         print('subject: ', common['subject'])
         self.assertEqual(common['subject'].organization, subject['O'])
 
@@ -107,14 +107,14 @@ class CATestCase(unittest.TestCase):
             'NotBefore': 123,
             'NotAfter': 456,
         }
-        common['validity'] = dimp.CAValidity(validity)
+        common['validity'] = CAValidity(validity)
         print('validity: ', common['validity'])
 
     def test3_key(self):
         print('\n---------------- %s' % self)
 
         key = moki_pk
-        common['key'] = dimp.PublicKey(key)
+        common['key'] = PublicKey(key)
         print('pubic key: ', common['key'])
 
     def test4_ca(self):
@@ -126,22 +126,19 @@ class CATestCase(unittest.TestCase):
             'Subject': common['subject'],
             'Key': common['key'],
         }
-        common['info'] = dimp.CAData(info)
+        common['info'] = CAData(info)
         print_data(common['info'])
 
         string = json.dumps(common['info']).encode('utf-8')
-        signature = moki.privateKey.sign(string)
+        signature = moki.sign(string)
         ca = {
             'version': 1,
             'sn': 1234567,
             'info': string,
             'signature': base64_encode(signature)
         }
-        common['ca'] = dimp.CertificateAuthority(ca)
+        common['ca'] = CertificateAuthority(ca)
         print_ca(common['ca'])
-
-        moki.delegate = barrack
-        self.assertTrue(common['ca'].verify(moki.publicKey))
 
 
 class TransceiverTestCase(unittest.TestCase):
@@ -150,29 +147,29 @@ class TransceiverTestCase(unittest.TestCase):
     content = None
     command = None
 
-    i_msg: dimp.InstantMessage = None
-    s_msg: dimp.SecureMessage = None
-    r_msg: dimp.ReliableMessage = None
+    i_msg: InstantMessage = None
+    s_msg: SecureMessage = None
+    r_msg: ReliableMessage = None
 
     @classmethod
     def setUpClass(cls):
         sender = moki_id
         receiver = hulk_id
-        cls.envelope = dimp.Envelope(sender=sender, receiver=receiver)
+        cls.envelope = Envelope.new(sender=sender, receiver=receiver)
         cls.content = None
         cls.command = None
 
     def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        content = dimp.TextContent.new('Hello')
+        content = TextContent.new('Hello')
         print('text content: ', content)
-        self.assertEqual(content.type, dimp.MessageType.Text)
+        self.assertEqual(content.type, MessageType.Text)
         TransceiverTestCase.content = content
 
-        command = dimp.CommandContent.new('handshake')
+        command = CommandContent.new('handshake')
         print('command content: ', command)
-        self.assertEqual(command.type, dimp.MessageType.Command)
+        self.assertEqual(command.type, MessageType.Command)
         TransceiverTestCase.command = command
 
     def test_2_instant(self):
@@ -183,14 +180,14 @@ class TransceiverTestCase(unittest.TestCase):
         print('content: ', content)
         print('envelope: ', envelope)
 
-        i_msg = dimp.InstantMessage.new(content=content, envelope=envelope)
+        i_msg = InstantMessage.new(content=content, envelope=envelope)
         print_msg(i_msg)
         TransceiverTestCase.i_msg = i_msg
 
     def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        pwd = dimp.SymmetricKey.generate({'algorithm': 'AES'})
+        pwd = SymmetricKey({'algorithm': 'AES'})
         print('password: %s' % pwd)
 
         i_msg = TransceiverTestCase.i_msg
@@ -228,51 +225,51 @@ class CommandTestCase(unittest.TestCase):
         print('\n---------------- %s' % self)
         gid = 'immortals@7WxUCsdaNnr5DyYsVS3Ct6w2TMupBNJVNu'
         mid = 'hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj'
-        cmd = dimp.GroupCommand.invite(group=gid, member=mid)
+        cmd = GroupCommand.invite(group=gid, member=mid)
         print(cmd)
-        cmd = dimp.GroupCommand.expel(group=gid, member=mid)
+        cmd = GroupCommand.expel(group=gid, member=mid)
         print(cmd)
-        cmd = dimp.GroupCommand.quit(group=gid)
+        cmd = GroupCommand.quit(group=gid)
         print(cmd)
 
     def test_handshake(self):
         print('\n---------------- %s' % self)
 
-        cmd: dimp.HandshakeCommand = dimp.HandshakeCommand.start()
+        cmd: HandshakeCommand = HandshakeCommand.start()
         print(cmd)
 
-        cmd = dimp.HandshakeCommand.again(session='1234567890')
+        cmd = HandshakeCommand.again(session='1234567890')
         print(cmd)
         self.assertEqual(cmd.message, 'DIM?')
 
-        cmd = dimp.HandshakeCommand.restart(session='1234567890')
+        cmd = HandshakeCommand.restart(session='1234567890')
         print(cmd)
 
-        cmd = dimp.HandshakeCommand.accepted()
+        cmd = HandshakeCommand.accepted()
         print(cmd)
         self.assertEqual(cmd.message, 'DIM!')
 
     def test_meta(self):
         print('\n---------------- %s' % self)
 
-        cmd: dimp.MetaCommand = dimp.MetaCommand.query(identifier=moki_id)
+        cmd: MetaCommand = MetaCommand.query(identifier=moki_id)
         print(cmd)
         self.assertEqual(cmd.identifier, moki_id)
 
-        cmd = dimp.MetaCommand.response(identifier=moki_id, meta=moki_meta)
+        cmd = MetaCommand.response(identifier=moki_id, meta=moki_meta)
         print(cmd)
         print('cmd.meta: %s' % cmd.meta)
         self.assertEqual(cmd.meta, moki_meta)
 
     def test_profile(self):
         print('\n---------------- %s' % self)
-        id1 = dimp.ID(moki_id)
-        sk1 = dimp.PrivateKey(moki_sk)
-        pk1 = sk1.publicKey
+        id1 = ID(moki_id)
+        sk1 = PrivateKey(moki_sk)
+        pk1 = sk1.public_key
         profile = {
             'names': ['moky', 'albert']
         }
-        cmd: dimp.ProfileCommand = dimp.ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
+        cmd: ProfileCommand = ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
         print(cmd)
         print('cmd.profile: %s' % cmd.profile)
         self.assertEqual(cmd.profile, profile)
@@ -282,12 +279,6 @@ class CommandTestCase(unittest.TestCase):
 
         string = cmd['profile']
         self.assertTrue(pk1.verify(string.encode('utf-8'), cmd.signature))
-
-    def test_private_key(self):
-        print('\n---------------- %s' % self)
-        id1 = dimp.ID(moki_id)
-        sk1 = barrack.private_key(id1)
-        print(sk1)
 
 
 if __name__ == '__main__':

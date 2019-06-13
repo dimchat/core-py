@@ -102,16 +102,3 @@ class CertificateAuthority(dict):
         # extensions (dict)
         if 'extensions' in ca:
             self.extensions = ca['extensions']
-
-    def verify(self, key: PublicKey) -> bool:
-        """
-        Verify the CA info with the Issuer's Public Key
-
-        :param key: Issuer's Public Key
-        :return: True/False
-        """
-
-        # TODO: check validity
-
-        data = self['info']
-        return key.verify(data, self.signature)

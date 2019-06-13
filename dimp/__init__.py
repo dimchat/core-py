@@ -29,24 +29,26 @@
 # ==============================================================================
 
 from mkm import SymmetricKey, PrivateKey, PublicKey
-from mkm import NetworkID, Address, ID, Meta
+from mkm import NetworkID, Address, ID, Meta, Profile
 from mkm import Entity, IEntityDataSource
-from mkm import Account, User, IAccountDelegate, IUserDelegate, IUserDataSource
-from mkm import Group, IGroupDelegate, IGroupDataSource
+from mkm import Account, User, IUserDataSource
+from mkm import Group, IGroupDataSource
 
-from dkd import MessageType, Content
-from dkd import TextContent, CommandContent, HistoryContent, ForwardContent
+from dkd import Content
 from dkd import Envelope, Message, IMessageDelegate
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
-from .station import ServiceProvider, Station
-from .barrack import Barrack
-from .keystore import KeyStore
-from .transceiver import Transceiver
+from .protocol import MessageType, TextContent, CommandContent, HistoryContent, ForwardContent
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand
 from .commands import BroadcastCommand, GroupCommand
+
+from .barrack import Barrack, IBarrackDelegate
+from .keystore import KeyStore
+from .transceiver import Transceiver, ITransceiverDelegate, ICallback, ICompletionHandler
+
+from .station import ServiceProvider, Station
+from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
 
 name = "DIMP"
 
@@ -58,23 +60,28 @@ __all__ = [
     'PrivateKey', 'PublicKey',
 
     # MingKeMing
-    'NetworkID', 'Address', 'ID', 'Meta',
+    'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
     'Entity', 'IEntityDataSource',
-    'Account', 'User', 'IAccountDelegate', 'IUserDelegate', 'IUserDataSource',
-    'Group', 'IGroupDelegate', 'IGroupDataSource',
+    'Account', 'User', 'IUserDataSource',
+    'Group', 'IGroupDataSource',
 
     # DaoKeDao
-    'MessageType', 'Content',
-    'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
+    'Content',
     'Envelope', 'Message', 'IMessageDelegate',
     # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
     # DIMP
-    'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
-    'ServiceProvider', 'Station',
-    'Barrack', 'KeyStore', 'Transceiver',
+    'MessageType',
+    'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'BroadcastCommand', 'GroupCommand',
+
+    'Barrack', 'IBarrackDelegate',
+    'KeyStore',
+    'Transceiver', 'ITransceiverDelegate', 'ICallback', 'ICompletionHandler',
+
+    'ServiceProvider', 'Station',
+    'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
 ]

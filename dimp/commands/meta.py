@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -31,11 +36,9 @@
     2. contains 'meta' (must match), means reply
 """
 
-from dkd.contents import serial_number
-
-from dkd import MessageType, CommandContent
-
 from mkm import ID, Meta
+
+from ..protocol import MessageType, CommandContent
 
 
 class MetaCommand(CommandContent):
@@ -92,7 +95,6 @@ class MetaCommand(CommandContent):
     def query(cls, identifier: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'meta',
             'ID': identifier,
         }
@@ -102,7 +104,6 @@ class MetaCommand(CommandContent):
     def response(cls, identifier: str, meta: dict) -> CommandContent:
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'meta',
             'ID': identifier,
             'meta': meta,

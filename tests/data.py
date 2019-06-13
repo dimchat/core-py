@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from dkd import *
+
 text_content = {
     'sn': 412968873,
     'text': 'Hey guy!',
     'type': 1
 }
+text_content = TextContent(text_content)
 
 reliable_message = {
     'sender': "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk",
@@ -22,3 +25,4 @@ reliable_message = {
                  "SElp/fYVnm4aSjAJk2vBpARzMT0aRNp/jTFLawmMDuIlgWhBfXvH7bT7"
                  "rDI="
 }
+reliable_message = ReliableMessage(reliable_message)

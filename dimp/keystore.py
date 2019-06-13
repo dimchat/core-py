@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -30,7 +35,7 @@
     Manage keys for conversations
 """
 
-from mkm import ID, SymmetricKey
+from mkm import SymmetricKey, ID, User
 
 
 class KeyStore:
@@ -38,7 +43,7 @@ class KeyStore:
     def __init__(self):
         super().__init__()
         # current user
-        self.user = None
+        self.user: User = None
 
         # memory cache
         self.key_table = {}
@@ -69,3 +74,9 @@ class KeyStore:
     def reload(self):
         # load key table from persistent storage
         pass
+
+
+#
+#  singleton
+#
+keystore = KeyStore()

@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -32,11 +37,9 @@
     3. member quit
 """
 
-from dkd.contents import serial_number
-
-from dkd import MessageType, HistoryContent
-
 from mkm import ID
+
+from ..protocol import MessageType, HistoryContent
 
 
 class GroupCommand(HistoryContent):
@@ -82,7 +85,6 @@ class GroupCommand(HistoryContent):
     def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryContent:
         content = {
             'type': MessageType.History,
-            'sn': serial_number(),
             'command': command,
             'time': time,
             'group': group,

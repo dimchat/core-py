@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -33,13 +38,12 @@
 
 import json
 
-from dkd.utils import base64_encode, base64_decode
-from dkd.contents import serial_number
-
-from dkd import MessageType, CommandContent
-
 from mkm import PrivateKey
 from mkm import ID
+
+from dkd.utils import base64_encode, base64_decode
+
+from ..protocol import MessageType, CommandContent
 
 
 class ProfileCommand(CommandContent):
@@ -51,11 +55,10 @@ class ProfileCommand(CommandContent):
             type : 0x88,
             sn   : 123,
 
-            command   : "profile",  // command name
-            ID        : "{ID}",     // entity ID
-            meta      : {...},      // only for handshaking with new friend
-            profile   : "{...}",    // json(profile); when profile is empty, means query for ID
-            signature : "{BASE64}", // sign(json(profile))
+            command   : "profile", // command name
+            ID        : "{ID}",    // entity ID
+            meta      : {...},     // only for handshaking with new friend
+            profile   : {...}      // when profile is empty, means query for ID
         }
 
     """
@@ -115,7 +118,6 @@ class ProfileCommand(CommandContent):
     def query(cls, identifier: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'profile',
             'ID': identifier,
         }
@@ -125,7 +127,6 @@ class ProfileCommand(CommandContent):
     def response(cls, identifier: str, profile: str, signature: str) -> CommandContent:
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'profile',
             'ID': identifier,
             'profile': profile,

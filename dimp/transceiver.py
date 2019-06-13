@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -31,138 +36,150 @@
 """
 
 import json
+from abc import ABCMeta
 
-from dkd import MessageType, Content, ForwardContent
-from dkd import InstantMessage, SecureMessage, ReliableMessage
+from dkd import Content, InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from mkm import SymmetricKey, PrivateKey
+from mkm import SymmetricKey
 from mkm import Meta, ID
 
-from .keystore import KeyStore
-from .barrack import Barrack
+from .protocol import MessageType, ForwardContent
+from .keystore import keystore
+from .barrack import barrack
+
+
+class ICallback(metaclass=ABCMeta):
+
+    def finished(self, result, error):
+        pass
+
+
+class ICompletionHandler(metaclass=ABCMeta):
+
+    def success(self):
+        pass
+
+    def failed(self, error):
+        pass
 
 
 class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):
 
-    def __init__(self, identifier: ID, private_key: PrivateKey, barrack: Barrack, key_store: KeyStore):
-        """
-
-        :param identifier:  Current account's ID
-        :param private_key: Current account's private key
-        :param barrack:     Factory for getting accounts
-        :param key_store:   Database for getting symmetric keys
-        """
+    def __init__(self):
         super().__init__()
-        self.identifier = identifier
-        self.private_key = private_key
-        # databases
-        self.barrack = barrack
-        self.key_store = key_store
 
-    #
-    #   IInstantMessageDelegate
-    #
-    def message_encrypt_key(self, msg: InstantMessage, key: dict, receiver: str) -> bytes:
-        contact = self.barrack.account_create(identifier=ID(receiver))
-        pk = contact.publicKey
-        string = json.dumps(key)
-        return pk.encrypt(plaintext=string.encode('utf-8'))
+        # delegate
+        self.delegate: ITransceiverDelegate = None
 
-    def message_encrypt_content(self, msg: InstantMessage, content: Content, key: dict) -> bytes:
-        password = SymmetricKey(key)
-        string = json.dumps(content)
-        return password.encrypt(plaintext=string.encode('utf-8'))
+    def send_message(self, msg: InstantMessage, callback: ICallback, split: bool) -> bool:
+        """
+        Send message (secured + certified) to target station
 
-    #
-    #   ISecureMessageDelegate
-    #
-    def message_decrypt_key(self, msg: SecureMessage, key: bytes, sender: str, receiver: str, group: str=None) -> dict:
-        sender = ID(sender)
-        receiver = ID(receiver)
-        if group:
-            group = ID(group)
-        if key is None:
-            # the message contains no key, try reuse a key from local cache
-            if group:
-                return self.key_store.cipher_key(sender=sender, receiver=group)
-            else:
-                return self.key_store.cipher_key(sender=sender, receiver=receiver)
-        # decrypt it with receiver's private key
-        if receiver == self.identifier:
-            sk = self.private_key
+        :param msg:      instant message
+        :param callback: callback function
+        :param split:    if it's a group message, split it before sending out
+        :return:         False on data/delegate error
+        """
+        receiver = ID(msg.envelope.receiver)
+        group = ID(msg.content.group)
+        r_msg = self.encrypt_sign(msg=msg)
+        if r_msg is None:
+            raise AssertionError('failed to encrypt and sign message: %s' % msg)
+        # trying to send out
+        ok = True
+        if split and receiver.type.is_group():
+            members = barrack.group_members(identifier=group)
+            messages = r_msg.split(members=members)
+            for r_msg in messages:
+                # sending group message one by one
+                if not self.__send_message(msg=r_msg, callback=callback):
+                    ok = False
         else:
-            # get private key from database
-            sk = self.barrack.private_key(identifier=receiver)
-        if sk is None:
-            raise LookupError('failed to get private key for %s' % receiver)
-        data = sk.decrypt(data=key)
-        if data is None:
-            raise ValueError('failed to decrypt symmetric key: %s for %s' % (key, receiver))
-        dictionary = json.loads(data)
-        pwd = SymmetricKey(dictionary)
-        # save the new key into local cache for reuse
-        if group:
-            self.key_store.cache_cipher_key(key=pwd, sender=sender, receiver=group)
-        else:
-            self.key_store.cache_cipher_key(key=pwd, sender=sender, receiver=receiver)
-        return pwd
+            ok = self.__send_message(msg=r_msg, callback=callback)
+        # TODO: set iMsg.state = sending/waiting
+        return ok
 
-    def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
-        pwd = SymmetricKey(key)
-        plaintext = pwd.decrypt(data)
-        dictionary = json.loads(plaintext)
-        return Content(dictionary)
+    def __send_message(self, msg: ReliableMessage, callback: ICallback) -> bool:
 
-    def message_sign(self, msg: SecureMessage, data: bytes, sender: str) -> bytes:
-        identifier = ID(sender)
-        if identifier == self.identifier:
-            sk = self.private_key
-        else:
-            # get private key from database
-            sk = self.barrack.private_key(identifier=identifier)
-        return sk.sign(data)
+        class CompletionHandler(ICompletionHandler):
 
-    #
-    #   IReliableMessageDelegate
-    #
-    def message_verify(self, msg: ReliableMessage, data: bytes, signature: bytes, sender: str) -> bool:
-        contact = self.barrack.account_create(identifier=ID(sender))
-        pk = contact.publicKey
-        return pk.verify(data=data, signature=signature)
+            def __init__(self, m: ReliableMessage, cb: ICallback):
+                super().__init__()
+                self.msg = m
+                self.callback = cb
+
+            def success(self):
+                self.callback.finished(result=self.msg, error=None)
+
+            def failed(self, error):
+                self.callback.finished(result=self.msg, error=error)
+
+        data = json.dumps(msg).encode('utf-8')
+        handler = CompletionHandler(m=msg, cb=callback)
+        return self.delegate.send_package(data=data, handler=handler)
 
     #
     #   Conveniences
     #
     def encrypt_sign(self, msg: InstantMessage) -> ReliableMessage:
-        sender = ID(msg.envelope.sender)
-        receiver = ID(msg.envelope.receiver)
-        group = msg.content.group
-        if group:
-            group = ID(group)
-        elif receiver.type.is_group():
-            group = receiver
-        # 1. encrypt 'content' to 'data' for receiver
+        """
+        Pack instant message to reliable message for delivering
+
+        :param msg: instant message
+        :return:    ReliableMessage object
+        """
         if msg.delegate is None:
             msg.delegate = self
-        if group:
+        receiver = ID(msg.envelope.receiver)
+        group = ID(msg.content.group)
+        # if 'group' exists and the 'receiver' is a group ID,
+        # they must be equal
+        if group is None and receiver.type.is_group():
+            group = receiver
+        # 1. encrypt 'content' to 'data' for receiver
+        if group is not None:
             # group message
-            grp = self.barrack.group_create(identifier=group)
-            key = self.key_store.cipher_key(sender=sender, receiver=group)
-            s_msg = msg.encrypt(password=key, members=grp.members)
+            members = []
+            if receiver.type.is_communicator():
+                # split group message
+                members.append(receiver)
+            else:
+                members = barrack.group_members(identifier=group)
+            password = self.__password(receiver=group)
+            s_msg = msg.encrypt(password=password, members=members)
         else:
             # personal message
-            key = self.key_store.cipher_key(sender=sender, receiver=receiver)
-            s_msg = msg.encrypt(password=key)
-        # 2. sign
+            password = self.__password(receiver=receiver)
+            s_msg = msg.encrypt(password=password)
+        # 2. sign 'data' by sender
         s_msg.delegate = self
         return s_msg.sign()
 
-    def verify_decrypt(self, msg: ReliableMessage) -> InstantMessage:
+    def __password(self, receiver: ID) -> SymmetricKey:
+        user = keystore.user
+        if user is None:
+            raise AssertionError('current user not set to key store')
+        sender = user.identifier
+        # 1. get old key from store
+        reused_key = keystore.cipher_key(sender=sender, receiver=receiver)
+        # 2. get new key from delegate
+        new_key = self.delegate.reuse_cipher_key(sender=sender, receiver=receiver, key=reused_key)
+        if new_key is None:
+            new_key = reused_key
+        if new_key is None:
+            # 3. create a new key
+            new_key = SymmetricKey(key={'algorithm': 'AES'})
+        # 4. save it into the key store
+        if new_key != reused_key:
+            keystore.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
+        return new_key
+
+    def verify_decrypt(self, msg: ReliableMessage, users: list) -> InstantMessage:
         sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
         # [Meta Protocol] check meta in first contact message
-        meta = self.barrack.meta(identifier=sender)
+        meta = barrack.meta(identifier=sender)
         if meta is None:
             # first contact, try meta in message package
             meta = msg.meta
@@ -171,22 +188,32 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 raise LookupError('failed to get meta for sender: %s' % sender)
             meta = Meta(meta)
             if meta.match_identifier(identifier=sender):
-                self.barrack.cache_meta(meta=meta, identifier=sender)
+                barrack.cache_meta(meta=meta, identifier=sender)
             else:
                 raise ValueError('meta not match %s, %s' % (sender, meta))
         # 1. verify 'data' with 'signature'
         if msg.delegate is None:
             msg.delegate = self
         s_msg = msg.verify()
+
         # check recipient
+        group = msg.group
+        if group is not None:
+            group = ID(group)
+        user = None
         if receiver.type.is_group():
             group = receiver
             # FIXME: maybe other user?
-            receiver = self.identifier
+            user = users[0]
+            receiver = user.identifier
         else:
-            group = msg.group
-            if group is not None:
-                group = ID(group)
+            for item in users:
+                if item.identifer == receiver:
+                    user = item
+                    # got new message for this user
+                    break
+        if user is None:
+            raise AssertionError('wrong recipient: %s' % receiver)
         # 2. decrypt 'data' to 'content'
         if group is not None:
             # trim for user(group member)
@@ -200,6 +227,124 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         # 3. check: top-secret message
         if i_msg.content.type == MessageType.Forward:
             content = ForwardContent(i_msg.content)
-            return self.verify_decrypt(content.forward)
+            return self.verify_decrypt(content.forward, users=users)
         # OK
         return i_msg
+
+    #
+    #   IInstantMessageDelegate
+    #
+    def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+        # TODO: check attachment for File/Image/Audio/Video message content before
+        password = SymmetricKey(key)
+        if password is not None:
+            string = json.dumps(content)
+            return password.encrypt(data=string.encode('utf-8'))
+
+    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
+        contact = barrack.account(identifier=ID(receiver))
+        if contact is not None:
+            string = json.dumps(key)
+            return contact.encrypt(data=string.encode('utf-8'))
+
+    #
+    #   ISecureMessageDelegate
+    #
+    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
+        sender = ID(sender)
+        receiver = ID(receiver)
+        if key is not None:
+            # decrypt key data with the receiver's private key
+            identifier = ID(msg.envelope.receiver)
+            user = keystore.user
+            if user is None or user.identifier != identifier:
+                user = barrack.user(identifier=identifier)
+                if user is None:
+                    raise AssertionError('receiver error: %s' % msg)
+            # FIXME: check msg.envelope.receiver == user.identifier
+            data = user.decrypt(data=key)
+            if data is None:
+                raise AssertionError('failed to decrypt key data')
+            # create symmetric key from JsON data
+            key = SymmetricKey(json.loads(data.decode('utf-8')))
+            if key is not None:
+                keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+        if key is None:
+            # if key data is empty, get it from key store
+            key = keystore.cipher_key(sender=sender, receiver=receiver)
+        return key
+
+    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
+        password = SymmetricKey(key)
+        if password is not None:
+            plaintext = password.decrypt(data)
+            if plaintext is not None:
+                # TODO: check attachment for File/Image/Audio/Video message content after
+                return Content(json.loads(plaintext))
+
+    def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
+        user = barrack.user(identifier=ID(sender))
+        if user is not None:
+            return user.sign(data)
+
+    #
+    #   IReliableMessageDelegate
+    #
+    def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
+        contact = barrack.account(identifier=ID(sender))
+        if contact is not None:
+            return contact.verify(data=data, signature=signature)
+
+
+#
+#  Delegate
+#
+
+class ITransceiverDelegate(metaclass=ABCMeta):
+
+    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
+        """
+        Send out a data package onto network
+
+        :param data:    package data
+        :param handler: completion handler
+        :return:        False on data/delegate error
+        """
+        pass
+
+    def reuse_cipher_key(self, sender: ID, receiver: ID, key: SymmetricKey) -> SymmetricKey:
+        """
+        Update/create cipher key for encrypt message content
+
+        :param sender:   user ID
+        :param receiver: contact/group ID
+        :param key:      old key to be reused (nullable)
+        :return:         new key
+        """
+        pass
+
+    # def upload_file_data(self, data: bytes, msg: InstantMessage) -> str:
+    #     """
+    #     Upload encrypted data to CDN
+    #
+    #     :param data: encrypted file data
+    #     :param msg:  instant message
+    #     :return:     download URL
+    #     """
+    #     pass
+    #
+    # def download_file_data(self, url: str, msg: InstantMessage) -> bytes:
+    #     """
+    #     Download encrypted data from CDN, and decrypt it when finished
+    #
+    #     :param url: download URL
+    #     :param msg: instant message
+    #     :return:    encrypted file data
+    #     """
+    #     pass
+
+
+#
+#  singleton
+#
+transceiver = Transceiver()

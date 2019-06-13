@@ -28,53 +28,56 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Meta Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~
+from dkd import Content, ReliableMessage
+from dkd.content import message_content_classes
 
-    1. contains 'ID' only, means query meta for ID
-    2. contains 'meta' (must match), means reply
-"""
-
-from ..protocol import MessageType, CommandContent
+from .types import MessageType
 
 
-class ReceiptCommand(CommandContent):
+class ForwardContent(Content):
     """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+        Top-Secret Message Content
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
-            sn   : 123,
+            type : 0xFF,
+            sn   : 456,
 
-            command : "receipt", // command name
-            message : "...",
+            forward : {...}  // reliable (secure + certified) message
         }
     """
 
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # 'forward'
+        forward = content.get('forward')
+        self.__forward = ReliableMessage(forward)
+
     #
-    #   message
+    #   forward (top-secret message)
     #
     @property
-    def message(self) -> str:
-        return self.get('message')
+    def forward(self) -> ReliableMessage:
+        return self.__forward
 
-    @message.setter
-    def message(self, value: str):
+    @forward.setter
+    def forward(self, value: dict):
+        self.__forward = value
         if value:
-            self['message'] = value
+            self['forward'] = value
         else:
-            self.pop('message')
+            self.pop('forward')
 
     #
     #   Factory
     #
     @classmethod
-    def receipt(cls, message: str) -> CommandContent:
+    def new(cls, message: ReliableMessage) -> Content:
         content = {
-            'type': MessageType.Command,
-            'command': 'receipt',
-            'message': message,
+            'type': MessageType.Forward,
+            'forward': message,
         }
-        return ReceiptCommand(content)
+        return ForwardContent(content)
+
+
+message_content_classes[MessageType.Forward] = ForwardContent

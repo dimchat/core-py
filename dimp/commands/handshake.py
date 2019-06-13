@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -33,9 +38,7 @@
     4. (S-C) handshake success
 """
 
-from dkd.contents import serial_number
-
-from dkd import MessageType, CommandContent
+from ..protocol import MessageType, CommandContent
 
 
 class HandshakeCommand(CommandContent):
@@ -88,7 +91,6 @@ class HandshakeCommand(CommandContent):
     def handshake(cls, message: str='Hello world!', session: str=None) -> CommandContent:
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'handshake',
             'message': message,
         }

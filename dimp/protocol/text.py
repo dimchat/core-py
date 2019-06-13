@@ -28,53 +28,49 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Meta Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~
+from dkd import Content
+from dkd.content import message_content_classes
 
-    1. contains 'ID' only, means query meta for ID
-    2. contains 'meta' (must match), means reply
-"""
-
-from ..protocol import MessageType, CommandContent
+from .types import MessageType
 
 
-class ReceiptCommand(CommandContent):
+class TextContent(Content):
     """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+        Text Message Content
+        ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : 0x01,
             sn   : 123,
 
-            command : "receipt", // command name
-            message : "...",
+            text : "..."
         }
     """
 
     #
-    #   message
+    #   text
     #
     @property
-    def message(self) -> str:
-        return self.get('message')
+    def text(self) -> str:
+        return self.get('text')
 
-    @message.setter
-    def message(self, value: str):
+    @text.setter
+    def text(self, value: str):
         if value:
-            self['message'] = value
+            self['text'] = value
         else:
-            self.pop('message')
+            self.pop('text')
 
     #
     #   Factory
     #
     @classmethod
-    def receipt(cls, message: str) -> CommandContent:
+    def new(cls, text: str) -> Content:
         content = {
-            'type': MessageType.Command,
-            'command': 'receipt',
-            'message': message,
+            'type': MessageType.Text,
+            'text': text,
         }
-        return ReceiptCommand(content)
+        return TextContent(content)
+
+
+message_content_classes[MessageType.Text] = TextContent

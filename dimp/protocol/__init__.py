@@ -29,52 +29,22 @@
 # ==============================================================================
 
 """
-    Meta Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~
-
-    1. contains 'ID' only, means query meta for ID
-    2. contains 'meta' (must match), means reply
+    DIMP - Message Contents
+    ~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from ..protocol import MessageType, CommandContent
+from .types import MessageType
+from .text import TextContent
+from .command import CommandContent
+from .history import HistoryContent
+from .forward import ForwardContent
 
 
-class ReceiptCommand(CommandContent):
-    """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+__all__ = [
+    'MessageType',
 
-        data format: {
-            type : 0x88,
-            sn   : 123,
-
-            command : "receipt", // command name
-            message : "...",
-        }
-    """
-
-    #
-    #   message
-    #
-    @property
-    def message(self) -> str:
-        return self.get('message')
-
-    @message.setter
-    def message(self, value: str):
-        if value:
-            self['message'] = value
-        else:
-            self.pop('message')
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def receipt(cls, message: str) -> CommandContent:
-        content = {
-            'type': MessageType.Command,
-            'command': 'receipt',
-            'message': message,
-        }
-        return ReceiptCommand(content)
+    'TextContent',
+    'CommandContent',
+    'HistoryContent',
+    'ForwardContent',
+]

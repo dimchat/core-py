@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   DIMP : Decentralized Instant Messaging Protocol
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -32,12 +37,11 @@
 
 import json
 
-from dkd.utils import base64_encode
-from dkd.contents import serial_number
-
-from dkd import MessageType, CommandContent
-
 from mkm import PrivateKey
+
+from dkd.utils import base64_encode
+
+from ..protocol import MessageType, CommandContent
 
 
 class BroadcastCommand(CommandContent):
@@ -113,7 +117,6 @@ class BroadcastCommand(CommandContent):
         """
         content = {
             'type': MessageType.Command,
-            'sn': serial_number(),
             'command': 'broadcast',
             'title': title,
         }

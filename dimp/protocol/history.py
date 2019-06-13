@@ -28,53 +28,57 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Meta Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~
+from dkd import Content
+from dkd.content import message_content_classes
 
-    1. contains 'ID' only, means query meta for ID
-    2. contains 'meta' (must match), means reply
-"""
-
-from ..protocol import MessageType, CommandContent
+from .types import MessageType
+from .command import CommandContent
 
 
-class ReceiptCommand(CommandContent):
+class HistoryContent(Content):
     """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+        Group History Command
+        ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : 0x89,
             sn   : 123,
 
-            command : "receipt", // command name
-            message : "...",
+            command : "...", // command name
+            time    : 0,     // command timestamp
+            extra   : info   // command parameters
         }
     """
 
-    #
-    #   message
-    #
-    @property
-    def message(self) -> str:
-        return self.get('message')
-
-    @message.setter
-    def message(self, value: str):
-        if value:
-            self['message'] = value
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # value of 'command' & 'time' cannot be changed again
+        self.__command = content['command']
+        time = content.get('time')
+        if time is None:
+            self.__time = 0
         else:
-            self.pop('message')
+            self.__time = int(time)
+
+    @property
+    def command(self) -> str:
+        return self.__command
+
+    @property
+    def time(self) -> int:
+        return self.__time
 
     #
     #   Factory
     #
     @classmethod
-    def receipt(cls, message: str) -> CommandContent:
+    def new(cls, command: str, time: int=0) -> Content:
         content = {
-            'type': MessageType.Command,
-            'command': 'receipt',
-            'message': message,
+            'type': MessageType.History,
+            'time': time,
+            'command': command,
         }
-        return ReceiptCommand(content)
+        return CommandContent(content)
+
+
+message_content_classes[MessageType.History] = HistoryContent
