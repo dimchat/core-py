@@ -208,7 +208,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             receiver = user.identifier
         else:
             for item in users:
-                if item.identifer == receiver:
+                if item.identifier == receiver:
                     user = item
                     # got new message for this user
                     break

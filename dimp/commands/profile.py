@@ -38,15 +38,15 @@
 
 import json
 
-from mkm import PrivateKey
-from mkm import ID
+from mkm import ID, Meta, Profile
 
 from dkd.utils import base64_encode, base64_decode
 
 from ..protocol import MessageType, CommandContent
+from .meta import MetaCommand
 
 
-class ProfileCommand(CommandContent):
+class ProfileCommand(MetaCommand):
     """
         Profile Command
         ~~~~~~~~~~~~~~~
@@ -63,53 +63,35 @@ class ProfileCommand(CommandContent):
 
     """
 
-    #
-    #   ID
-    #
-    @property
-    def identifier(self) -> ID:
-        value = self.get('ID')
-        if value:
-            return ID(value)
-
-    @identifier.setter
-    def identifier(self, value: str):
-        if value:
-            self['ID'] = value
-        else:
-            self.pop('ID')
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # profile
+        profile = content.get('profile')
+        if isinstance(profile, str):
+            # compatible with v1.0
+            profile = {
+                'ID': content['ID'],
+                'data': profile,
+                'signature': content.get("signature")
+            }
+        self.__profile = Profile(profile)
 
     #
     #   profile
     #
     @property
-    def profile(self) -> dict:
-        value = self.get('profile')
-        if value:
-            return json.loads(value)
+    def profile(self) -> Profile:
+        return self.__profile
 
     @profile.setter
-    def profile(self, value: dict):
+    def profile(self, value: Profile):
+        self.__profile = value
         if value:
-            self['profile'] = json.dumps(value)
+            self['profile'] = value.get('data')
+            self['signature'] = value.get('signature')
         else:
-            self.pop('profile')
-
-    #
-    #   signature
-    #
-    @property
-    def signature(self) -> bytes:
-        value = self.get('signature')
-        if value:
-            return base64_decode(value)
-
-    @signature.setter
-    def signature(self, value: bytes):
-        if value:
-            self['signature'] = base64_encode(value)
-        else:
-            self.pop('signature')
+            self.pop('profile', None)
+            self.pop('signature', None)
 
     #
     #   Factories
@@ -124,24 +106,14 @@ class ProfileCommand(CommandContent):
         return ProfileCommand(content)
 
     @classmethod
-    def response(cls, identifier: str, profile: str, signature: str) -> CommandContent:
+    def response(cls, identifier: str, profile: Profile, meta: Meta=None) -> CommandContent:
         content = {
             'type': MessageType.Command,
             'command': 'profile',
             'ID': identifier,
-            'profile': profile,
-            'signature': signature,
+            'profile': profile.get('data'),
+            'signature': profile.get('signature'),
         }
+        if meta is not None:
+            content['meta'] = meta
         return ProfileCommand(content)
-
-    @classmethod
-    def pack(cls, identifier: str, private_key: PrivateKey, profile: dict) -> CommandContent:
-        if 'ID' in profile:
-            if identifier != profile['ID']:
-                raise AssertionError('ID not match:', profile)
-        else:
-            profile['ID'] = identifier
-        string = json.dumps(profile)
-        sig = private_key.sign(string.encode('utf-8'))
-        sig = base64_encode(sig)
-        return cls.response(identifier=identifier, profile=string, signature=sig)

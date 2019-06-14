@@ -56,10 +56,14 @@ class Barrack(IUserDataSource, IGroupDataSource):
         self.groupDataSource: IGroupDataSource = None
 
         # memory caches
-        self.metas = {}
-        self.accounts = {}
-        self.users = {}
-        self.groups = {}
+        self.__metas = {}
+        self.__accounts = {}
+        self.__users = {}
+        self.__groups = {}
+
+    @property
+    def accounts(self) -> dict:
+        return self.__accounts
 
     def reduce_memory(self) -> int:
         """
@@ -69,10 +73,10 @@ class Barrack(IUserDataSource, IGroupDataSource):
         :return: reduced object count
         """
         finger = 1
-        finger = self.__thanos(self.metas, finger)
-        finger = self.__thanos(self.accounts, finger)
-        finger = self.__thanos(self.users, finger)
-        finger = self.__thanos(self.groups, finger)
+        finger = self.__thanos(self.__metas, finger)
+        finger = self.__thanos(self.__accounts, finger)
+        finger = self.__thanos(self.__users, finger)
+        finger = self.__thanos(self.__groups, finger)
         return (finger & 1) + (finger >> 1)
 
     @staticmethod
@@ -87,33 +91,33 @@ class Barrack(IUserDataSource, IGroupDataSource):
     def cache_meta(self, meta: Meta, identifier: ID):
         if not meta.match_identifier(identifier):
             raise AssertionError('meta not match ID')
-        self.metas[identifier.address] = meta
+        self.__metas[identifier] = meta
 
     def cache_account(self, account: Account):
         if isinstance(account, User):
             return self.cache_user(user=account)
         if account.delegate is None:
             account.delegate = self
-        self.accounts[account.identifier.address] = account
+        self.__accounts[account.identifier] = account
         return True
 
     def cache_user(self, user: User):
         if user.delegate is None:
             user.delegate = self
-        self.users[user.identifier.address] = user
+        self.__users[user.identifier] = user
 
     def cache_group(self, group: Group):
         if group.delegate is None:
             group.delegate = self
-        self.groups[group.identifier.address] = group
+        self.__groups[group.identifier] = group
 
     def account(self, identifier: ID) -> Account:
         # 1. get from account cache
-        account = self.accounts.get(identifier.address)
+        account = self.__accounts.get(identifier)
         if account is not None:
             return account
         # 2. get from user cache
-        user = self.users.get(identifier.address)
+        user = self.__users.get(identifier)
         if user is not None:
             return user
         # 3. get from delegate
@@ -128,7 +132,7 @@ class Barrack(IUserDataSource, IGroupDataSource):
 
     def user(self, identifier: ID) -> User:
         # 1. get from user cache
-        user = self.users.get(identifier.address)
+        user = self.__users.get(identifier)
         if user is not None:
             return user
         # 2. get from delegate
@@ -143,7 +147,7 @@ class Barrack(IUserDataSource, IGroupDataSource):
 
     def group(self, identifier: ID) -> Group:
         # 1. get from group cache
-        group = self.groups.get(identifier.address)
+        group = self.__groups.get(identifier)
         if group is not None:
             return group
         # 2. get from delegate
@@ -161,13 +165,13 @@ class Barrack(IUserDataSource, IGroupDataSource):
     #
     def meta(self, identifier: ID) -> Meta:
         # 1. get from meta cache
-        meta = self.metas.get(identifier.address)
+        meta = self.__metas.get(identifier)
         if meta is not None:
             return meta
         # 2. get from entity data source
         meta = self.entityDataSource.meta(identifier=identifier)
         if meta is not None and meta.match_identifier(identifier):
-            self.metas[identifier.address] = meta
+            self.__metas[identifier] = meta
             return meta
 
     def profile(self, identifier: ID) -> Profile:

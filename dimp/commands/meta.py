@@ -56,17 +56,23 @@ class MetaCommand(CommandContent):
         }
     """
 
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # ID
+        self.__identifier = ID(content['ID'])
+        # meta
+        self.__meta = Meta(content.get('meta'))
+
     #
     #   ID
     #
     @property
     def identifier(self) -> ID:
-        value = self.get('ID')
-        if value:
-            return ID(value)
+        return self.__identifier
 
     @identifier.setter
-    def identifier(self, value: str):
+    def identifier(self, value: ID):
+        self.__identifier = value
         if value:
             self['ID'] = value
         else:
@@ -77,12 +83,11 @@ class MetaCommand(CommandContent):
     #
     @property
     def meta(self) -> Meta:
-        value = self.get('meta')
-        if value:
-            return Meta(value)
+        return self.__meta
 
     @meta.setter
-    def meta(self, value: dict):
+    def meta(self, value: Meta):
+        self.__meta = value
         if value:
             self['meta'] = value
         else:

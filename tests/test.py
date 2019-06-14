@@ -269,16 +269,23 @@ class CommandTestCase(unittest.TestCase):
         profile = {
             'names': ['moky', 'albert']
         }
-        cmd: ProfileCommand = ProfileCommand.pack(identifier=id1, private_key=sk1, profile=profile)
+        profile = json.dumps(profile)
+        signature = sk1.sign(data=profile.encode('utf-8'))
+        signature = base64_encode(signature)
+        profile = {
+            'ID': id1,
+            'data': profile,
+            'signature': signature,
+        }
+        profile = Profile(profile)
+        cmd: ProfileCommand = ProfileCommand.response(identifier=id1, profile=profile)
         print(cmd)
         print('cmd.profile: %s' % cmd.profile)
         self.assertEqual(cmd.profile, profile)
 
-        print('profile: %s\n-> %s' % (cmd['profile'], cmd.profile))
-        print('signature: %s\n-> %s' % (cmd['signature'], cmd.signature))
-
         string = cmd['profile']
-        self.assertTrue(pk1.verify(string.encode('utf-8'), cmd.signature))
+        base64 = cmd['signature']
+        self.assertTrue(pk1.verify(string.encode('utf-8'), base64_decode(base64)))
 
 
 if __name__ == '__main__':

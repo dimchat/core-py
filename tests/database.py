@@ -8,11 +8,11 @@ class Database(IUserDataSource, IGroupDataSource, IBarrackDelegate):
 
     def __init__(self):
         super().__init__()
-
-        self.private_keys = {}
+        # memory cache
+        self.__private_keys = {}
 
     def cache_private_key(self, private_key: PrivateKey, identifier: ID):
-        self.private_keys[identifier.address] = private_key
+        self.__private_keys[identifier.address] = private_key
 
     def save_meta(self, meta: Meta, identifier: ID) -> bool:
         # TODO: save meta to local storage
@@ -35,11 +35,11 @@ class Database(IUserDataSource, IGroupDataSource, IBarrackDelegate):
     #
     def private_key_for_signature(self, identifier: ID) -> PrivateKey:
         # TODO: load private key from keychain
-        return self.private_keys.get(identifier.address)
+        return self.__private_keys.get(identifier.address)
 
     def private_keys_for_decryption(self, identifier: ID) -> list:
         # TODO: load private key from keychain
-        key = self.private_keys.get(identifier.address)
+        key = self.__private_keys.get(identifier.address)
         return [key]
 
     def contacts(self, identifier: ID) -> list:
