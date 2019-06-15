@@ -1,10 +1,33 @@
 # -*- coding: utf-8 -*-
 
 from dimp import *
-from dimp.barrack import barrack
 
 
-class Database(IUserDataSource, IGroupDataSource, IBarrackDelegate):
+class Facebook(IBarrackDelegate):
+
+    #
+    #   IBarrackDelegate
+    #
+    def account(self, identifier: ID) -> Account:
+        # TODO: create account
+        entity = Account(identifier=identifier)
+        entity.delegate = barrack
+        return entity
+
+    def user(self, identifier: ID) -> User:
+        # TODO: create user
+        entity = User(identifier=identifier)
+        entity.delegate = barrack
+        return entity
+
+    def group(self, identifier: ID) -> Group:
+        # TODO: create group
+        entity = Group(identifier=identifier)
+        entity.delegate = barrack
+        return entity
+
+
+class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
 
     def __init__(self):
         super().__init__()
@@ -13,11 +36,6 @@ class Database(IUserDataSource, IGroupDataSource, IBarrackDelegate):
 
     def cache_private_key(self, private_key: PrivateKey, identifier: ID):
         self.__private_keys[identifier.address] = private_key
-
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        # TODO: save meta to local storage
-        pass
-
 
     #
     #   IEntityDataSource
@@ -64,22 +82,44 @@ class Database(IUserDataSource, IGroupDataSource, IBarrackDelegate):
     #
     #   IBarrackDelegate
     #
-
     def account(self, identifier: ID) -> Account:
-        # TODO: create account
-        pass
+        return facebook.account(identifier=identifier)
 
     def user(self, identifier: ID) -> User:
-        # TODO: create user
-        pass
+        return facebook.user(identifier=identifier)
 
     def group(self, identifier: ID) -> Group:
-        # TODO: create group
+        return facebook.group(identifier=identifier)
+
+    #
+    #   ITransceiverDataSource
+    #
+    def save_meta(self, meta: Meta, identifier: ID) -> bool:
+        # TODO: save meta to local storage
+        pass
+
+    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+        return keystore.cipher_key(sender=sender, receiver=receiver)
+
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
+        return keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+
+    def reuse_cipher_key(self, sender: ID, receiver: ID, key: SymmetricKey) -> SymmetricKey:
         pass
 
 
 database = Database()
+
+facebook = Facebook()
+
+keystore = KeyStore()
+
+barrack = Barrack()
 barrack.entityDataSource = database
 barrack.userDataSource = database
 barrack.groupDataSource = database
 barrack.delegate = database
+
+transceiver = Transceiver()
+transceiver.dataSource = database
+transceiver.delegate = facebook

@@ -13,10 +13,6 @@ import unittest
 
 from mkm.utils import *
 
-from dimp.barrack import barrack
-from dimp.keystore import keystore
-from dimp.transceiver import transceiver
-
 from tests.immortals import *
 from tests.database import *
 

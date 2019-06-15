@@ -35,16 +35,13 @@
     Manage keys for conversations
 """
 
-from mkm import SymmetricKey, ID, User
+from mkm import SymmetricKey, ID
 
 
 class KeyStore:
 
     def __init__(self):
         super().__init__()
-        # current user
-        self.user: User = None
-
         # memory cache
         self.key_table = {}
         self.dirty = False
@@ -74,9 +71,3 @@ class KeyStore:
     def reload(self):
         # load key table from persistent storage
         pass
-
-
-#
-#  singleton
-#
-keystore = KeyStore()

@@ -36,11 +36,7 @@
     2. contains 'profile' and 'signature' (must match), means reply
 """
 
-import json
-
-from mkm import ID, Meta, Profile
-
-from dkd.utils import base64_encode, base64_decode
+from mkm import Meta, Profile
 
 from ..protocol import MessageType, CommandContent
 from .meta import MetaCommand

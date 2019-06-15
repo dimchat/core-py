@@ -36,17 +36,17 @@
 """
 
 import json
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
+
+from mkm import SymmetricKey
+from mkm import Meta, ID
+from mkm import IUserDataSource, IGroupDataSource
 
 from dkd import Content, InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from mkm import SymmetricKey
-from mkm import Meta, ID
-
 from .protocol import MessageType, ForwardContent
-from .keystore import keystore
-from .barrack import barrack
+from .barrack import IBarrackDelegate
 
 
 class ICallback(metaclass=ABCMeta):
@@ -69,8 +69,12 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     def __init__(self):
         super().__init__()
 
-        # delegate
+        # delegates
         self.delegate: ITransceiverDelegate = None
+        self.dataSource: ITransceiverDataSource = None
+
+        self.userDataSource: IUserDataSource = None
+        self.groupDataSource: IGroupDataSource = None
 
     def send_message(self, msg: InstantMessage, callback: ICallback, split: bool) -> bool:
         """
@@ -81,15 +85,15 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         :param split:    if it's a group message, split it before sending out
         :return:         False on data/delegate error
         """
-        receiver = ID(msg.envelope.receiver)
-        group = ID(msg.content.group)
         r_msg = self.encrypt_sign(msg=msg)
         if r_msg is None:
             raise AssertionError('failed to encrypt and sign message: %s' % msg)
         # trying to send out
+        receiver = ID(msg.envelope.receiver)
+        group = ID(msg.content.group)
         ok = True
         if split and receiver.type.is_group():
-            members = barrack.group_members(identifier=group)
+            members = self.groupDataSource.members(identifier=group)
             messages = r_msg.split(members=members)
             for r_msg in messages:
                 # sending group message one by one
@@ -131,6 +135,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         """
         if msg.delegate is None:
             msg.delegate = self
+        sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
         group = ID(msg.content.group)
         # if 'group' exists and the 'receiver' is a group ID,
@@ -145,26 +150,22 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 # split group message
                 members.append(receiver)
             else:
-                members = barrack.group_members(identifier=group)
-            password = self.__password(receiver=group)
+                members = self.groupDataSource.members(identifier=group)
+            password = self.__password(sender=sender, receiver=group)
             s_msg = msg.encrypt(password=password, members=members)
         else:
             # personal message
-            password = self.__password(receiver=receiver)
+            password = self.__password(sender=sender, receiver=receiver)
             s_msg = msg.encrypt(password=password)
         # 2. sign 'data' by sender
         s_msg.delegate = self
         return s_msg.sign()
 
-    def __password(self, receiver: ID) -> SymmetricKey:
-        user = keystore.user
-        if user is None:
-            raise AssertionError('current user not set to key store')
-        sender = user.identifier
+    def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store
-        reused_key = keystore.cipher_key(sender=sender, receiver=receiver)
+        reused_key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
         # 2. get new key from delegate
-        new_key = self.delegate.reuse_cipher_key(sender=sender, receiver=receiver, key=reused_key)
+        new_key = self.dataSource.reuse_cipher_key(sender=sender, receiver=receiver, key=reused_key)
         if new_key is None:
             new_key = reused_key
         if new_key is None:
@@ -172,14 +173,14 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             new_key = SymmetricKey(key={'algorithm': 'AES'})
         # 4. save it into the key store
         if new_key != reused_key:
-            keystore.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
+            self.dataSource.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
         return new_key
 
-    def verify_decrypt(self, msg: ReliableMessage, users: list) -> InstantMessage:
+    def verify_decrypt(self, msg: ReliableMessage) -> InstantMessage:
         sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
         # [Meta Protocol] check meta in first contact message
-        meta = barrack.meta(identifier=sender)
+        meta = self.userDataSource.meta(identifier=sender)
         if meta is None:
             # first contact, try meta in message package
             meta = msg.meta
@@ -188,7 +189,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 raise LookupError('failed to get meta for sender: %s' % sender)
             meta = Meta(meta)
             if meta.match_identifier(identifier=sender):
-                barrack.cache_meta(meta=meta, identifier=sender)
+                self.dataSource.save_meta(meta=meta, identifier=sender)
             else:
                 raise ValueError('meta not match %s, %s' % (sender, meta))
         # 1. verify 'data' with 'signature'
@@ -196,25 +197,11 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             msg.delegate = self
         s_msg = msg.verify()
 
-        # check recipient
-        group = msg.group
-        if group is not None:
-            group = ID(group)
-        user = None
-        if receiver.type.is_group():
-            group = receiver
-            # FIXME: maybe other user?
-            user = users[0]
-            receiver = user.identifier
-        else:
-            for item in users:
-                if item.identifier == receiver:
-                    user = item
-                    # got new message for this user
-                    break
+        # 2. decrypt 'data' to 'content'
+        user = self.delegate.user(identifier=receiver)
         if user is None:
             raise AssertionError('wrong recipient: %s' % receiver)
-        # 2. decrypt 'data' to 'content'
+        group = ID(msg.group)
         if group is not None:
             # trim for user(group member)
             s_msg = s_msg.trim(member=receiver)
@@ -227,7 +214,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         # 3. check: top-secret message
         if i_msg.content.type == MessageType.Forward:
             content = ForwardContent(i_msg.content)
-            return self.verify_decrypt(content.forward, users=users)
+            return self.verify_decrypt(content.forward)
         # OK
         return i_msg
 
@@ -242,7 +229,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             return password.encrypt(data=string.encode('utf-8'))
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
-        contact = barrack.account(identifier=ID(receiver))
+        contact = self.delegate.account(identifier=ID(receiver))
         if contact is not None:
             string = json.dumps(key)
             return contact.encrypt(data=string.encode('utf-8'))
@@ -256,22 +243,17 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         if key is not None:
             # decrypt key data with the receiver's private key
             identifier = ID(msg.envelope.receiver)
-            user = keystore.user
-            if user is None or user.identifier != identifier:
-                user = barrack.user(identifier=identifier)
-                if user is None:
-                    raise AssertionError('receiver error: %s' % msg)
-            # FIXME: check msg.envelope.receiver == user.identifier
+            user = self.delegate.user(identifier=identifier)
             data = user.decrypt(data=key)
             if data is None:
                 raise AssertionError('failed to decrypt key data')
             # create symmetric key from JsON data
             key = SymmetricKey(json.loads(data.decode('utf-8')))
             if key is not None:
-                keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+                self.dataSource.cache_cipher_key(key=key, sender=sender, receiver=receiver)
         if key is None:
             # if key data is empty, get it from key store
-            key = keystore.cipher_key(sender=sender, receiver=receiver)
+            key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
         return key
 
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
@@ -283,7 +265,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 return Content(json.loads(plaintext))
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
-        user = barrack.user(identifier=ID(sender))
+        user = self.delegate.user(identifier=ID(sender))
         if user is not None:
             return user.sign(data)
 
@@ -291,27 +273,51 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     #   IReliableMessageDelegate
     #
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        contact = barrack.account(identifier=ID(sender))
+        contact = self.delegate.account(identifier=ID(sender))
         if contact is not None:
             return contact.verify(data=data, signature=signature)
 
 
 #
-#  Delegate
+#  Delegates
 #
+class ITransceiverDataSource(metaclass=ABCMeta):
 
-class ITransceiverDelegate(metaclass=ABCMeta):
-
-    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
+    @abstractmethod
+    def save_meta(self, meta: Meta, identifier: ID) -> bool:
         """
-        Send out a data package onto network
+        Save meta for entity ID
 
-        :param data:    package data
-        :param handler: completion handler
-        :return:        False on data/delegate error
+        :param meta:       meta info
+        :param identifier: entity ID
+        :return:           False on meta not match with the entity ID
         """
         pass
 
+    @abstractmethod
+    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+        """
+        Get cipher key for encrypt message from 'sender' to 'receiver'
+
+        :param sender:   user ID
+        :param receiver: contact/group ID
+        :return:         cipher key
+        """
+        pass
+
+    @abstractmethod
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
+        """
+        Cache cipher key for reusing, with direction ('sender' to 'receiver')
+
+        :param key:      cipher key from a contact
+        :param sender:   contact ID
+        :param receiver: user/group ID
+        :return:         cipher key
+        """
+        pass
+
+    @abstractmethod
     def reuse_cipher_key(self, sender: ID, receiver: ID, key: SymmetricKey) -> SymmetricKey:
         """
         Update/create cipher key for encrypt message content
@@ -320,6 +326,20 @@ class ITransceiverDelegate(metaclass=ABCMeta):
         :param receiver: contact/group ID
         :param key:      old key to be reused (nullable)
         :return:         new key
+        """
+        pass
+
+
+class ITransceiverDelegate(IBarrackDelegate, metaclass=ABCMeta):
+
+    @abstractmethod
+    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
+        """
+        Send out a data package onto network
+
+        :param data:    package data
+        :param handler: completion handler
+        :return:        False on data/delegate error
         """
         pass
 
@@ -342,9 +362,3 @@ class ITransceiverDelegate(metaclass=ABCMeta):
     #     :return:    encrypted file data
     #     """
     #     pass
-
-
-#
-#  singleton
-#
-transceiver = Transceiver()

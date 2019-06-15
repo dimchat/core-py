@@ -35,7 +35,7 @@
     Manage meta for all entities
 """
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 from mkm import PrivateKey
 from mkm import ID, Meta, Profile
@@ -121,14 +121,11 @@ class Barrack(IUserDataSource, IGroupDataSource):
         if user is not None:
             return user
         # 3. get from delegate
-        if self.delegate is not None:
-            account = self.delegate.account(identifier=identifier)
-        if account is None:
-            # 4. create directory
-            account = Account(identifier=identifier)
-        # 5. cache
-        self.cache_account(account=account)
-        return account
+        account = self.delegate.account(identifier=identifier)
+        if account is not None:
+            # 4. cache
+            self.cache_account(account=account)
+            return account
 
     def user(self, identifier: ID) -> User:
         # 1. get from user cache
@@ -136,14 +133,11 @@ class Barrack(IUserDataSource, IGroupDataSource):
         if user is not None:
             return user
         # 2. get from delegate
-        if self.delegate is not None:
-            user = self.delegate.user(identifier=identifier)
-        if user is None:
-            # 3. create directory
-            user = User(identifier=identifier)
-        # 4. cache
-        self.cache_user(user=user)
-        return user
+        user = self.delegate.user(identifier=identifier)
+        if user is not None:
+            # 3. cache
+            self.cache_user(user=user)
+            return user
 
     def group(self, identifier: ID) -> Group:
         # 1. get from group cache
@@ -151,14 +145,11 @@ class Barrack(IUserDataSource, IGroupDataSource):
         if group is not None:
             return group
         # 2. get from delegate
-        if self.delegate is not None:
-            group = self.delegate.group(identifier=identifier)
-        if group is None:
-            # 3. create directory
-            group = Group(identifier=identifier)
-        # 4. cache
-        self.cache_group(group=group)
-        return group
+        group = self.delegate.group(identifier=identifier)
+        if group is not None:
+            # 3. cache
+            self.cache_group(group=group)
+            return group
 
     #
     #   IEntityDataSource
@@ -215,20 +206,17 @@ class Barrack(IUserDataSource, IGroupDataSource):
 
 class IBarrackDelegate(metaclass=ABCMeta):
 
+    @abstractmethod
     def account(self, identifier: ID) -> Account:
         """ Account factory """
         pass
 
+    @abstractmethod
     def user(self, identifier: ID) -> User:
         """ User factory """
         pass
 
+    @abstractmethod
     def group(self, identifier: ID) -> Group:
         """ Group factory """
         pass
-
-
-#
-#  singleton
-#
-barrack = Barrack()

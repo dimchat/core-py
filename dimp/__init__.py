@@ -45,7 +45,7 @@ from .commands import BroadcastCommand, GroupCommand
 
 from .barrack import Barrack, IBarrackDelegate
 from .keystore import KeyStore
-from .transceiver import Transceiver, ITransceiverDelegate, ICallback, ICompletionHandler
+from .transceiver import Transceiver, ITransceiverDataSource, ITransceiverDelegate, ICallback, ICompletionHandler
 
 from .station import ServiceProvider, Station
 from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
@@ -80,7 +80,7 @@ __all__ = [
 
     'Barrack', 'IBarrackDelegate',
     'KeyStore',
-    'Transceiver', 'ITransceiverDelegate', 'ICallback', 'ICompletionHandler',
+    'Transceiver', 'ITransceiverDataSource', 'ITransceiverDelegate', 'ICallback', 'ICompletionHandler',
 
     'ServiceProvider', 'Station',
     'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',

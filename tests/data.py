@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from dkd import *
+from dimp import *
 
 text_content = {
     'sn': 412968873,
