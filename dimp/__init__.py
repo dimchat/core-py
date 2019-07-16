@@ -42,9 +42,10 @@ from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessag
 from .protocol import MessageType, TextContent, CommandContent, HistoryContent, ForwardContent
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
 
-from .barrack import Barrack, IBarrackDelegate
+from .delegate import IBarrackDelegate, ICallback, ICompletionHandler, ITransceiverDataSource, ITransceiverDelegate
+from .barrack import Barrack
 from .keystore import KeyStore
-from .transceiver import Transceiver, ITransceiverDataSource, ITransceiverDelegate, ICallback, ICompletionHandler
+from .transceiver import Transceiver
 
 from .station import ServiceProvider, Station
 from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
@@ -77,9 +78,10 @@ __all__ = [
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'GroupCommand',
 
-    'Barrack', 'IBarrackDelegate',
+    'IBarrackDelegate', 'ICallback', 'ICompletionHandler', 'ITransceiverDataSource', 'ITransceiverDelegate',
+    'Barrack',
     'KeyStore',
-    'Transceiver', 'ITransceiverDataSource', 'ITransceiverDelegate', 'ICallback', 'ICompletionHandler',
+    'Transceiver',
 
     'ServiceProvider', 'Station',
     'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',

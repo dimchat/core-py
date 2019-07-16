@@ -35,12 +35,12 @@
     Manage meta for all entities
 """
 
-from abc import ABCMeta, abstractmethod
-
 from mkm import PrivateKey
 from mkm import ID, Meta, Profile
 from mkm import Account, User, Group
 from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
+
+from .delegate import IBarrackDelegate
 
 
 class Barrack(IUserDataSource, IGroupDataSource):
@@ -198,25 +198,3 @@ class Barrack(IUserDataSource, IGroupDataSource):
     def members(self, identifier: ID) -> list:
         # NOTICE: do not cache group members here
         return self.groupDataSource.members(identifier=identifier)
-
-
-#
-#  Delegate
-#
-
-class IBarrackDelegate(metaclass=ABCMeta):
-
-    @abstractmethod
-    def account(self, identifier: ID) -> Account:
-        """ Account factory """
-        pass
-
-    @abstractmethod
-    def user(self, identifier: ID) -> User:
-        """ User factory """
-        pass
-
-    @abstractmethod
-    def group(self, identifier: ID) -> Group:
-        """ Group factory """
-        pass

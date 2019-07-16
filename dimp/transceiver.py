@@ -36,7 +36,6 @@
 """
 
 import json
-from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 from mkm import SymmetricKey, EVERYONE, ANYONE
@@ -48,22 +47,7 @@ from dkd import Content, InstantMessage, SecureMessage, ReliableMessage, Message
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 from .protocol import MessageType, ForwardContent
-from .barrack import IBarrackDelegate
-
-
-class ICallback(metaclass=ABCMeta):
-
-    def finished(self, result, error):
-        pass
-
-
-class ICompletionHandler(metaclass=ABCMeta):
-
-    def success(self):
-        pass
-
-    def failed(self, error):
-        pass
+from .delegate import ICallback, ICompletionHandler, ITransceiverDataSource, ITransceiverDelegate
 
 
 def is_broadcast(msg: Message) -> bool:
@@ -366,89 +350,3 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
 
     def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
         return base64_decode(signature)
-
-
-#
-#  Delegates
-#
-class ITransceiverDataSource(metaclass=ABCMeta):
-
-    @abstractmethod
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        """
-        Save meta for entity ID
-
-        :param meta:       meta info
-        :param identifier: entity ID
-        :return:           False on meta not match with the entity ID
-        """
-        pass
-
-    @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        """
-        Get cipher key for encrypt message from 'sender' to 'receiver'
-
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
-        :return:         cipher key
-        """
-        pass
-
-    @abstractmethod
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
-        """
-        Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
-
-        :param key:      cipher key from a contact
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
-        :return:         cipher key
-        """
-        pass
-
-    @abstractmethod
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        """
-        Update/create cipher key for encrypt message content
-
-        :param sender:   user ID
-        :param receiver: contact/group ID
-        :param key:      old key to be reused (nullable)
-        :return:         new key
-        """
-        pass
-
-
-class ITransceiverDelegate(IBarrackDelegate, metaclass=ABCMeta):
-
-    @abstractmethod
-    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
-        """
-        Send out a data package onto network
-
-        :param data:    package data
-        :param handler: completion handler
-        :return:        False on data/delegate error
-        """
-        pass
-
-    # def upload_file_data(self, data: bytes, msg: InstantMessage) -> str:
-    #     """
-    #     Upload encrypted data to CDN
-    #
-    #     :param data: encrypted file data
-    #     :param msg:  instant message
-    #     :return:     download URL
-    #     """
-    #     pass
-    #
-    # def download_file_data(self, url: str, msg: InstantMessage) -> bytes:
-    #     """
-    #     Download encrypted data from CDN, and decrypt it when finished
-    #
-    #     :param url: download URL
-    #     :param msg: instant message
-    #     :return:    encrypted file data
-    #     """
-    #     pass
