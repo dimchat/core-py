@@ -11,7 +11,7 @@
 import json
 import unittest
 
-from mkm.utils import *
+from mkm.crypto.utils import *
 
 from tests.immortals import *
 from tests.database import *

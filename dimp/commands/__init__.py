@@ -39,11 +39,14 @@ from .handshake import HandshakeCommand
 from .meta import MetaCommand
 from .profile import ProfileCommand
 from .receipt import ReceiptCommand
-from .broadcast import BroadcastCommand
 from .group import GroupCommand
 
 
 __all__ = [
-    'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
-    'BroadcastCommand', 'GroupCommand',
+    'HandshakeCommand',
+    'MetaCommand',
+    'ProfileCommand',
+    'ReceiptCommand',
+
+    'GroupCommand',
 ]

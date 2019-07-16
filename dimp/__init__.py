@@ -40,8 +40,7 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 from .protocol import MessageType, TextContent, CommandContent, HistoryContent, ForwardContent
-from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand
-from .commands import BroadcastCommand, GroupCommand
+from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
 
 from .barrack import Barrack, IBarrackDelegate
 from .keystore import KeyStore
@@ -76,7 +75,7 @@ __all__ = [
     'MessageType',
     'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
-    'BroadcastCommand', 'GroupCommand',
+    'GroupCommand',
 
     'Barrack', 'IBarrackDelegate',
     'KeyStore',

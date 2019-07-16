@@ -104,7 +104,7 @@ class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
         return keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
 
-    def reuse_cipher_key(self, sender: ID, receiver: ID, key: SymmetricKey) -> SymmetricKey:
+    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
         pass
 
 

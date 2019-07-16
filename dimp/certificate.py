@@ -32,9 +32,8 @@
 
 import json
 
-from dkd.utils import base64_decode
-
 from mkm import PublicKey
+from mkm.crypto.utils import base64_decode
 
 
 class CASubject(dict):

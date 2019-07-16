@@ -37,12 +37,14 @@
 
 import json
 from abc import ABCMeta, abstractmethod
+from typing import Optional
 
-from mkm import SymmetricKey
+from mkm import SymmetricKey, EVERYONE, ANYONE
 from mkm import Meta, ID
 from mkm import IUserDataSource, IGroupDataSource
+from mkm.crypto.utils import base64_encode, base64_decode
 
-from dkd import Content, InstantMessage, SecureMessage, ReliableMessage
+from dkd import Content, InstantMessage, SecureMessage, ReliableMessage, Message
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 from .protocol import MessageType, ForwardContent
@@ -62,6 +64,42 @@ class ICompletionHandler(metaclass=ABCMeta):
 
     def failed(self, error):
         pass
+
+
+def is_broadcast(msg: Message) -> bool:
+    receiver = ID(msg.group)
+    if receiver is not None:
+        return receiver.type.is_group() and receiver == EVERYONE
+    receiver = ID(msg.envelope.receiver)
+    if receiver.type.is_person():
+        return receiver == ANYONE
+    elif receiver.type.is_group():
+        return receiver == EVERYONE
+
+
+class PlainKey(SymmetricKey):
+
+    def encrypt(self, data: bytes) -> bytes:
+        return data
+
+    def decrypt(self, data: bytes) -> bytes:
+        return data
+
+
+"""
+    Symmetric key for broadcast message,
+    which will do nothing when en/decoding message data
+"""
+PLAIN_KEY = PlainKey({'algorithm': 'PLAIN'})
+
+
+def create_symmetric_key(password: dict, msg: Message=None):
+    if msg is not None and is_broadcast(msg=msg):
+        # DO NOT encrypt broadcast
+        assert password is None
+        return PLAIN_KEY
+    else:
+        return SymmetricKey(password)
 
 
 class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):
@@ -165,13 +203,14 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         # 1. get old key from store
         reused_key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
         # 2. get new key from delegate
-        new_key = self.dataSource.reuse_cipher_key(sender=sender, receiver=receiver, key=reused_key)
+        new_key = self.dataSource.reuse_cipher_key(key=reused_key, sender=sender, receiver=receiver)
         if new_key is None:
-            new_key = reused_key
-        if new_key is None:
-            # 3. create a new key
-            new_key = SymmetricKey(key={'algorithm': 'AES'})
-        # 4. save it into the key store
+            if reused_key is None:
+                # 3. create a new key
+                new_key = SymmetricKey(key={'algorithm': 'AES'})
+            else:
+                new_key = reused_key
+        # 4. update new key into the key store
         if new_key != reused_key:
             self.dataSource.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
         return new_key
@@ -222,22 +261,51 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     #   IInstantMessageDelegate
     #
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+        password = create_symmetric_key(password=key, msg=msg)
+        if password is None:
+            raise AssertionError('failed to get symmetric key: %s' % key)
         # TODO: check attachment for File/Image/Audio/Video message content before
-        password = SymmetricKey(key)
-        if password is not None:
-            string = json.dumps(content)
-            return password.encrypt(data=string.encode('utf-8'))
 
-    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
+        # encrypt with password
+        string = json.dumps(content)
+        return password.encrypt(data=string.encode('utf-8'))
+
+    def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
+        if is_broadcast(msg):
+            # broadcast message content will not be encrypted (just encoded to JsON),
+            # so no need to encode to Base64 here
+            return data.decode('utf-8')
+        # encode to Base64
+        return base64_encode(data)
+
+    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
+        if is_broadcast(msg=msg):
+            # broadcast message has no key
+            assert key is None
+            return None
+        # encrypt with receiver's public key
         contact = self.delegate.account(identifier=ID(receiver))
         if contact is not None:
             string = json.dumps(key)
-            return contact.encrypt(data=string.encode('utf-8'))
+            data = string.encode('utf-8')
+            return contact.encrypt(data=data)
+
+    def encode_key_data(self, key: bytes, msg: InstantMessage) -> Optional[str]:
+        if is_broadcast(msg=msg):
+            # broadcast message has no key
+            assert key is None
+            return None
+        # encode to Base64
+        return base64_encode(key)
 
     #
     #   ISecureMessageDelegate
     #
-    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
+    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
+        if is_broadcast(msg=msg):
+            # broadcast message has no key
+            assert key is None
+            return None
         sender = ID(sender)
         receiver = ID(receiver)
         if key is not None:
@@ -256,18 +324,37 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
         return key
 
+    def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
+        if is_broadcast(msg=msg):
+            # broadcast message has no key
+            assert key is None
+            return None
+        # decode from Base64
+        return base64_decode(key)
+
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
-        password = SymmetricKey(key)
+        password = create_symmetric_key(key, msg)
         if password is not None:
             plaintext = password.decrypt(data)
             if plaintext is not None:
                 # TODO: check attachment for File/Image/Audio/Video message content after
                 return Content(json.loads(plaintext))
 
+    def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
+        if is_broadcast(msg):
+            # broadcast message content will not be encrypted (just encoded to JsON),
+            # so return the string data directly
+            return data.encode('utf-8')
+        # decode from Base64
+        return base64_decode(data)
+
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         user = self.delegate.user(identifier=ID(sender))
         if user is not None:
             return user.sign(data)
+
+    def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
+        return base64_encode(signature)
 
     #
     #   IReliableMessageDelegate
@@ -276,6 +363,9 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
         contact = self.delegate.account(identifier=ID(sender))
         if contact is not None:
             return contact.verify(data=data, signature=signature)
+
+    def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
+        return base64_decode(signature)
 
 
 #
@@ -299,8 +389,8 @@ class ITransceiverDataSource(metaclass=ABCMeta):
         """
         Get cipher key for encrypt message from 'sender' to 'receiver'
 
-        :param sender:   user ID
-        :param receiver: contact/group ID
+        :param sender:   user or contact ID
+        :param receiver: contact or user/group ID
         :return:         cipher key
         """
         pass
@@ -308,17 +398,17 @@ class ITransceiverDataSource(metaclass=ABCMeta):
     @abstractmethod
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
         """
-        Cache cipher key for reusing, with direction ('sender' to 'receiver')
+        Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
 
         :param key:      cipher key from a contact
-        :param sender:   contact ID
-        :param receiver: user/group ID
+        :param sender:   user or contact ID
+        :param receiver: contact or user/group ID
         :return:         cipher key
         """
         pass
 
     @abstractmethod
-    def reuse_cipher_key(self, sender: ID, receiver: ID, key: SymmetricKey) -> SymmetricKey:
+    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
         """
         Update/create cipher key for encrypt message content
 
