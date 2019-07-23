@@ -154,6 +154,12 @@ class Barrack(IUserDataSource, IGroupDataSource):
     #
     #   IEntityDataSource
     #
+    def save_meta(self, meta: Meta, identifier: ID) -> bool:
+        # 1. check meta with ID
+        if self.cache_meta(meta=meta, identifier=identifier):
+            # 2. save by delegate
+            return self.entityDataSource.save_meta(meta=meta, identifier=identifier)
+
     def meta(self, identifier: ID) -> Meta:
         # 1. get from meta cache
         meta = self.__metas.get(identifier)

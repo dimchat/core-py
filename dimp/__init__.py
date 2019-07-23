@@ -42,7 +42,7 @@ from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessag
 from .protocol import MessageType, TextContent, CommandContent, HistoryContent, ForwardContent
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
 
-from .delegate import IBarrackDelegate, ICallback, ICompletionHandler, ITransceiverDataSource, ITransceiverDelegate
+from .delegate import IBarrackDelegate, ICallback, ICompletionHandler, ICipherKeyDataSource, ITransceiverDelegate
 from .barrack import Barrack
 from .keystore import KeyStore
 from .transceiver import Transceiver
@@ -78,7 +78,7 @@ __all__ = [
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'GroupCommand',
 
-    'IBarrackDelegate', 'ICallback', 'ICompletionHandler', 'ITransceiverDataSource', 'ITransceiverDelegate',
+    'IBarrackDelegate', 'ICallback', 'ICompletionHandler', 'ICipherKeyDataSource', 'ITransceiverDelegate',
     'Barrack',
     'KeyStore',
     'Transceiver',

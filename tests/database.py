@@ -27,7 +27,7 @@ class Facebook(IBarrackDelegate):
         return entity
 
 
-class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
+class Database(IUserDataSource, IGroupDataSource, ICipherKeyDataSource):
 
     def __init__(self):
         super().__init__()
@@ -40,6 +40,10 @@ class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
     #
     #   IEntityDataSource
     #
+    def save_meta(self, meta: Meta, identifier: ID) -> bool:
+        # TODO: save meta to local storage
+        pass
+
     def meta(self, identifier: ID) -> Meta:
         # TODO: load meta from local storage
         pass
@@ -92,12 +96,8 @@ class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
         return facebook.group(identifier=identifier)
 
     #
-    #   ITransceiverDataSource
+    #   ICipherKeyDataSource
     #
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        # TODO: save meta to local storage
-        pass
-
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
         return keystore.cipher_key(sender=sender, receiver=receiver)
 
@@ -105,7 +105,7 @@ class Database(IUserDataSource, IGroupDataSource, ITransceiverDataSource):
         return keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        pass
+        return key
 
 
 database = Database()
@@ -121,5 +121,5 @@ barrack.groupDataSource = database
 barrack.delegate = database
 
 transceiver = Transceiver()
-transceiver.dataSource = database
 transceiver.delegate = facebook
+transceiver.cipherKeyDataSource = database

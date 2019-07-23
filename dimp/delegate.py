@@ -71,18 +71,7 @@ class ICompletionHandler(metaclass=ABCMeta):
         pass
 
 
-class ITransceiverDataSource(metaclass=ABCMeta):
-
-    @abstractmethod
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        """
-        Save meta for entity ID
-
-        :param meta:       meta info
-        :param identifier: entity ID
-        :return:           False on meta not match with the entity ID
-        """
-        pass
+class ICipherKeyDataSource(metaclass=ABCMeta):
 
     @abstractmethod
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:

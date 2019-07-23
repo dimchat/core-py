@@ -40,14 +40,14 @@ from typing import Optional
 
 from mkm import SymmetricKey, EVERYONE, ANYONE
 from mkm import Meta, ID
-from mkm import IUserDataSource, IGroupDataSource
+from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
 from mkm.crypto.utils import base64_encode, base64_decode
 
 from dkd import Content, InstantMessage, SecureMessage, ReliableMessage, Message
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 from .protocol import MessageType, ForwardContent
-from .delegate import ICallback, ICompletionHandler, ITransceiverDataSource, ITransceiverDelegate
+from .delegate import ICallback, ICompletionHandler, ICipherKeyDataSource, ITransceiverDelegate, IBarrackDelegate
 
 
 def is_broadcast(msg: Message) -> bool:
@@ -61,31 +61,6 @@ def is_broadcast(msg: Message) -> bool:
         return receiver == EVERYONE
 
 
-class PlainKey(SymmetricKey):
-
-    def encrypt(self, data: bytes) -> bytes:
-        return data
-
-    def decrypt(self, data: bytes) -> bytes:
-        return data
-
-
-"""
-    Symmetric key for broadcast message,
-    which will do nothing when en/decoding message data
-"""
-PLAIN_KEY = PlainKey({'algorithm': 'PLAIN'})
-
-
-def create_symmetric_key(password: dict, msg: Message=None):
-    if msg is not None and is_broadcast(msg=msg):
-        # DO NOT encrypt broadcast
-        assert password is None
-        return PLAIN_KEY
-    else:
-        return SymmetricKey(password)
-
-
 class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):
 
     def __init__(self):
@@ -93,10 +68,10 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
 
         # delegates
         self.delegate: ITransceiverDelegate = None
-        self.dataSource: ITransceiverDataSource = None
 
-        self.userDataSource: IUserDataSource = None
-        self.groupDataSource: IGroupDataSource = None
+        self.barrackDelegate: IBarrackDelegate = None
+        self.entityDataSource: IEntityDataSource = None
+        self.cipherKeyDataSource: ICipherKeyDataSource = None
 
     def send_message(self, msg: InstantMessage, callback: ICallback, split: bool) -> bool:
         """
@@ -112,11 +87,12 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             raise AssertionError('failed to encrypt and sign message: %s' % msg)
         # trying to send out
         receiver = ID(msg.envelope.receiver)
-        group = ID(msg.content.group)
         ok = True
         if split and receiver.type.is_group():
-            members = self.groupDataSource.members(identifier=group)
-            messages = r_msg.split(members=members)
+            group = self.barrackDelegate.group(identifier=receiver)
+            if group is None:
+                raise LookupError('failed to create group: %s' % receiver)
+            messages = r_msg.split(members=group.members)
             for r_msg in messages:
                 # sending group message one by one
                 if not self.__send_message(msg=r_msg, callback=callback):
@@ -159,35 +135,34 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             msg.delegate = self
         sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
-        group = ID(msg.content.group)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
-        if group is None and receiver.type.is_group():
-            group = receiver
-        # 1. encrypt 'content' to 'data' for receiver
-        if group is not None:
-            # group message
-            members = []
-            if receiver.type.is_communicator():
-                # split group message
-                members.append(receiver)
-            else:
-                members = self.groupDataSource.members(identifier=group)
-            password = self.__password(sender=sender, receiver=group)
-            s_msg = msg.encrypt(password=password, members=members)
+        if receiver.type.is_group():
+            group = self.barrackDelegate.group(identifier=receiver)
         else:
+            gid = msg.group
+            if gid is not None:
+                group = self.barrackDelegate.group(identifier=ID(gid))
+            else:
+                group = None
+        # 1. encrypt 'content' to 'data' for receiver
+        if group is None:
             # personal message
             password = self.__password(sender=sender, receiver=receiver)
             s_msg = msg.encrypt(password=password)
+        else:
+            # group message
+            password = self.__password(sender=sender, receiver=group.identifier)
+            s_msg = msg.encrypt(password=password, members=group.members)
         # 2. sign 'data' by sender
         s_msg.delegate = self
         return s_msg.sign()
 
     def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store
-        reused_key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
+        reused_key = self.cipherKeyDataSource.cipher_key(sender=sender, receiver=receiver)
         # 2. get new key from delegate
-        new_key = self.dataSource.reuse_cipher_key(key=reused_key, sender=sender, receiver=receiver)
+        new_key = self.cipherKeyDataSource.reuse_cipher_key(key=reused_key, sender=sender, receiver=receiver)
         if new_key is None:
             if reused_key is None:
                 # 3. create a new key
@@ -196,14 +171,14 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 new_key = reused_key
         # 4. update new key into the key store
         if new_key != reused_key:
-            self.dataSource.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
+            self.cipherKeyDataSource.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
         return new_key
 
     def verify_decrypt(self, msg: ReliableMessage) -> InstantMessage:
         sender = ID(msg.envelope.sender)
         receiver = ID(msg.envelope.receiver)
         # [Meta Protocol] check meta in first contact message
-        meta = self.userDataSource.meta(identifier=sender)
+        meta = self.entityDataSource.meta(identifier=sender)
         if meta is None:
             # first contact, try meta in message package
             meta = msg.meta
@@ -212,7 +187,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
                 raise LookupError('failed to get meta for sender: %s' % sender)
             meta = Meta(meta)
             if meta.match_identifier(identifier=sender):
-                self.dataSource.save_meta(meta=meta, identifier=sender)
+                self.entityDataSource.save_meta(meta=meta, identifier=sender)
             else:
                 raise ValueError('meta not match %s, %s' % (sender, meta))
         # 1. verify 'data' with 'signature'
@@ -245,7 +220,7 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     #   IInstantMessageDelegate
     #
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
-        password = create_symmetric_key(password=key, msg=msg)
+        password = SymmetricKey(key=key)
         if password is None:
             raise AssertionError('failed to get symmetric key: %s' % key)
         # TODO: check attachment for File/Image/Audio/Video message content before
@@ -265,8 +240,9 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
         if is_broadcast(msg=msg):
             # broadcast message has no key
-            assert key is None
             return None
+        # TODO: check whether support reused key
+
         # encrypt with receiver's public key
         contact = self.delegate.account(identifier=ID(receiver))
         if contact is not None:
@@ -280,7 +256,8 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             assert key is None
             return None
         # encode to Base64
-        return base64_encode(key)
+        if key is not None:
+            return base64_encode(key)
 
     #
     #   ISecureMessageDelegate
@@ -302,10 +279,10 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             # create symmetric key from JsON data
             key = SymmetricKey(json.loads(data.decode('utf-8')))
             if key is not None:
-                self.dataSource.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+                self.cipherKeyDataSource.cache_cipher_key(key=key, sender=sender, receiver=receiver)
         if key is None:
             # if key data is empty, get it from key store
-            key = self.dataSource.cipher_key(sender=sender, receiver=receiver)
+            key = self.cipherKeyDataSource.cipher_key(sender=sender, receiver=receiver)
         return key
 
     def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
@@ -314,10 +291,11 @@ class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMess
             assert key is None
             return None
         # decode from Base64
-        return base64_decode(key)
+        if key is not None:
+            return base64_decode(key)
 
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
-        password = create_symmetric_key(key, msg)
+        password = SymmetricKey(key=key)
         if password is not None:
             plaintext = password.decrypt(data)
             if plaintext is not None:
