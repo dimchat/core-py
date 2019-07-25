@@ -35,8 +35,8 @@
     Manage keys for conversations
 """
 
-from mkm import SymmetricKey, ID, Address
-from mkm.address import ANYWHERE, EVERYWHERE
+from mkm import SymmetricKey, ID
+from mkm.identifier import ANYONE, EVERYONE
 from mkm.crypto.symmetric import symmetric_key_classes
 
 from .delegate import ICipherKeyDataSource
@@ -61,14 +61,6 @@ symmetric_key_classes[PlainKey.PLAIN] = PlainKey
 plain_key = PlainKey({'algorithm': PlainKey.PLAIN})
 
 
-def is_broadcast(to: Address) -> bool:
-    network = to.network
-    if network.is_person():
-        return to == ANYWHERE
-    elif network.is_group():
-        return to == EVERYWHERE
-
-
 class KeyStore(ICipherKeyDataSource):
 
     def __init__(self):
@@ -81,10 +73,9 @@ class KeyStore(ICipherKeyDataSource):
 
     def flush(self):
         """ Trigger for saving cipher key table """
-        if self.dirty:
-            if self.save_keys(self.key_map):
-                # keys saved
-                self.dirty = False
+        if self.dirty and self.save_keys(self.key_map):
+            # keys saved
+            self.dirty = False
 
     def save_keys(self, key_map: dict) -> bool:
         """
@@ -116,43 +107,54 @@ class KeyStore(ICipherKeyDataSource):
             return False
         changed = False
         for _from in key_map:
+            sender = ID(_from)
             table = key_map.get(_from)
             for _to in table:
+                receiver = ID(_to)
                 pw = table.get(_to)
                 key = SymmetricKey(pw)
                 # TODO: check whether exists an old key
                 changed = True
                 # cache key with direction
-                self._cache_cipher_key(key, _from, _to)
+                self.__cache_cipher_key(key, sender, receiver)
         return changed
 
-    def _cipher_key(self, _from: Address, _to: Address) -> SymmetricKey:
-        if is_broadcast(_to):
-            return plain_key
-        table = self.key_map.get(_from)
+    def __cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+        assert sender.valid and receiver.valid
+        table = self.key_map.get(sender)
         if table is not None:
-            return table.get(_to)
+            return table.get(receiver)
 
-    def _cache_cipher_key(self, key: SymmetricKey, _from: Address, _to: Address) -> bool:
-        if is_broadcast(_to):
-            return True
-        table = self.key_map.get(_from)
+    def __cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        assert sender.valid and receiver.valid
+        table = self.key_map.get(sender)
         if table is None:
             table = {}
-            self.key_map[_from] = table
-        if key is not None:
-            table[_to] = key
-            return True
+            self.key_map[sender] = table
+        assert key is not None
+        table[receiver] = key
+
+    @staticmethod
+    def is_broadcast(to: ID) -> bool:
+        network = to.type
+        if network.is_person():
+            return to == ANYONE
+        elif network.is_group():
+            return to == EVERYONE
 
     #
     #   ICipherKeyDataSource
     #
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        return self._cipher_key(sender.address, receiver.address)
+        if self.is_broadcast(receiver):
+            return plain_key
+        return self.__cipher_key(sender, receiver)
 
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
-        if self._cache_cipher_key(key, sender.address, receiver.address):
-            self.dirty = True
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        if self.is_broadcast(receiver):
+            return
+        self.__cache_cipher_key(key, sender, receiver)
+        self.dirty = True
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
         # TODO: check reuse key

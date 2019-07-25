@@ -34,6 +34,7 @@
 
     Manage meta for all entities
 """
+from typing import Optional
 
 from mkm import PrivateKey
 from mkm import ID, Meta, Profile
@@ -43,19 +44,19 @@ from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
 from .delegate import IBarrackDelegate
 
 
-class Barrack(IUserDataSource, IGroupDataSource):
+class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
 
     def __init__(self):
         super().__init__()
 
         # delegates
         self.delegate: IBarrackDelegate = None
-
         self.entityDataSource: IEntityDataSource = None
         self.userDataSource: IUserDataSource = None
         self.groupDataSource: IGroupDataSource = None
 
         # memory caches
+        self.__ids = {}
         self.__metas = {}
         self.__accounts = {}
         self.__users = {}
@@ -72,46 +73,81 @@ class Barrack(IUserDataSource, IGroupDataSource):
 
         :return: reduced object count
         """
-        finger = 1
+        finger = 0
         finger = self.__thanos(self.__metas, finger)
         finger = self.__thanos(self.__accounts, finger)
         finger = self.__thanos(self.__users, finger)
         finger = self.__thanos(self.__groups, finger)
-        return (finger & 1) + (finger >> 1)
+        return finger >> 1
 
     @staticmethod
     def __thanos(planet: dict, finger: int) -> int:
         keys = planet.keys()
         for key in keys:
-            if (++finger) & 1:
+            if (++finger & 1) == 1:
                 # kill it
                 planet.pop(key)
         return finger
 
-    def cache_meta(self, meta: Meta, identifier: ID):
-        if not meta.match_identifier(identifier):
-            raise AssertionError('meta not match ID')
-        self.__metas[identifier] = meta
+    def cache_id(self, identifier: ID) -> bool:
+        assert identifier.valid
+        self.__ids[identifier] = identifier
+        return True
 
-    def cache_account(self, account: Account):
+    def cache_meta(self, meta: Meta, identifier: ID) -> bool:
+        if meta.match_identifier(identifier):
+            self.__metas[identifier] = meta
+            return True
+
+    def cache_account(self, account: Account) -> bool:
         if isinstance(account, User):
             return self.cache_user(user=account)
         if account.delegate is None:
             account.delegate = self
+        assert account.identifier.valid
         self.__accounts[account.identifier] = account
         return True
 
-    def cache_user(self, user: User):
+    def cache_user(self, user: User) -> bool:
+        self.__accounts.pop(user.identifier)
         if user.delegate is None:
             user.delegate = self
+        assert user.identifier.valid
         self.__users[user.identifier] = user
+        return True
 
-    def cache_group(self, group: Group):
+    def cache_group(self, group: Group) -> bool:
         if group.delegate is None:
             group.delegate = self
+        assert group.identifier.valid
         self.__groups[group.identifier] = group
+        return True
 
-    def account(self, identifier: ID) -> Account:
+    #
+    #   IBarrackDelegate
+    #
+    def identifier(self, string) -> Optional[ID]:
+        if string is None:
+            return None
+        elif isinstance(string, ID):
+            return string
+        assert isinstance(string, str)
+        # 1. get from ID cache
+        value = self.__ids.get(string)
+        if value is not None:
+            return value
+        # 2. get from delegate
+        value = self.delegate.identifier(string)
+        if value is None:
+            # create it directly
+            value = ID(identifier=string)
+        # 3. cache it
+        if value is not None and self.cache_id(identifier=value):
+            return value
+
+    def account(self, identifier: ID) -> Optional[Account]:
+        if identifier is None:
+            return None
         # 1. get from account cache
         account = self.__accounts.get(identifier)
         if account is not None:
@@ -122,33 +158,31 @@ class Barrack(IUserDataSource, IGroupDataSource):
             return user
         # 3. get from delegate
         account = self.delegate.account(identifier=identifier)
-        if account is not None:
-            # 4. cache
-            self.cache_account(account=account)
+        if account is not None and self.cache_account(account=account):
             return account
 
-    def user(self, identifier: ID) -> User:
+    def user(self, identifier: ID) -> Optional[User]:
+        if identifier is None:
+            return None
         # 1. get from user cache
         user = self.__users.get(identifier)
         if user is not None:
             return user
         # 2. get from delegate
         user = self.delegate.user(identifier=identifier)
-        if user is not None:
-            # 3. cache
-            self.cache_user(user=user)
+        if user is not None and self.cache_user(user=user):
             return user
 
-    def group(self, identifier: ID) -> Group:
+    def group(self, identifier: ID) -> Optional[Group]:
+        if identifier is None:
+            return None
         # 1. get from group cache
         group = self.__groups.get(identifier)
         if group is not None:
             return group
         # 2. get from delegate
         group = self.delegate.group(identifier=identifier)
-        if group is not None:
-            # 3. cache
-            self.cache_group(group=group)
+        if group is not None and self.cache_group(group=group):
             return group
 
     #

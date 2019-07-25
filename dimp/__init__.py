@@ -35,7 +35,7 @@ from mkm import Account, User, IUserDataSource
 from mkm import Group, IGroupDataSource
 
 from dkd import Content
-from dkd import Envelope, Message, IMessageDelegate
+from dkd import Envelope, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
@@ -67,7 +67,7 @@ __all__ = [
 
     # DaoKeDao
     'Content',
-    'Envelope', 'Message', 'IMessageDelegate',
+    'Envelope', 'Message',
     # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',

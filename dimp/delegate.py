@@ -41,18 +41,43 @@ from mkm import SymmetricKey, Meta, ID, Account, User, Group
 class IBarrackDelegate(metaclass=ABCMeta):
 
     @abstractmethod
+    def identifier(self, string) -> ID:
+        """
+        Create entity ID with String
+
+        :param string: ID string
+        :return: ID object
+        """
+        pass
+
+    @abstractmethod
     def account(self, identifier: ID) -> Account:
-        """ Account factory """
+        """
+        Create account with ID
+
+        :param identifier: ID object
+        :return: Account object
+        """
         pass
 
     @abstractmethod
     def user(self, identifier: ID) -> User:
-        """ User factory """
+        """
+        Create user with ID
+
+        :param identifier: ID object
+        :return: User object
+        """
         pass
 
     @abstractmethod
     def group(self, identifier: ID) -> Group:
-        """ Group factory """
+        """
+        Create group with ID
+
+        :param identifier: ID object
+        :return: Group object
+        """
         pass
 
 
@@ -85,14 +110,13 @@ class ICipherKeyDataSource(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
         """
         Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
 
         :param key:      cipher key from a contact
         :param sender:   user or contact ID
         :param receiver: contact or user/group ID
-        :return:         cipher key
         """
         pass
 

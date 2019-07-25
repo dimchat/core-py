@@ -8,6 +8,11 @@ class Facebook(IBarrackDelegate):
     #
     #   IBarrackDelegate
     #
+    def identifier(self, string) -> ID:
+        # TODO: create ID
+        identifier = ID(identifier=string)
+        return identifier
+
     def account(self, identifier: ID) -> Account:
         # TODO: create account
         entity = Account(identifier=identifier)
@@ -101,8 +106,8 @@ class Database(IUserDataSource, IGroupDataSource, ICipherKeyDataSource):
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
         return keystore.cipher_key(sender=sender, receiver=receiver)
 
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> bool:
-        return keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
         return key
