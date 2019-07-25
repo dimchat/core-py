@@ -109,7 +109,7 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
         return True
 
     def cache_user(self, user: User) -> bool:
-        self.__accounts.pop(user.identifier)
+        self.__accounts.pop(user.identifier, None)
         if user.delegate is None:
             user.delegate = self
         assert user.identifier.valid

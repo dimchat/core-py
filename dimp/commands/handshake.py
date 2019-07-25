@@ -65,10 +65,10 @@ class HandshakeCommand(CommandContent):
 
     @message.setter
     def message(self, value: str):
-        if value:
-            self['message'] = value
+        if value is None:
+            self.pop('message', None)
         else:
-            self.pop('message')
+            self['message'] = value
 
     #
     #   session
@@ -79,10 +79,10 @@ class HandshakeCommand(CommandContent):
 
     @session.setter
     def session(self, value: str):
-        if value:
-            self['session'] = value
+        if value is None:
+            self.pop('session', None)
         else:
-            self.pop('session')
+            self['session'] = value
 
     #
     #   Factories

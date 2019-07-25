@@ -62,10 +62,10 @@ class ReceiptCommand(CommandContent):
 
     @message.setter
     def message(self, value: str):
-        if value:
-            self['message'] = value
+        if value is None:
+            self.pop('message', None)
         else:
-            self.pop('message')
+            self['message'] = value
 
     #
     #   Factory

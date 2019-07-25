@@ -63,10 +63,10 @@ class ForwardContent(Content):
     @forward.setter
     def forward(self, value: dict):
         self.__forward = value
-        if value:
-            self['forward'] = value
+        if value is None:
+            self.pop('forward', None)
         else:
-            self.pop('forward')
+            self['forward'] = value
 
     #
     #   Factory

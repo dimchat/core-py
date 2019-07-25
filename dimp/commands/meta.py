@@ -73,10 +73,10 @@ class MetaCommand(CommandContent):
     @identifier.setter
     def identifier(self, value: ID):
         self.__identifier = value
-        if value:
-            self['ID'] = value
+        if value is None:
+            self.pop('ID', None)
         else:
-            self.pop('ID')
+            self['ID'] = value
 
     #
     #   Meta
@@ -88,10 +88,10 @@ class MetaCommand(CommandContent):
     @meta.setter
     def meta(self, value: Meta):
         self.__meta = value
-        if value:
-            self['meta'] = value
+        if value is None:
+            self.pop('meta', None)
         else:
-            self.pop('meta')
+            self['meta'] = value
 
     #
     #   Factories

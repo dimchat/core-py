@@ -73,10 +73,10 @@ class GroupCommand(HistoryContent):
 
     @member.setter
     def member(self, value: str):
-        if value:
-            self['member'] = value
+        if value is None:
+            self.pop('member', None)
         else:
-            self.pop('member')
+            self['member'] = value
 
     #
     #   Factories

@@ -82,12 +82,12 @@ class ProfileCommand(MetaCommand):
     @profile.setter
     def profile(self, value: Profile):
         self.__profile = value
-        if value:
-            self['profile'] = value.get('data')
-            self['signature'] = value.get('signature')
-        else:
+        if value is None:
             self.pop('profile', None)
             self.pop('signature', None)
+        else:
+            self['profile'] = value.get('data')
+            self['signature'] = value.get('signature')
 
     #
     #   Factories
