@@ -44,7 +44,7 @@ from mkm import IEntityDataSource
 from mkm.crypto.utils import base64_encode, base64_decode
 
 from dkd import Content, InstantMessage, SecureMessage, ReliableMessage, Message
-from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
+from dkd import IInstantMessageDelegate, IReliableMessageDelegate
 
 from .keystore import KeyStore
 from .protocol import MessageType, ForwardContent
@@ -69,7 +69,6 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
 
         # delegates
         self.delegate: ITransceiverDelegate = None
-        self.barrackDelegate: IBarrackDelegate = None
         self.entityDataSource: IEntityDataSource = None
         self.cipherKeyDataSource: ICipherKeyDataSource = None
 
@@ -105,16 +104,16 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return self.entityDataSource.save_meta(meta=meta, identifier=identifier)
 
     def __identifier(self, string) -> ID:
-        return self.barrackDelegate.identifier(string=string)
+        return self.delegate.identifier(string=string)
 
     def __account(self, identifier: ID) -> Account:
-        return self.barrackDelegate.account(identifier=identifier)
+        return self.delegate.account(identifier=identifier)
 
     def __user(self, identifier: ID) -> User:
-        return self.barrackDelegate.user(identifier=identifier)
+        return self.delegate.user(identifier=identifier)
 
     def __group(self, identifier: ID) -> Group:
-        return self.barrackDelegate.group(identifier=identifier)
+        return self.delegate.group(identifier=identifier)
 
     def is_broadcast(self, msg: Message) -> bool:
         receiver = self.__identifier(msg.group)

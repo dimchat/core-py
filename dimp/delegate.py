@@ -30,7 +30,8 @@
 
 from abc import ABCMeta, abstractmethod
 
-from mkm import SymmetricKey, Meta, ID, Account, User, Group
+from mkm import SymmetricKey, ID, Account, User, Group
+
 
 """
     Delegates
@@ -133,7 +134,7 @@ class ICipherKeyDataSource(metaclass=ABCMeta):
         pass
 
 
-class ITransceiverDelegate(IBarrackDelegate, metaclass=ABCMeta):
+class ITransceiverDelegate(IBarrackDelegate):
 
     @abstractmethod
     def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:

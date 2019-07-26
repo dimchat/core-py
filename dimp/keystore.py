@@ -66,16 +66,16 @@ class KeyStore(ICipherKeyDataSource):
     def __init__(self):
         super().__init__()
         # memory cache
-        self.key_map = {}
-        self.dirty = False
+        self.__key_map = {}
+        self.__dirty = False
         # load keys from local storage
         self.update_keys(self.load_keys())
 
     def flush(self):
         """ Trigger for saving cipher key table """
-        if self.dirty and self.save_keys(self.key_map):
+        if self.__dirty and self.save_keys(self.__key_map):
             # keys saved
-            self.dirty = False
+            self.__dirty = False
 
     def save_keys(self, key_map: dict) -> bool:
         """
@@ -109,6 +109,7 @@ class KeyStore(ICipherKeyDataSource):
         for _from in key_map:
             sender = ID(_from)
             table = key_map.get(_from)
+            assert isinstance(table, dict), 'sender table error: %s, %s' % (_from, table)
             for _to in table:
                 receiver = ID(_to)
                 pw = table.get(_to)
@@ -120,18 +121,17 @@ class KeyStore(ICipherKeyDataSource):
         return changed
 
     def __cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        assert sender.valid and receiver.valid
-        table = self.key_map.get(sender)
+        assert sender.valid and receiver.valid, 'error: (%s -> %s)' % (sender, receiver)
+        table = self.__key_map.get(sender)
         if table is not None:
             return table.get(receiver)
 
     def __cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        assert sender.valid and receiver.valid
-        table = self.key_map.get(sender)
+        assert sender.valid and receiver.valid and key is not None, 'error: (%s -> %s) %s' % (sender, receiver, key)
+        table = self.__key_map.get(sender)
         if table is None:
             table = {}
-            self.key_map[sender] = table
-        assert key is not None
+            self.__key_map[sender] = table
         table[receiver] = key
 
     @staticmethod
@@ -154,7 +154,7 @@ class KeyStore(ICipherKeyDataSource):
         if self.is_broadcast(receiver):
             return
         self.__cache_cipher_key(key, sender, receiver)
-        self.dirty = True
+        self.__dirty = True
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
         # TODO: check reuse key
