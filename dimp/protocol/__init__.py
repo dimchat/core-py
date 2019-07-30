@@ -33,7 +33,7 @@
     ~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-from .types import MessageType
+from .types import ContentType
 from .text import TextContent
 from .command import CommandContent
 from .history import HistoryContent
@@ -41,7 +41,7 @@ from .forward import ForwardContent
 
 
 __all__ = [
-    'MessageType',
+    'ContentType',
 
     'TextContent',
     'CommandContent',

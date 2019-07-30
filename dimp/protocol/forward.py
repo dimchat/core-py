@@ -31,7 +31,7 @@
 from dkd import Content, ReliableMessage
 from dkd.content import message_content_classes
 
-from .types import MessageType
+from .types import ContentType
 
 
 class ForwardContent(Content):
@@ -74,10 +74,10 @@ class ForwardContent(Content):
     @classmethod
     def new(cls, message: ReliableMessage) -> Content:
         content = {
-            'type': MessageType.Forward,
+            'type': ContentType.Forward,
             'forward': message,
         }
         return ForwardContent(content)
 
 
-message_content_classes[MessageType.Forward] = ForwardContent
+message_content_classes[ContentType.Forward] = ForwardContent

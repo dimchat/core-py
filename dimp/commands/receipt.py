@@ -36,7 +36,7 @@
     2. contains 'meta' (must match), means reply
 """
 
-from ..protocol import MessageType, CommandContent
+from ..protocol import ContentType, CommandContent
 
 
 class ReceiptCommand(CommandContent):
@@ -73,7 +73,7 @@ class ReceiptCommand(CommandContent):
     @classmethod
     def receipt(cls, message: str) -> CommandContent:
         content = {
-            'type': MessageType.Command,
+            'type': ContentType.Command,
             'command': 'receipt',
             'message': message,
         }

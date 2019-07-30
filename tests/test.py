@@ -56,13 +56,13 @@ def print_msg(msg: Message):
     print('</%s>' % clazz)
 
 
-barrack.cache_meta(meta=Meta(moki_meta), identifier=ID(moki_id))
-barrack.cache_meta(meta=Meta(hulk_meta), identifier=ID(hulk_id))
+facebook.cache_meta(meta=Meta(moki_meta), identifier=ID(moki_id))
+facebook.cache_meta(meta=Meta(hulk_meta), identifier=ID(hulk_id))
 
-database.cache_private_key(private_key=PrivateKey(moki_sk), identifier=ID(moki_id))
-database.cache_private_key(private_key=PrivateKey(hulk_sk), identifier=ID(hulk_id))
+facebook.cache_private_key(private_key=PrivateKey(moki_sk), identifier=ID(moki_id))
+facebook.cache_private_key(private_key=PrivateKey(hulk_sk), identifier=ID(hulk_id))
 
-moki.delegate = barrack
+moki.delegate = facebook
 
 common = {}
 
@@ -160,12 +160,12 @@ class TransceiverTestCase(unittest.TestCase):
 
         content = TextContent.new('Hello')
         print('text content: ', content)
-        self.assertEqual(content.type, MessageType.Text)
+        self.assertEqual(content.type, ContentType.Text)
         TransceiverTestCase.content = content
 
         command = CommandContent.new('handshake')
         print('command content: ', command)
-        self.assertEqual(command.type, MessageType.Command)
+        self.assertEqual(command.type, ContentType.Command)
         TransceiverTestCase.command = command
 
     def test_2_instant(self):

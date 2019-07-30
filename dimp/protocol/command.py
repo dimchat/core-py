@@ -31,7 +31,7 @@
 from dkd import Content
 from dkd.content import message_content_classes
 
-from .types import MessageType
+from .types import ContentType
 
 
 class CommandContent(Content):
@@ -63,10 +63,10 @@ class CommandContent(Content):
     @classmethod
     def new(cls, command: str) -> Content:
         content = {
-            'type': MessageType.Command,
+            'type': ContentType.Command,
             'command': command,
         }
         return CommandContent(content)
 
 
-message_content_classes[MessageType.Command] = CommandContent
+message_content_classes[ContentType.Command] = CommandContent

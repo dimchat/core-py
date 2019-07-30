@@ -38,7 +38,7 @@
 
 from mkm import ID, Meta
 
-from ..protocol import MessageType, CommandContent
+from ..protocol import ContentType, CommandContent
 
 
 class MetaCommand(CommandContent):
@@ -99,7 +99,7 @@ class MetaCommand(CommandContent):
     @classmethod
     def query(cls, identifier: str) -> CommandContent:
         content = {
-            'type': MessageType.Command,
+            'type': ContentType.Command,
             'command': 'meta',
             'ID': identifier,
         }
@@ -108,7 +108,7 @@ class MetaCommand(CommandContent):
     @classmethod
     def response(cls, identifier: str, meta: dict) -> CommandContent:
         content = {
-            'type': MessageType.Command,
+            'type': ContentType.Command,
             'command': 'meta',
             'ID': identifier,
             'meta': meta,

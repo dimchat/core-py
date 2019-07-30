@@ -39,7 +39,7 @@
 
 from mkm import ID
 
-from ..protocol import MessageType, HistoryContent
+from ..protocol import ContentType, HistoryContent
 
 
 class GroupCommand(HistoryContent):
@@ -84,7 +84,7 @@ class GroupCommand(HistoryContent):
     @classmethod
     def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryContent:
         content = {
-            'type': MessageType.History,
+            'type': ContentType.History,
             'command': command,
             'time': time,
             'group': group,

@@ -29,17 +29,17 @@
 # ==============================================================================
 
 """
-    Symmetric Keys Storage
-    ~~~~~~~~~~~~~~~~~~~~~~
+    Symmetric Keys Cache
+    ~~~~~~~~~~~~~~~~~~~~
 
     Manage keys for conversations
 """
 
+from abc import ABCMeta, abstractmethod
+
 from mkm import SymmetricKey, ID
 from mkm.identifier import ANYONE, EVERYONE
 from mkm.crypto.symmetric import symmetric_key_classes
-
-from .delegate import ICipherKeyDataSource
 
 
 class PlainKey(SymmetricKey):
@@ -61,7 +61,7 @@ symmetric_key_classes[PlainKey.PLAIN] = PlainKey
 plain_key = PlainKey({'algorithm': PlainKey.PLAIN})
 
 
-class KeyStore(ICipherKeyDataSource):
+class KeyCache(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()
@@ -77,6 +77,7 @@ class KeyStore(ICipherKeyDataSource):
             # keys saved
             self.__dirty = False
 
+    @abstractmethod
     def save_keys(self, key_map: dict) -> bool:
         """
         Callback for saving cipher key table into local storage
@@ -84,16 +85,15 @@ class KeyStore(ICipherKeyDataSource):
         :param key_map: all cipher keys(with direction) from memory cache
         :return:        True on success
         """
-        # TODO: Override it to access database
         pass
 
+    @abstractmethod
     def load_keys(self) -> dict:
         """
         Load cipher key table from local storage
 
         :return: keys map
         """
-        # TODO: Override it to access database
         pass
 
     def update_keys(self, key_map: dict) -> bool:
@@ -146,16 +146,38 @@ class KeyStore(ICipherKeyDataSource):
     #   ICipherKeyDataSource
     #
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+        """
+        Get cipher key for encrypt message from 'sender' to 'receiver'
+
+        :param sender:   user or contact ID
+        :param receiver: contact or user/group ID
+        :return:         cipher key
+        """
         if self.is_broadcast(receiver):
             return plain_key
         return self.__cipher_key(sender, receiver)
 
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        """
+        Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
+
+        :param key:      cipher key from a contact
+        :param sender:   user or contact ID
+        :param receiver: contact or user/group ID
+        """
         if self.is_broadcast(receiver):
             return
         self.__cache_cipher_key(key, sender, receiver)
         self.__dirty = True
 
+    @abstractmethod
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        # TODO: check reuse key
+        """
+        Update/create cipher key for encrypt message content
+
+        :param sender:   user ID
+        :param receiver: contact/group ID
+        :param key:      old key to be reused (nullable)
+        :return:         new key
+        """
         pass

@@ -31,39 +31,39 @@
 from enum import IntEnum
 
 
-class MessageType(IntEnum):
+class ContentType(IntEnum):
     """
-        @enum DKDMessageType
+        @enum DKDContentType
 
         @abstract A flag to indicate what kind of message content this is.
 
         @discussion A message is something send from one place to another one,
             it can be an instant message, a system command, or something else.
 
-            DKDMessageType_Text indicates this is a normal message with plaintext.
+            DKDContentType_Text indicates this is a normal message with plaintext.
 
-            DKDMessageType_File indicates this is a file, it may include filename
+            DKDContentType_File indicates this is a file, it may include filename
             and file data, but usually the file data will encrypted and upload to
             somewhere and here is just a URL to retrieve it.
 
-            DKDMessageType_Image indicates this is an image, it may send the image
+            DKDContentType_Image indicates this is an image, it may send the image
             data directly(encrypt the image data with Base64), but we suggest to
             include a URL for this image just like the 'File' message, of course
             you can get a snapshot of this image here.
 
-            DKDMessageType_Audio indicates this is a voice message, you can get
+            DKDContentType_Audio indicates this is a voice message, you can get
             a URL to retrieve the voice data just like the 'File' message.
 
-            DKDMessageType_Video indicates this is a video file.
+            DKDContentType_Video indicates this is a video file.
 
-            DKDMessageType_Page indicates this is a web page.
+            DKDContentType_Page indicates this is a web page.
 
-            DKDMessageType_Quote indicates this message has quoted another message
+            DKDContentType_Quote indicates this message has quoted another message
             and the message content should be a plaintext.
 
-            DKDMessageType_Command indicates this is a command message.
+            DKDContentType_Command indicates this is a command message.
 
-            DKDMessageType_Forward indicates here contains a TOP-SECRET message
+            DKDContentType_Forward indicates here contains a TOP-SECRET message
             which needs your help to redirect it to the true receiver.
 
         Bits:

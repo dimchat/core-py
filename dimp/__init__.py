@@ -39,12 +39,12 @@ from dkd import Envelope, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from .protocol import MessageType, TextContent, CommandContent, HistoryContent, ForwardContent
+from .protocol import ContentType, TextContent, CommandContent, HistoryContent, ForwardContent
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
 
-from .delegate import IBarrackDelegate, ICallback, ICompletionHandler, ICipherKeyDataSource, ITransceiverDelegate
+from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
 from .barrack import Barrack
-from .keystore import KeyStore
+from .keystore import KeyCache
 from .transceiver import Transceiver
 
 from .station import ServiceProvider, Station
@@ -73,14 +73,14 @@ __all__ = [
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
     # DIMP
-    'MessageType',
+    'ContentType',
     'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'GroupCommand',
 
-    'IBarrackDelegate', 'ICallback', 'ICompletionHandler', 'ICipherKeyDataSource', 'ITransceiverDelegate',
+    'ICallback', 'ICompletionHandler', 'ITransceiverDelegate',
     'Barrack',
-    'KeyStore',
+    'KeyCache',
     'Transceiver',
 
     'ServiceProvider', 'Station',

@@ -29,8 +29,8 @@
 # ==============================================================================
 
 """
-    User Database
-    ~~~~~~~~~~~~~
+    Entity Database
+    ~~~~~~~~~~~~~~~
 
     Manage meta for all entities
 """
@@ -40,16 +40,13 @@ from mkm import ID, Meta, Profile
 from mkm import Account, User, Group
 from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
 
-from .delegate import IBarrackDelegate
 
-
-class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
+class Barrack(IUserDataSource, IGroupDataSource):
 
     def __init__(self):
         super().__init__()
 
         # delegates
-        self.delegate: IBarrackDelegate = None
         self.entityDataSource: IEntityDataSource = None
         self.userDataSource: IUserDataSource = None
         self.groupDataSource: IGroupDataSource = None
@@ -123,6 +120,12 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
     #   IBarrackDelegate
     #
     def identifier(self, string: str) -> ID:
+        """
+        Create entity ID with String
+
+        :param string: ID string
+        :return: ID object
+        """
         if string is not None:
             if isinstance(string, ID):
                 return string
@@ -131,16 +134,19 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
             identifier = self.__ids.get(string)
             if identifier is not None:
                 return identifier
-            # 2. get from delegate
-            identifier = self.delegate.identifier(string)
-            if identifier is None:
-                # create it directly
-                identifier = ID(identifier=string)
-            # 3. cache it
-            if identifier is not None and self.cache_id(identifier=identifier):
+            # 2. create and cache it
+            identifier = ID(identifier=string)
+            if identifier is not None:
+                self.cache_id(identifier=identifier)
                 return identifier
 
     def account(self, identifier: ID) -> Account:
+        """
+        Create account with ID
+
+        :param identifier: ID object
+        :return: Account object
+        """
         if identifier is not None:
             assert identifier.valid, 'failed to get account with invalid ID: %s' % identifier
             # 1. get from account cache
@@ -148,40 +154,31 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
             if account is not None:
                 return account
             # 2. get from user cache
-            user = self.__users.get(identifier)
-            if user is not None:
-                return user
-            # 3. get from delegate
-            account = self.delegate.account(identifier=identifier)
-            # 4. cache it
-            if account is not None and self.cache_account(account=account):
-                return account
+            return self.__users.get(identifier)
 
     def user(self, identifier: ID) -> User:
+        """
+        Create user with ID
+
+        :param identifier: ID object
+        :return: User object
+        """
         if identifier is not None:
             assert identifier.valid, 'failed to get user with invalid ID: %s' % identifier
             # 1. get from user cache
-            user = self.__users.get(identifier)
-            if user is not None:
-                return user
-            # 2. get from delegate
-            user = self.delegate.user(identifier=identifier)
-            # 3. cache it
-            if user is not None and self.cache_user(user=user):
-                return user
+            return self.__users.get(identifier)
 
     def group(self, identifier: ID) -> Group:
+        """
+        Create group with ID
+
+        :param identifier: ID object
+        :return: Group object
+        """
         if identifier is not None:
             assert identifier.valid, 'failed to get group with invalid ID: %s' % identifier
             # 1. get from group cache
-            group = self.__groups.get(identifier)
-            if group is not None:
-                return group
-            # 2. get from delegate
-            group = self.delegate.group(identifier=identifier)
-            # 3. cache it
-            if group is not None and self.cache_group(group=group):
-                return group
+            return self.__groups.get(identifier)
 
     #
     #   IEntityDataSource
@@ -200,34 +197,37 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
             if meta is not None:
                 return meta
             # 2. get from entity data source
-            meta = self.entityDataSource.meta(identifier=identifier)
-            # 3. cache it
-            if meta is not None and self.cache_meta(meta=meta, identifier=identifier):
-                return meta
+            if self.entityDataSource is not None:
+                meta = self.entityDataSource.meta(identifier=identifier)
+                # 3. cache it
+                if meta is not None:
+                    self.cache_meta(meta=meta, identifier=identifier)
+            return meta
 
     def profile(self, identifier: ID) -> Profile:
         if identifier is not None:
             assert identifier.valid, 'failed to get profile with invalid ID: %s' % identifier
-            # NOTICE: do not cache profile here
-            return self.entityDataSource.profile(identifier=identifier)
+            if self.entityDataSource is not None:
+                # NOTICE: do not cache profile here
+                return self.entityDataSource.profile(identifier=identifier)
 
     #
     #   IUserDataSource
     #
     def private_key_for_signature(self, identifier: ID) -> PrivateKey:
-        if identifier is not None:
+        if identifier is not None and self.userDataSource is not None:
             assert identifier.valid, 'failed to get private key with invalid ID: %s' % identifier
             # TODO: signature key will never change, cache it
             return self.userDataSource.private_key_for_signature(identifier=identifier)
 
     def private_keys_for_decryption(self, identifier: ID) -> list:
-        if identifier is not None:
+        if identifier is not None and self.userDataSource is not None:
             assert identifier.valid, 'failed to get private keys with invalid ID: %s' % identifier
             # NOTICE: decryption key can be change, do not cache it here
             return self.userDataSource.private_keys_for_decryption(identifier=identifier)
 
     def contacts(self, identifier: ID) -> list:
-        if identifier is not None:
+        if identifier is not None and self.userDataSource is not None:
             assert identifier.valid, 'failed to get contacts with invalid user ID: %s' % identifier
             # NOTICE: do not cache contacts here
             return self.userDataSource.contacts(identifier=identifier)
@@ -236,21 +236,21 @@ class Barrack(IBarrackDelegate, IUserDataSource, IGroupDataSource):
     #   IGroupDataSource
     #
     def founder(self, identifier: ID) -> ID:
-        if identifier is not None:
+        if identifier is not None and self.groupDataSource is not None:
             assert identifier.valid, 'failed to get founder with invalid group ID: %s' % identifier
             assert identifier.type.is_group(), 'ID type is not GROUP'
             # TODO: group founder will never change, cache it
             return self.groupDataSource.founder(identifier=identifier)
 
     def owner(self, identifier: ID) -> ID:
-        if identifier is not None:
+        if identifier is not None and self.groupDataSource is not None:
             assert identifier.valid, 'failed to get owner with invalid group ID: %s' % identifier
             assert identifier.type.is_group(), 'ID type is not GROUP'
             # NOTICE: do not cache group owner here
             return self.groupDataSource.owner(identifier=identifier)
 
     def members(self, identifier: ID) -> list:
-        if identifier is not None:
+        if identifier is not None and self.groupDataSource is not None:
             assert identifier.valid, 'failed to get members with invalid group ID: %s' % identifier
             assert identifier.type.is_group(), 'ID type is not GROUP'
             # NOTICE: do not cache group members here

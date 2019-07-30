@@ -38,7 +38,7 @@
     4. (S-C) handshake success
 """
 
-from ..protocol import MessageType, CommandContent
+from ..protocol import ContentType, CommandContent
 
 
 class HandshakeCommand(CommandContent):
@@ -90,7 +90,7 @@ class HandshakeCommand(CommandContent):
     @classmethod
     def handshake(cls, message: str='Hello world!', session: str=None) -> CommandContent:
         content = {
-            'type': MessageType.Command,
+            'type': ContentType.Command,
             'command': 'handshake',
             'message': message,
         }

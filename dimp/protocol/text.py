@@ -31,7 +31,7 @@
 from dkd import Content
 from dkd.content import message_content_classes
 
-from .types import MessageType
+from .types import ContentType
 
 
 class TextContent(Content):
@@ -67,10 +67,10 @@ class TextContent(Content):
     @classmethod
     def new(cls, text: str) -> Content:
         content = {
-            'type': MessageType.Text,
+            'type': ContentType.Text,
             'text': text,
         }
         return TextContent(content)
 
 
-message_content_classes[MessageType.Text] = TextContent
+message_content_classes[ContentType.Text] = TextContent

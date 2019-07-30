@@ -31,7 +31,7 @@
 from dkd import Content
 from dkd.content import message_content_classes
 
-from .types import MessageType
+from .types import ContentType
 from .command import CommandContent
 
 
@@ -74,11 +74,11 @@ class HistoryContent(Content):
     @classmethod
     def new(cls, command: str, time: int=0) -> Content:
         content = {
-            'type': MessageType.History,
+            'type': ContentType.History,
             'time': time,
             'command': command,
         }
         return CommandContent(content)
 
 
-message_content_classes[MessageType.History] = HistoryContent
+message_content_classes[ContentType.History] = HistoryContent

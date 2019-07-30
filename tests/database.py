@@ -3,36 +3,7 @@
 from dimp import *
 
 
-class Facebook(IBarrackDelegate):
-
-    #
-    #   IBarrackDelegate
-    #
-    def identifier(self, string) -> ID:
-        # TODO: create ID
-        identifier = ID(identifier=string)
-        return identifier
-
-    def account(self, identifier: ID) -> Account:
-        # TODO: create account
-        entity = Account(identifier=identifier)
-        entity.delegate = barrack
-        return entity
-
-    def user(self, identifier: ID) -> User:
-        # TODO: create user
-        entity = User(identifier=identifier)
-        entity.delegate = barrack
-        return entity
-
-    def group(self, identifier: ID) -> Group:
-        # TODO: create group
-        entity = Group(identifier=identifier)
-        entity.delegate = barrack
-        return entity
-
-
-class Database(IUserDataSource, IGroupDataSource, ICipherKeyDataSource):
+class Facebook(Barrack):
 
     def __init__(self):
         super().__init__()
@@ -43,19 +14,30 @@ class Database(IUserDataSource, IGroupDataSource, ICipherKeyDataSource):
         self.__private_keys[identifier.address] = private_key
 
     #
-    #   IEntityDataSource
+    #   IBarrackDelegate
     #
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        # TODO: save meta to local storage
-        pass
+    def account(self, identifier: ID) -> Account:
+        entity = super().account(identifier=identifier)
+        if entity is None:
+            entity = super().user(identifier=identifier)
+            if entity is None:
+                entity = Account(identifier=identifier)
+                self.cache_account(account=entity)
+        return entity
 
-    def meta(self, identifier: ID) -> Meta:
-        # TODO: load meta from local storage
-        pass
+    def user(self, identifier: ID) -> User:
+        entity = super().user(identifier=identifier)
+        if entity is None:
+            entity = User(identifier=identifier)
+            self.cache_user(user=entity)
+        return entity
 
-    def profile(self, identifier: ID) -> Profile:
-        # TODO: load profile from local storage
-        pass
+    def group(self, identifier: ID) -> Group:
+        entity = super().group(identifier=identifier)
+        if entity is None:
+            entity = Group(identifier=identifier)
+            self.cache_group(group=entity)
+        return entity
 
     #
     #   IUserDataSource
@@ -69,62 +51,23 @@ class Database(IUserDataSource, IGroupDataSource, ICipherKeyDataSource):
         key = self.__private_keys.get(identifier.address)
         return [key]
 
-    def contacts(self, identifier: ID) -> list:
-        # TODO: load contacts from local storage
+
+class KeyStore(KeyCache):
+
+    def save_keys(self, key_map: dict) -> bool:
+        return False
+
+    def load_keys(self) -> dict:
         pass
-
-    #
-    #   IGroupDataSource
-    #
-    def founder(self, identifier: ID) -> ID:
-        # TODO: load group info from local storage
-        pass
-
-    def owner(self, identifier: ID) -> ID:
-        # TODO: load group info from local storage
-        pass
-
-    def members(self, identifier: ID) -> list:
-        # TODO: load group info from local storage
-        pass
-
-    #
-    #   IBarrackDelegate
-    #
-    def account(self, identifier: ID) -> Account:
-        return facebook.account(identifier=identifier)
-
-    def user(self, identifier: ID) -> User:
-        return facebook.user(identifier=identifier)
-
-    def group(self, identifier: ID) -> Group:
-        return facebook.group(identifier=identifier)
-
-    #
-    #   ICipherKeyDataSource
-    #
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        return keystore.cipher_key(sender=sender, receiver=receiver)
-
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        keystore.cache_cipher_key(key=key, sender=sender, receiver=receiver)
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        return key
+        pass
 
-
-database = Database()
 
 facebook = Facebook()
 
 keystore = KeyStore()
 
-barrack = Barrack()
-barrack.entityDataSource = database
-barrack.userDataSource = database
-barrack.groupDataSource = database
-barrack.delegate = database
-
 transceiver = Transceiver()
-transceiver.delegate = facebook
-transceiver.cipherKeyDataSource = database
+transceiver.barrack = facebook
+transceiver.key_cache = keystore
