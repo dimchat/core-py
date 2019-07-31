@@ -34,9 +34,13 @@
 """
 
 from .types import ContentType
+
 from .text import TextContent
+from .file import FileContent, ImageContent, AudioContent, VideoContent
+
 from .command import CommandContent
 from .history import HistoryContent
+
 from .forward import ForwardContent
 
 
@@ -44,7 +48,10 @@ __all__ = [
     'ContentType',
 
     'TextContent',
+    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+
     'CommandContent',
     'HistoryContent',
+
     'ForwardContent',
 ]

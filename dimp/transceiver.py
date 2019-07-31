@@ -46,7 +46,7 @@ from dkd import IInstantMessageDelegate, IReliableMessageDelegate
 
 from .barrack import Barrack
 from .keystore import KeyCache
-from .protocol import ContentType, ForwardContent
+from .protocol import ContentType, ForwardContent, FileContent
 from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
 
 
@@ -198,7 +198,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             if meta is None:
                 # TODO: query meta for sender from DIM network
                 raise LookupError('failed to get meta for sender: %s' % sender)
-            assert meta.match_identifier(identifier=sender)
+            assert meta.match_identifier(identifier=sender), 'meta not match: %s, %s' % (sender, meta)
             if not self.barrack.save_meta(meta=meta, identifier=sender):
                 raise ValueError('save meta error: %s, %s' % (sender, meta))
 
@@ -230,8 +230,14 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         password = SymmetricKey(key)
         if password is None:
             raise AssertionError('failed to get symmetric key: %s' % key)
-        # TODO: check attachment for File/Image/Audio/Video message content before
-
+        # check attachment for File/Image/Audio/Video message content before
+        if isinstance(content, FileContent):
+            data = password.encrypt(data=content.data)
+            # upload (encrypted) file data onto CDN and save the URL in message content
+            url = self.delegate.upload_data(data=data, msg=msg)
+            if url is not None:
+                content.url = url
+                content.data = None
         # encrypt with password
         string = json.dumps(content)
         return password.encrypt(data=string.encode('utf-8'))
@@ -257,7 +263,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             return contact.encrypt(data=string.encode('utf-8'))
 
     def encode_key_data(self, key: bytes, msg: InstantMessage) -> Optional[str]:
-        assert not self.is_broadcast(msg=msg) or key is None
+        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
         # encode to Base64
         if key is not None:
             return base64_encode(key)
@@ -266,7 +272,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
     #   ISecureMessageDelegate
     #
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
-        assert not self.is_broadcast(msg=msg) or key is None
+        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
         sender = self.barrack.identifier(sender)
         receiver = self.barrack.identifier(receiver)
         password = None
@@ -286,7 +292,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return password
 
     def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.is_broadcast(msg=msg) or key is None
+        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
         # decode from Base64
         if key is not None:
             return base64_decode(key)
@@ -296,8 +302,21 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         if password is not None:
             plaintext = password.decrypt(data)
             if plaintext is not None:
-                # TODO: check attachment for File/Image/Audio/Video message content after
-                return Content(json.loads(plaintext))
+                content = Content(json.loads(plaintext))
+                # check attachment for File/Image/Audio/Video message content after
+                if isinstance(content, FileContent):
+                    i_msg = InstantMessage.new(content=content, envelope=msg.envelope)
+                    # download from CDN
+                    file_data = self.delegate.download_data(content.url, i_msg)
+                    if file_data is None:
+                        # save symmetric key for decrypted file data after download from CDN
+                        content.password = password
+                    else:
+                        # decrypt file data
+                        content.data = password.decrypt(data=file_data)
+                        assert content.data is not None, 'failed to decrypt file data with key: %s' % key
+                        content.url = None
+                return content
 
     def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
         if self.is_broadcast(msg):

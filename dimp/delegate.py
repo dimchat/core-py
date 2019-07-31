@@ -30,6 +30,7 @@
 
 from abc import ABCMeta, abstractmethod
 
+from dkd import InstantMessage
 
 """
     Delegates
@@ -62,5 +63,27 @@ class ITransceiverDelegate(metaclass=ABCMeta):
         :param data:    package data
         :param handler: completion handler
         :return:        False on data/delegate error
+        """
+        pass
+
+    @abstractmethod
+    def upload_data(self, data: bytes, msg: InstantMessage) -> str:
+        """
+        Upload encrypted data to CDN
+
+        :param data: encrypted file data
+        :param msg:  instant message
+        :return:     download URL
+        """
+        pass
+
+    @abstractmethod
+    def download_data(self, url: str, msg: InstantMessage) -> bytes:
+        """
+        Download encrypted data from CDN, and decrypt it when finished
+
+        :param url: download URL
+        :param msg: instant message
+        :return:    encrypted file data
         """
         pass
