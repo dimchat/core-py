@@ -35,11 +35,12 @@
     Manage keys for conversations
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 
-from mkm import SymmetricKey, ID
-from mkm.identifier import ANYONE, EVERYONE
+from mkm import SymmetricKey, ID, is_broadcast
 from mkm.crypto.symmetric import symmetric_key_classes
+
+from .delegate import ICipherKeyDataSource
 
 
 class PlainKey(SymmetricKey):
@@ -61,7 +62,7 @@ symmetric_key_classes[PlainKey.PLAIN] = PlainKey
 plain_key = PlainKey({'algorithm': PlainKey.PLAIN})
 
 
-class KeyCache(metaclass=ABCMeta):
+class KeyCache(ICipherKeyDataSource):
 
     def __init__(self):
         super().__init__()
@@ -134,50 +135,20 @@ class KeyCache(metaclass=ABCMeta):
             self.__key_map[sender] = table
         table[receiver] = key
 
-    @staticmethod
-    def is_broadcast(to: ID) -> bool:
-        network = to.type
-        if network.is_person():
-            return to == ANYONE
-        elif network.is_group():
-            return to == EVERYONE
-
     #
     #   ICipherKeyDataSource
     #
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        """
-        Get cipher key for encrypt message from 'sender' to 'receiver'
-
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
-        :return:         cipher key
-        """
-        if self.is_broadcast(receiver):
+        if is_broadcast(receiver):
             return plain_key
         return self.__cipher_key(sender, receiver)
 
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        """
-        Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
-
-        :param key:      cipher key from a contact
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
-        """
-        if self.is_broadcast(receiver):
+        if is_broadcast(receiver):
             return
         self.__cache_cipher_key(key, sender, receiver)
         self.__dirty = True
 
-    @abstractmethod
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        """
-        Update/create cipher key for encrypt message content
-
-        :param sender:   user ID
-        :param receiver: contact/group ID
-        :param key:      old key to be reused (nullable)
-        :return:         new key
-        """
-        pass
+        # TODO: check whether renew the old key
+        return key

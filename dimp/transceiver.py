@@ -38,16 +38,15 @@
 import json
 from typing import Optional
 
-from mkm import SymmetricKey, Meta, ID, EVERYONE
+from mkm import SymmetricKey, Meta, ID, is_broadcast
 from mkm.crypto.utils import base64_encode, base64_decode
 
 from dkd import Content, InstantMessage, SecureMessage, ReliableMessage, Message
 from dkd import IInstantMessageDelegate, IReliableMessageDelegate
 
-from .barrack import Barrack
-from .keystore import KeyCache
 from .protocol import ContentType, ForwardContent, FileContent
 from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
+from .delegate import ISocialNetworkDataSource, ICipherKeyDataSource
 
 
 class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
@@ -57,8 +56,8 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
 
         # delegates
         self.delegate: ITransceiverDelegate = None
-        self.barrack: Barrack = None
-        self.key_cache: KeyCache = None
+        self.barrack: ISocialNetworkDataSource = None
+        self.key_cache: ICipherKeyDataSource = None
 
     def __load_password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store
@@ -83,12 +82,11 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             self.key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
         return key
 
-    def is_broadcast(self, msg: Message) -> bool:
+    def is_broadcast_message(self, msg: Message) -> bool:
         receiver = self.barrack.identifier(msg.group)
-        if receiver is not None:
-            return receiver.type.is_group() and receiver == EVERYONE
-        receiver = self.barrack.identifier(msg.envelope.receiver)
-        return KeyCache.is_broadcast(receiver)
+        if receiver is None:
+            receiver = self.barrack.identifier(msg.envelope.receiver)
+        return is_broadcast(receiver)
 
     #
     #   Send message
@@ -243,7 +241,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return password.encrypt(data=string.encode('utf-8'))
 
     def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
-        if self.is_broadcast(msg):
+        if self.is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
             return data.decode('utf-8')
@@ -251,7 +249,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return base64_encode(data)
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
-        if self.is_broadcast(msg=msg):
+        if self.is_broadcast_message(msg=msg):
             # broadcast message has no key
             return None
         # TODO: check whether support reused key
@@ -263,7 +261,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             return contact.encrypt(data=string.encode('utf-8'))
 
     def encode_key_data(self, key: bytes, msg: InstantMessage) -> Optional[str]:
-        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
+        assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
         # encode to Base64
         if key is not None:
             return base64_encode(key)
@@ -272,7 +270,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
     #   ISecureMessageDelegate
     #
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
-        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
+        assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
         sender = self.barrack.identifier(sender)
         receiver = self.barrack.identifier(receiver)
         password = None
@@ -292,7 +290,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return password
 
     def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.is_broadcast(msg=msg) or key is None, 'broadcast message has no key'
+        assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
         # decode from Base64
         if key is not None:
             return base64_decode(key)
@@ -319,7 +317,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
                 return content
 
     def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
-        if self.is_broadcast(msg):
+        if self.is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
             return data.encode('utf-8')

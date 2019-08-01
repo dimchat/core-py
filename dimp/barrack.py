@@ -40,8 +40,10 @@ from mkm import ID, Meta, Profile
 from mkm import Account, User, Group
 from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
 
+from .delegate import ISocialNetworkDataSource
 
-class Barrack(IUserDataSource, IGroupDataSource):
+
+class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
 
     def __init__(self):
         super().__init__()
@@ -120,12 +122,6 @@ class Barrack(IUserDataSource, IGroupDataSource):
     #   IBarrackDelegate
     #
     def identifier(self, string: str) -> ID:
-        """
-        Create entity ID with String
-
-        :param string: ID string
-        :return: ID object
-        """
         if string is not None:
             if isinstance(string, ID):
                 return string
@@ -141,12 +137,6 @@ class Barrack(IUserDataSource, IGroupDataSource):
                 return identifier
 
     def account(self, identifier: ID) -> Account:
-        """
-        Create account with ID
-
-        :param identifier: ID object
-        :return: Account object
-        """
         if identifier is not None:
             assert identifier.valid, 'failed to get account with invalid ID: %s' % identifier
             # 1. get from account cache
@@ -157,24 +147,12 @@ class Barrack(IUserDataSource, IGroupDataSource):
             return self.__users.get(identifier)
 
     def user(self, identifier: ID) -> User:
-        """
-        Create user with ID
-
-        :param identifier: ID object
-        :return: User object
-        """
         if identifier is not None:
             assert identifier.valid, 'failed to get user with invalid ID: %s' % identifier
             # 1. get from user cache
             return self.__users.get(identifier)
 
     def group(self, identifier: ID) -> Group:
-        """
-        Create group with ID
-
-        :param identifier: ID object
-        :return: Group object
-        """
         if identifier is not None:
             assert identifier.valid, 'failed to get group with invalid ID: %s' % identifier
             # 1. get from group cache
