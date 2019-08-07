@@ -144,7 +144,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             if account is not None:
                 return account
             # 2. get from user cache
-            return self.__users.get(identifier)
+            return self.user(identifier=identifier)
 
     def user(self, identifier: ID) -> User:
         if identifier is not None:
@@ -165,7 +165,8 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         # 1. cache it
         if self.cache_meta(meta=meta, identifier=identifier):
             # 2. save by delegate
-            return self.entityDataSource.save_meta(meta=meta, identifier=identifier)
+            if self.entityDataSource is not None:
+                return self.entityDataSource.save_meta(meta=meta, identifier=identifier)
 
     def meta(self, identifier: ID) -> Meta:
         if identifier is not None:
