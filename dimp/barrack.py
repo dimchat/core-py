@@ -119,7 +119,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         return True
 
     #
-    #   IBarrackDelegate
+    #   ISocialNetworkDataSource
     #
     def identifier(self, string: str) -> ID:
         if string is not None:
