@@ -40,7 +40,7 @@ class Facebook(Barrack):
         identifier = profile.identifier
         meta = None
         if identifier.type.is_communicator():
-            # verify with account's meta.key
+            # verify with user's meta.key
             meta = self.meta(identifier=identifier)
         elif identifier.type.is_group():
             # verify with group owner's meta.key
@@ -53,31 +53,18 @@ class Facebook(Barrack):
     #
     #   ISocialNetworkDataSource (Entity factories)
     #
-    def account(self, identifier: ID) -> Account:
-        account = super().account(identifier=identifier)
-        if account is not None:
-            return account
-        # check meta
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            # create account with type
-            if identifier.type.is_station():
-                account = Server(identifier=identifier)
-            elif identifier.type.is_person():
-                account = Account(identifier=identifier)
-            self.cache_account(account=account)
-            return account
-    
     def user(self, identifier: ID) -> User:
         user = super().user(identifier=identifier)
         if user is not None:
             return user
         # check meta and private key
         meta = self.meta(identifier=identifier)
-        key = self.private_key_for_signature(identifier=identifier)
-        if meta is not None and key is not None:
-            # create user
-            user = User(identifier=identifier)
+        if meta is not None:
+            key = self.private_key_for_signature(identifier=identifier)
+            if key is None:
+                user = User(identifier=identifier)
+            else:
+                user = LocalUser(identifier=identifier)
             self.cache_user(user=user)
             return user
 
@@ -202,7 +189,7 @@ if __name__ == '__main__':
 receive.py
 
 ```python
-def receive(pack: byte) -> InstantMessage:
+def receive(pack: bytes) -> InstantMessage:
     msg = json.loads(pack.decode('utf-8'))
     r_msg = ReliableMessage(msg)
     i_msg = messanger.verify_decrypt(r_msg)

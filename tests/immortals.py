@@ -8,7 +8,7 @@
 """
 
 from mkm import PublicKey, PrivateKey
-from mkm import ID, Meta, User
+from mkm import ID, Meta, LocalUser
 
 
 #
@@ -60,7 +60,7 @@ hulk_meta = {
 }
 hulk_meta = Meta(hulk_meta)
 
-hulk = User(hulk_id)
+hulk = LocalUser(hulk_id)
 
 
 #
@@ -112,4 +112,4 @@ moki_meta = {
 }
 moki_meta = Meta(moki_meta)
 
-moki = User(moki_id)
+moki = LocalUser(moki_id)

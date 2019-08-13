@@ -38,7 +38,7 @@
 from abc import ABCMeta, abstractmethod
 
 from dkd import InstantMessage
-from mkm import SymmetricKey, ID, Account, User, Group, IEntityDataSource
+from mkm import SymmetricKey, ID, User, Group, IEntityDataSource
 
 
 class ISocialNetworkDataSource(IEntityDataSource):
@@ -50,16 +50,6 @@ class ISocialNetworkDataSource(IEntityDataSource):
 
         :param string: ID string
         :return: ID object
-        """
-        pass
-
-    @abstractmethod
-    def account(self, identifier: ID) -> Account:
-        """
-        Create account with ID
-
-        :param identifier: ID object
-        :return: Account object
         """
         pass
 

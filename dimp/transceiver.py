@@ -255,7 +255,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         # TODO: check whether support reused key
 
         # encrypt with receiver's public key
-        contact = self.barrack.account(identifier=self.barrack.identifier(receiver))
+        contact = self.barrack.user(identifier=self.barrack.identifier(receiver))
         if contact is not None:
             string = json.dumps(key)
             return contact.encrypt(data=string.encode('utf-8'))
@@ -336,7 +336,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
     #   IReliableMessageDelegate
     #
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        contact = self.barrack.account(identifier=self.barrack.identifier(sender))
+        contact = self.barrack.user(identifier=self.barrack.identifier(sender))
         if contact is not None:
             return contact.verify(data=data, signature=signature)
 

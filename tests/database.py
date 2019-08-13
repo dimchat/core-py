@@ -16,28 +16,29 @@ class Facebook(Barrack):
     #
     #   IBarrackDelegate
     #
-    def account(self, identifier: ID) -> Account:
-        entity = super().account(identifier=identifier)
-        if entity is None:
-            entity = super().user(identifier=identifier)
-            if entity is None:
-                entity = Account(identifier=identifier)
-                self.cache_account(account=entity)
-        return entity
-
     def user(self, identifier: ID) -> User:
         entity = super().user(identifier=identifier)
-        if entity is None:
-            entity = User(identifier=identifier)
+        if entity is not None:
+            return entity
+        meta = self.meta(identifier=identifier)
+        if meta is not None:
+            key = self.private_key_for_signature(identifier=identifier)
+            if key is None:
+                entity = User(identifier=identifier)
+            else:
+                entity = LocalUser(identifier=identifier)
             self.cache_user(user=entity)
-        return entity
+            return entity
 
     def group(self, identifier: ID) -> Group:
         entity = super().group(identifier=identifier)
-        if entity is None:
+        if entity is not None:
+            return entity
+        meta = self.meta(identifier=identifier)
+        if meta is not None:
             entity = Group(identifier=identifier)
             self.cache_group(group=entity)
-        return entity
+            return entity
 
     #
     #   IUserDataSource

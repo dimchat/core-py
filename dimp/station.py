@@ -32,12 +32,12 @@
 """
 
 from mkm import PublicKey
-from mkm import ID, Account, Group
+from mkm import ID, User, Group
 
 from .certificate import CertificateAuthority
 
 
-class Station(Account):
+class Station(User):
 
     def __init__(self, identifier: ID, host: str, port: int=9394):
         super().__init__(identifier=identifier)

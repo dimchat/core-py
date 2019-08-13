@@ -37,7 +37,7 @@
 
 from mkm import PrivateKey
 from mkm import ID, Meta, Profile
-from mkm import Account, User, Group
+from mkm import User, LocalUser, Group
 from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
 
 from .delegate import ISocialNetworkDataSource
@@ -56,7 +56,6 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         # memory caches
         self.__ids = {}
         self.__metas = {}
-        self.__accounts = {}
         self.__users = {}
         self.__groups = {}
 
@@ -68,8 +67,8 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         :return: reduced object count
         """
         finger = 0
+        finger = self.__thanos(self.__ids, finger)
         finger = self.__thanos(self.__metas, finger)
-        finger = self.__thanos(self.__accounts, finger)
         finger = self.__thanos(self.__users, finger)
         finger = self.__thanos(self.__groups, finger)
         return finger >> 1
@@ -94,18 +93,8 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             self.__metas[identifier] = meta
             return True
 
-    def cache_account(self, account: Account) -> bool:
-        assert account is not None and account.identifier.valid, 'failed to cache account: %s' % account
-        if isinstance(account, User):
-            return self.cache_user(user=account)
-        if account.delegate is None:
-            account.delegate = self
-        self.__accounts[account.identifier] = account
-        return True
-
     def cache_user(self, user: User) -> bool:
         assert user is not None and user.identifier.valid, 'failed to cache user: %s' % user
-        self.__accounts.pop(user.identifier, None)
         if user.delegate is None:
             user.delegate = self
         self.__users[user.identifier] = user
@@ -135,16 +124,6 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             if identifier is not None:
                 self.cache_id(identifier=identifier)
                 return identifier
-
-    def account(self, identifier: ID) -> Account:
-        if identifier is not None:
-            assert identifier.valid, 'failed to get account with invalid ID: %s' % identifier
-            # 1. get from account cache
-            account = self.__accounts.get(identifier)
-            if account is not None:
-                return account
-            # 2. get from user cache
-            return self.user(identifier=identifier)
 
     def user(self, identifier: ID) -> User:
         if identifier is not None:

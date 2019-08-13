@@ -31,7 +31,7 @@
 from mkm import SymmetricKey, PrivateKey, PublicKey
 from mkm import NetworkID, Address, ID, Meta, Profile
 from mkm import Entity, IEntityDataSource
-from mkm import Account, User, IUserDataSource
+from mkm import User, LocalUser, IUserDataSource
 from mkm import Group, IGroupDataSource
 
 from dkd import Content
@@ -62,7 +62,7 @@ __all__ = [
     # MingKeMing
     'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
     'Entity', 'IEntityDataSource',
-    'Account', 'User', 'IUserDataSource',
+    'User', 'LocalUser', 'IUserDataSource',
     'Group', 'IGroupDataSource',
 
     # DaoKeDao
