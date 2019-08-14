@@ -34,12 +34,12 @@ from mkm import Entity, IEntityDataSource
 from mkm import User, LocalUser, IUserDataSource
 from mkm import Group, IGroupDataSource
 
-from dkd import Content
+from dkd import Content, ContentType, ForwardContent
 from dkd import Envelope, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from .protocol import ContentType, TextContent, CommandContent, HistoryContent, ForwardContent
+from .protocol import TextContent, Command, HistoryCommand
 from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
 
 from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
@@ -66,15 +66,14 @@ __all__ = [
     'Group', 'IGroupDataSource',
 
     # DaoKeDao
-    'Content',
+    'Content', 'ContentType', 'ForwardContent',
     'Envelope', 'Message',
     # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
     # DIMP
-    'ContentType',
-    'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
+    'TextContent', 'Command', 'HistoryCommand',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
     'GroupCommand',
 

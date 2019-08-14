@@ -38,11 +38,12 @@
 """
 
 from mkm import ID
+from dkd import ContentType
 
-from ..protocol import ContentType, HistoryContent
+from ..protocol import HistoryCommand
 
 
-class GroupCommand(HistoryContent):
+class GroupCommand(HistoryCommand):
     """
         Group Command
         ~~~~~~~~~~~~~
@@ -82,7 +83,7 @@ class GroupCommand(HistoryContent):
     #   Factories
     #
     @classmethod
-    def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryContent:
+    def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryCommand:
         content = {
             'type': ContentType.History,
             'command': command,
@@ -94,7 +95,7 @@ class GroupCommand(HistoryContent):
         return GroupCommand(content)
 
     @classmethod
-    def invite(cls, group: str, member: str, time: int=0) -> HistoryContent:
+    def invite(cls, group: str, member: str, time: int=0) -> HistoryCommand:
         """
         Create invite group member command
 
@@ -106,7 +107,7 @@ class GroupCommand(HistoryContent):
         return cls.membership(command='invite', group=group, member=member, time=time)
 
     @classmethod
-    def expel(cls, group: str, member: str, time: int=0) -> HistoryContent:
+    def expel(cls, group: str, member: str, time: int=0) -> HistoryCommand:
         """
         Create expel group member command
 
@@ -118,7 +119,7 @@ class GroupCommand(HistoryContent):
         return cls.membership(command='expel', group=group, member=member, time=time)
 
     @classmethod
-    def quit(cls, group: str, time: int=0) -> HistoryContent:
+    def quit(cls, group: str, time: int=0) -> HistoryCommand:
         """
         Create member quit command
 

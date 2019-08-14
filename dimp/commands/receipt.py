@@ -36,10 +36,12 @@
     2. contains 'meta' (must match), means reply
 """
 
-from ..protocol import ContentType, CommandContent
+from dkd import ContentType
+
+from ..protocol import Command
 
 
-class ReceiptCommand(CommandContent):
+class ReceiptCommand(Command):
     """
         Receipt Command
         ~~~~~~~~~~~~~~~
@@ -71,7 +73,7 @@ class ReceiptCommand(CommandContent):
     #   Factory
     #
     @classmethod
-    def receipt(cls, message: str) -> CommandContent:
+    def receipt(cls, message: str) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'receipt',

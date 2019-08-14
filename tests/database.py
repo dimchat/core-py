@@ -41,6 +41,12 @@ class Facebook(Barrack):
             return entity
 
     #
+    #   IEntityDataSource
+    #
+    def profile(self, identifier: ID) -> Profile:
+        pass
+
+    #
     #   IUserDataSource
     #
     def private_key_for_signature(self, identifier: ID) -> PrivateKey:
@@ -51,6 +57,21 @@ class Facebook(Barrack):
         # TODO: load private key from keychain
         key = self.__private_keys.get(identifier.address)
         return [key]
+
+    def contacts(self, identifier: ID) -> list:
+        pass
+
+    #
+    #   IGroupDataSource
+    #
+    def founder(self, identifier: ID) -> ID:
+        pass
+
+    def owner(self, identifier: ID) -> ID:
+        pass
+
+    def members(self, identifier: ID) -> list:
+        pass
 
 
 class KeyStore(KeyCache):

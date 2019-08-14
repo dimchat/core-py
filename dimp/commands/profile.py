@@ -37,8 +37,9 @@
 """
 
 from mkm import Meta, Profile
+from dkd import ContentType
 
-from ..protocol import ContentType, CommandContent
+from ..protocol import Command
 from .meta import MetaCommand
 
 
@@ -93,7 +94,7 @@ class ProfileCommand(MetaCommand):
     #   Factories
     #
     @classmethod
-    def query(cls, identifier: str) -> CommandContent:
+    def query(cls, identifier: str) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'profile',
@@ -102,7 +103,7 @@ class ProfileCommand(MetaCommand):
         return ProfileCommand(content)
 
     @classmethod
-    def response(cls, identifier: str, profile: Profile, meta: Meta=None) -> CommandContent:
+    def response(cls, identifier: str, profile: Profile, meta: Meta=None) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'profile',

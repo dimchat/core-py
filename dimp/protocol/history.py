@@ -28,14 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import Content
+from dkd import Content, ContentType
 from dkd.content import message_content_classes
 
-from .types import ContentType
-from .command import CommandContent
 
-
-class HistoryContent(Content):
+class HistoryCommand(Content):
     """
         Group History Command
         ~~~~~~~~~~~~~~~~~~~~~
@@ -78,7 +75,7 @@ class HistoryContent(Content):
             'time': time,
             'command': command,
         }
-        return CommandContent(content)
+        return HistoryCommand(content)
 
 
-message_content_classes[ContentType.History] = HistoryContent
+message_content_classes[ContentType.History] = HistoryCommand

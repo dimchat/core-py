@@ -28,10 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import Content
+from dkd import Content, ContentType
 from dkd.content import message_content_classes
-
-from .types import ContentType
 
 
 class TextContent(Content):

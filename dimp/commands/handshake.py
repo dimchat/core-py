@@ -38,10 +38,11 @@
     4. (S-C) handshake success
 """
 
-from ..protocol import ContentType, CommandContent
+from dkd import ContentType
+from ..protocol import Command
 
 
-class HandshakeCommand(CommandContent):
+class HandshakeCommand(Command):
     """
         Handshake Command
         ~~~~~~~~~~~~~~~~~
@@ -88,7 +89,7 @@ class HandshakeCommand(CommandContent):
     #   Factories
     #
     @classmethod
-    def handshake(cls, message: str='Hello world!', session: str=None) -> CommandContent:
+    def handshake(cls, message: str='Hello world!', session: str=None) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'handshake',
@@ -99,7 +100,7 @@ class HandshakeCommand(CommandContent):
         return HandshakeCommand(content)
 
     @classmethod
-    def offer(cls, session: str =None) -> CommandContent:
+    def offer(cls, session: str =None) -> Command:
         """
         Create client-station handshake offer
 
@@ -109,7 +110,7 @@ class HandshakeCommand(CommandContent):
         return cls.handshake(session=session)
 
     @classmethod
-    def ask(cls, session: str) -> CommandContent:
+    def ask(cls, session: str) -> Command:
         """
         Create station-client handshake again with new session
 
@@ -119,7 +120,7 @@ class HandshakeCommand(CommandContent):
         return cls.handshake(message='DIM?', session=session)
 
     @classmethod
-    def success(cls) -> CommandContent:
+    def success(cls) -> Command:
         """
         Create station-client handshake success notice
 

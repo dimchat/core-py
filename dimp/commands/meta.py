@@ -37,11 +37,12 @@
 """
 
 from mkm import ID, Meta
+from dkd import ContentType
 
-from ..protocol import ContentType, CommandContent
+from ..protocol import Command
 
 
-class MetaCommand(CommandContent):
+class MetaCommand(Command):
     """
         Meta Command
         ~~~~~~~~~~~~
@@ -97,7 +98,7 @@ class MetaCommand(CommandContent):
     #   Factories
     #
     @classmethod
-    def query(cls, identifier: str) -> CommandContent:
+    def query(cls, identifier: str) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'meta',
@@ -106,7 +107,7 @@ class MetaCommand(CommandContent):
         return MetaCommand(content)
 
     @classmethod
-    def response(cls, identifier: str, meta: dict) -> CommandContent:
+    def response(cls, identifier: str, meta: dict) -> Command:
         content = {
             'type': ContentType.Command,
             'command': 'meta',

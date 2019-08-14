@@ -35,10 +35,11 @@
     Manage meta for all entities
 """
 
-from mkm import PrivateKey
-from mkm import ID, Meta, Profile
-from mkm import User, LocalUser, Group
-from mkm import IEntityDataSource, IUserDataSource, IGroupDataSource
+from abc import abstractmethod
+
+from mkm import ID, Meta, Profile, PrivateKey
+from mkm import User, Group
+from mkm import IUserDataSource, IGroupDataSource
 
 from .delegate import ISocialNetworkDataSource
 
@@ -47,11 +48,6 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
 
     def __init__(self):
         super().__init__()
-
-        # delegates
-        self.entityDataSource: IEntityDataSource = None
-        self.userDataSource: IUserDataSource = None
-        self.groupDataSource: IGroupDataSource = None
 
         # memory caches
         self.__ids = {}
@@ -64,17 +60,17 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
         this will remove 50% of cached objects
 
-        :return: reduced object count
+        :return: remained object count
         """
         finger = 0
-        finger = self.__thanos(self.__ids, finger)
-        finger = self.__thanos(self.__metas, finger)
-        finger = self.__thanos(self.__users, finger)
-        finger = self.__thanos(self.__groups, finger)
+        finger = self.thanos(self.__ids, finger)
+        finger = self.thanos(self.__metas, finger)
+        finger = self.thanos(self.__users, finger)
+        finger = self.thanos(self.__groups, finger)
         return finger >> 1
 
     @staticmethod
-    def __thanos(planet: dict, finger: int) -> int:
+    def thanos(planet: dict, finger: int) -> int:
         keys = planet.keys()
         for key in keys:
             if (++finger & 1) == 1:
@@ -140,76 +136,41 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
     #
     #   IEntityDataSource
     #
-    def save_meta(self, meta: Meta, identifier: ID) -> bool:
-        # 1. cache it
-        if self.cache_meta(meta=meta, identifier=identifier):
-            # 2. save by delegate
-            if self.entityDataSource is not None:
-                return self.entityDataSource.save_meta(meta=meta, identifier=identifier)
-
     def meta(self, identifier: ID) -> Meta:
         if identifier is not None:
             assert identifier.valid, 'failed to get meta with invalid ID: %s' % identifier
-            # 1. get from meta cache
-            meta = self.__metas.get(identifier)
-            if meta is not None:
-                return meta
-            # 2. get from entity data source
-            if self.entityDataSource is not None:
-                meta = self.entityDataSource.meta(identifier=identifier)
-                # 3. cache it
-                if meta is not None:
-                    self.cache_meta(meta=meta, identifier=identifier)
-            return meta
+            return self.__metas.get(identifier)
 
+    @abstractmethod
     def profile(self, identifier: ID) -> Profile:
-        if identifier is not None:
-            assert identifier.valid, 'failed to get profile with invalid ID: %s' % identifier
-            if self.entityDataSource is not None:
-                # NOTICE: do not cache profile here
-                return self.entityDataSource.profile(identifier=identifier)
+        pass
 
     #
     #   IUserDataSource
     #
+    @abstractmethod
     def private_key_for_signature(self, identifier: ID) -> PrivateKey:
-        if identifier is not None and self.userDataSource is not None:
-            assert identifier.valid, 'failed to get private key with invalid ID: %s' % identifier
-            # TODO: signature key will never change, cache it
-            return self.userDataSource.private_key_for_signature(identifier=identifier)
+        pass
 
+    @abstractmethod
     def private_keys_for_decryption(self, identifier: ID) -> list:
-        if identifier is not None and self.userDataSource is not None:
-            assert identifier.valid, 'failed to get private keys with invalid ID: %s' % identifier
-            # NOTICE: decryption key can be change, do not cache it here
-            return self.userDataSource.private_keys_for_decryption(identifier=identifier)
+        pass
 
+    @abstractmethod
     def contacts(self, identifier: ID) -> list:
-        if identifier is not None and self.userDataSource is not None:
-            assert identifier.valid, 'failed to get contacts with invalid user ID: %s' % identifier
-            # NOTICE: do not cache contacts here
-            return self.userDataSource.contacts(identifier=identifier)
+        pass
 
     #
     #   IGroupDataSource
     #
+    @abstractmethod
     def founder(self, identifier: ID) -> ID:
-        if identifier is not None and self.groupDataSource is not None:
-            assert identifier.valid, 'failed to get founder with invalid group ID: %s' % identifier
-            assert identifier.type.is_group(), 'ID type is not GROUP'
-            # TODO: group founder will never change, cache it
-            return self.groupDataSource.founder(identifier=identifier)
+        pass
 
+    @abstractmethod
     def owner(self, identifier: ID) -> ID:
-        if identifier is not None and self.groupDataSource is not None:
-            assert identifier.valid, 'failed to get owner with invalid group ID: %s' % identifier
-            assert identifier.type.is_group(), 'ID type is not GROUP'
-            # NOTICE: do not cache group owner here
-            return self.groupDataSource.owner(identifier=identifier)
+        pass
 
+    @abstractmethod
     def members(self, identifier: ID) -> list:
-        if identifier is not None and self.groupDataSource is not None:
-            assert identifier.valid, 'failed to get members with invalid group ID: %s' % identifier
-            assert identifier.type.is_group(), 'ID type is not GROUP'
-            # NOTICE: do not cache group members here
-            return self.groupDataSource.members(identifier=identifier)
+        pass

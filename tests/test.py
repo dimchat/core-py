@@ -163,7 +163,7 @@ class TransceiverTestCase(unittest.TestCase):
         self.assertEqual(content.type, ContentType.Text)
         TransceiverTestCase.content = content
 
-        command = CommandContent.new('handshake')
+        command = Command.new('handshake')
         print('command content: ', command)
         self.assertEqual(command.type, ContentType.Command)
         TransceiverTestCase.command = command
