@@ -34,13 +34,11 @@
 """
 
 import json
-from abc import abstractmethod
 from typing import Optional
 
 from mkm.crypto.utils import base64_encode, base64_decode
 from mkm import SymmetricKey
-from mkm import ID, is_broadcast
-from mkm import User, LocalUser, Group
+from mkm import ID, LocalUser, is_broadcast
 from dkd import IInstantMessageDelegate, IReliableMessageDelegate
 from dkd import Content, Message, InstantMessage, SecureMessage, ReliableMessage
 
@@ -49,6 +47,8 @@ from .file import FileContent, ImageContent, AudioContent, VideoContent
 
 from .command import Command
 from .history import HistoryCommand
+
+from ..delegate import ISocialNetworkDataSource, ICipherKeyDataSource
 
 
 __all__ = [
@@ -63,41 +63,24 @@ __all__ = [
 
 class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
 
-    @abstractmethod
-    def identifier(self, string: str) -> ID:
-        pass
+    def __init__(self):
+        super().__init__()
 
-    @abstractmethod
-    def user(self, identifier: ID) -> User:
-        pass
-
-    @abstractmethod
-    def group(self, identifier: ID) -> Group:
-        pass
+        # delegates
+        self.barrack: ISocialNetworkDataSource = None
+        self.key_cache: ICipherKeyDataSource = None
 
     def is_broadcast_message(self, msg: Message) -> bool:
-        receiver = self.identifier(msg.group)
+        receiver = self.barrack.identifier(msg.group)
         if receiver is None:
-            receiver = self.identifier(msg.envelope.receiver)
+            receiver = self.barrack.identifier(msg.envelope.receiver)
         return is_broadcast(receiver)
-
-    @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        pass
-
-    @abstractmethod
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        pass
-
-    @abstractmethod
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        pass
 
     def load_password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store
-        old_key = self.cipher_key(sender=sender, receiver=receiver)
+        old_key = self.key_cache.cipher_key(sender=sender, receiver=receiver)
         # 2. get new key from delegate
-        new_key = self.reuse_cipher_key(key=old_key, sender=sender, receiver=receiver)
+        new_key = self.key_cache.reuse_cipher_key(key=old_key, sender=sender, receiver=receiver)
         if new_key is None:
             if old_key is None:
                 # 3. create a new key
@@ -106,14 +89,14 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
                 new_key = old_key
         # 4. update new key into the key store
         if new_key != old_key:
-            self.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
+            self.key_cache.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
         return new_key
 
     def save_password(self, password: dict, sender: ID, receiver: ID) -> SymmetricKey:
         key = SymmetricKey(password)
         if key is not None:
             # cache the new key in key store
-            self.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+            self.key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
         return key
 
     #
@@ -142,7 +125,8 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
         # TODO: check whether support reused key
 
         # encrypt with receiver's public key
-        contact = self.user(identifier=self.identifier(receiver))
+        receiver = self.barrack.identifier(receiver)
+        contact = self.barrack.user(identifier=receiver)
         if contact is not None:
             string = json.dumps(key)
             return contact.encrypt(data=string.encode('utf-8'))
@@ -158,13 +142,13 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
     #
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
         assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
-        sender = self.identifier(sender)
-        receiver = self.identifier(receiver)
+        sender = self.barrack.identifier(sender)
+        receiver = self.barrack.identifier(receiver)
         password = None
         if key is not None:
             # decrypt key data with the receiver's private key
-            identifier = self.identifier(msg.envelope.receiver)
-            user: LocalUser = self.user(identifier=identifier)
+            identifier = self.barrack.identifier(msg.envelope.receiver)
+            user: LocalUser = self.barrack.user(identifier=identifier)
             data = user.decrypt(data=key)
             if data is None:
                 raise AssertionError('failed to decrypt key data')
@@ -173,7 +157,7 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
             password = self.save_password(password=pw, sender=sender, receiver=receiver)
         if password is None:
             # if key data is empty, get it from key store
-            password = self.cipher_key(sender=sender, receiver=receiver)
+            password = self.key_cache.cipher_key(sender=sender, receiver=receiver)
         return password
 
     def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
@@ -199,7 +183,8 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
         return base64_decode(data)
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
-        user: LocalUser = self.user(identifier=self.identifier(sender))
+        sender = self.barrack.identifier(sender)
+        user: LocalUser = self.barrack.user(identifier=sender)
         if user is not None:
             return user.sign(data)
 
@@ -210,7 +195,8 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
     #   IReliableMessageDelegate
     #
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        contact = self.user(identifier=self.identifier(sender))
+        sender = self.barrack.identifier(sender)
+        contact = self.barrack.user(identifier=sender)
         if contact is not None:
             return contact.verify(data=data, signature=signature)
 

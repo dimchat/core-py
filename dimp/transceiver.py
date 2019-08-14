@@ -36,17 +36,14 @@
 """
 
 import json
-from typing import Optional
 
-from mkm import SymmetricKey, Meta, ID, User, Group
-from mkm.crypto.utils import base64_encode, base64_decode
+from mkm import SymmetricKey
 
 from dkd import Content, ContentType, ForwardContent
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 from .protocol import FileContent, Protocol
 from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
-from .delegate import ISocialNetworkDataSource, ICipherKeyDataSource
 
 
 class Transceiver(Protocol):
@@ -56,26 +53,6 @@ class Transceiver(Protocol):
 
         # delegates
         self.delegate: ITransceiverDelegate = None
-        self.barrack: ISocialNetworkDataSource = None
-        self.key_cache: ICipherKeyDataSource = None
-
-    def identifier(self, string: str) -> ID:
-        return self.barrack.identifier(string=string)
-
-    def user(self, identifier: ID) -> User:
-        return self.barrack.user(identifier=identifier)
-
-    def group(self, identifier: ID) -> Group:
-        return self.barrack.group(identifier=identifier)
-
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        return self.key_cache.cipher_key(sender=sender, receiver=receiver)
-
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        return self.key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
-
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
-        return self.key_cache.reuse_cipher_key(key=key, sender=sender, receiver=receiver)
 
     #
     #   Send message
@@ -95,9 +72,9 @@ class Transceiver(Protocol):
             raise AssertionError('failed to encrypt and sign message: %s' % msg)
         # trying to send out
         ok = True
-        receiver = self.identifier(msg.envelope.receiver)
+        receiver = self.barrack.identifier(msg.envelope.receiver)
         if split and receiver.type.is_group():
-            group = self.group(identifier=receiver)
+            group = self.barrack.group(identifier=receiver)
             if group is None:
                 raise LookupError('failed to create group: %s' % receiver)
             messages = r_msg.split(members=group.members)
@@ -142,17 +119,18 @@ class Transceiver(Protocol):
         :param msg: instant message
         :return:    ReliableMessage object
         """
-        sender = self.identifier(msg.envelope.sender)
-        receiver = self.identifier(msg.envelope.receiver)
+        sender = self.barrack.identifier(msg.envelope.sender)
+        receiver = self.barrack.identifier(msg.envelope.receiver)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
         group = None
         if receiver.type.is_group():
-            group = self.group(identifier=receiver)
+            group = self.barrack.group(identifier=receiver)
         else:
             gid = msg.group
             if gid is not None:
-                group = self.group(identifier=self.identifier(gid))
+                gid = self.barrack.identifier(gid)
+                group = self.barrack.group(identifier=gid)
         # 1. encrypt 'content' to 'data' for receiver
         if msg.delegate is None:
             msg.delegate = self
