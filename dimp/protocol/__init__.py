@@ -110,7 +110,7 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
         string = json.dumps(content)
         return password.encrypt(data=string.encode('utf-8'))
 
-    def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
         if self.is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
@@ -174,7 +174,7 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
                 content = Content(json.loads(plaintext))
                 return content
 
-    def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
+    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
         if self.is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly

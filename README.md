@@ -1,7 +1,7 @@
 # Decentralized Instant Messaging Protocol (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/core-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.6.2-red.svg)](https://github.com/dimchat/core-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.4.6-red.svg)](https://github.com/dimchat/core-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 
@@ -22,7 +22,13 @@ class Facebook(Barrack):
     """ Access database to load/save user's private key, meta and profiles """
     
     def save_private_key(self, private_key: PrivateKey, identifier: ID) -> bool:
-        # TODO: save to local/persistent storage
+        # TODO: save private key into safety storage
+        pass
+    
+    def save_meta(self, meta: Meta, identifier: ID) -> bool:
+        if not meta.match_identifier(identifier):
+            return False
+        # TODO: save meta to local/persistent storage
         pass
     
     def save_profile(self, profile: Profile) -> bool:
@@ -39,8 +45,8 @@ class Facebook(Barrack):
             return True
         identifier = profile.identifier
         meta = None
-        if identifier.type.is_communicator():
-            # verify with account's meta.key
+        if identifier.type.is_user():
+            # verify with user's meta.key
             meta = self.meta(identifier=identifier)
         elif identifier.type.is_group():
             # verify with group owner's meta.key
@@ -51,51 +57,35 @@ class Facebook(Barrack):
             return profile.verify(public_key=meta.key)
     
     #
-    #   ISocialNetworkDataSource (Entity factories)
+    #   ISocialNetworkDataSource
     #
-    def account(self, identifier: ID) -> Account:
-        account = super().account(identifier=identifier)
-        if account is not None:
-            return account
-        # check meta
+    def user(self, identifier: ID) -> User:
+        entity = super().user(identifier=identifier)
+        if entity is not None:
+            return entity
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            # create account with type
-            if identifier.type.is_station():
-                account = Server(identifier=identifier)
-            elif identifier.type.is_person():
-                account = Account(identifier=identifier)
-            self.cache_account(account=account)
-            return account
-    
-    def user(self, identifier: ID) -> User:
-        user = super().user(identifier=identifier)
-        if user is not None:
-            return user
-        # check meta and private key
-        meta = self.meta(identifier=identifier)
-        key = self.private_key_for_signature(identifier=identifier)
-        if meta is not None and key is not None:
-            # create user
-            user = User(identifier=identifier)
-            self.cache_user(user=user)
-            return user
+            key = self.private_key_for_signature(identifier=identifier)
+            if key is None:
+                entity = User(identifier=identifier)
+            else:
+                entity = LocalUser(identifier=identifier)
+            self.cache_user(user=entity)
+            return entity
 
     def group(self, identifier: ID) -> Group:
-        group = super().group(identifier=identifier)
-        if group is not None:
-            return group
-        # check meta
+        entity = super().group(identifier=identifier)
+        if entity is not None:
+            return entity
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            # create group with type
-            group = Group(identifier=identifier)
-            self.cache_group(group=group)
-            return group
+            entity = Group(identifier=identifier)
+            self.cache_group(group=entity)
+            return entity
 
 
 #
-#  singleton
+#  global
 #
 facebook = Facebook()
 ```
@@ -116,7 +106,7 @@ class KeyStore(KeyCache):
 
 
 #
-#  singleton
+#  global
 #
 keystore = KeyStore()
 ```
@@ -148,7 +138,7 @@ class Messanger(Transceiver, ITransceiverDelegate):
 
 
 #
-#  singleton
+#  global
 #
 messanger = Messanger()
 messanger.barrack = facebook

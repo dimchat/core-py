@@ -14,7 +14,7 @@ class Facebook(Barrack):
         self.__private_keys[identifier.address] = private_key
 
     #
-    #   IBarrackDelegate
+    #   ISocialNetworkDataSource
     #
     def user(self, identifier: ID) -> User:
         entity = super().user(identifier=identifier)
