@@ -1,7 +1,7 @@
 # Decentralized Instant Messaging Protocol (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/core-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.1.0-red.svg)](https://github.com/dimchat/core-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.6.2-red.svg)](https://github.com/dimchat/core-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 
@@ -40,7 +40,7 @@ class Facebook(Barrack):
         identifier = profile.identifier
         meta = None
         if identifier.type.is_communicator():
-            # verify with user's meta.key
+            # verify with account's meta.key
             meta = self.meta(identifier=identifier)
         elif identifier.type.is_group():
             # verify with group owner's meta.key
@@ -53,18 +53,31 @@ class Facebook(Barrack):
     #
     #   ISocialNetworkDataSource (Entity factories)
     #
+    def account(self, identifier: ID) -> Account:
+        account = super().account(identifier=identifier)
+        if account is not None:
+            return account
+        # check meta
+        meta = self.meta(identifier=identifier)
+        if meta is not None:
+            # create account with type
+            if identifier.type.is_station():
+                account = Server(identifier=identifier)
+            elif identifier.type.is_person():
+                account = Account(identifier=identifier)
+            self.cache_account(account=account)
+            return account
+    
     def user(self, identifier: ID) -> User:
         user = super().user(identifier=identifier)
         if user is not None:
             return user
         # check meta and private key
         meta = self.meta(identifier=identifier)
-        if meta is not None:
-            key = self.private_key_for_signature(identifier=identifier)
-            if key is None:
-                user = User(identifier=identifier)
-            else:
-                user = LocalUser(identifier=identifier)
+        key = self.private_key_for_signature(identifier=identifier)
+        if meta is not None and key is not None:
+            # create user
+            user = User(identifier=identifier)
             self.cache_user(user=user)
             return user
 

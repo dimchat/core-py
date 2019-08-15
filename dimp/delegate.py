@@ -37,8 +37,9 @@
 
 from abc import ABCMeta, abstractmethod
 
-from dkd import InstantMessage
 from mkm import SymmetricKey, ID, User, Group, IEntityDataSource
+
+from dkd import InstantMessage
 
 
 class ISocialNetworkDataSource(IEntityDataSource):

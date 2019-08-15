@@ -32,9 +32,10 @@ import hashlib
 import os
 from binascii import b2a_hex, a2b_hex
 
+from mkm.crypto.utils import base64_encode, base64_decode
+
 from dkd import Content, ContentType
 from dkd.content import message_content_classes
-from mkm.crypto.utils import base64_encode, base64_decode
 
 
 def hex_encode(data: bytes) -> str:

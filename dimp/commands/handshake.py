@@ -39,6 +39,7 @@
 """
 
 from dkd import ContentType
+
 from ..protocol import Command
 
 
