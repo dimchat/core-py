@@ -37,7 +37,7 @@
 
 import json
 
-from mkm import SymmetricKey
+from mkm import SymmetricKey, ID
 
 from dkd import Content, ContentType, ForwardContent
 from dkd import InstantMessage, SecureMessage, ReliableMessage
@@ -109,6 +109,22 @@ class Transceiver(Protocol):
         handler = Transceiver.CompletionHandler(msg=msg, cb=callback)
         return self.delegate.send_package(data=data, handler=handler)
 
+    def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
+        # 1. get old key from store
+        old_key = self.key_cache.cipher_key(sender=sender, receiver=receiver)
+        # 2. get new key from delegate
+        new_key = self.key_cache.reuse_cipher_key(key=old_key, sender=sender, receiver=receiver)
+        if new_key is None:
+            if old_key is None:
+                # 3. create a new key
+                new_key = SymmetricKey(key={'algorithm': 'AES'})
+            else:
+                new_key = old_key
+        # 4. update new key into the key store
+        if new_key != old_key:
+            self.key_cache.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
+        return new_key
+
     #
     #   Conveniences
     #
@@ -136,11 +152,11 @@ class Transceiver(Protocol):
             msg.delegate = self
         if group is None:
             # personal message
-            password = self.load_password(sender=sender, receiver=receiver)
+            password = self.__password(sender=sender, receiver=receiver)
             s_msg = msg.encrypt(password=password)
         else:
             # group message
-            password = self.load_password(sender=sender, receiver=group.identifier)
+            password = self.__password(sender=sender, receiver=group.identifier)
             s_msg = msg.encrypt(password=password, members=group.members)
         # 2. sign 'data' by sender
         s_msg.delegate = self

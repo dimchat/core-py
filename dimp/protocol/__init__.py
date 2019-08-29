@@ -76,39 +76,47 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
             receiver = self.barrack.identifier(msg.envelope.receiver)
         return is_broadcast(receiver)
 
-    def load_password(self, sender: ID, receiver: ID) -> SymmetricKey:
-        # 1. get old key from store
-        old_key = self.key_cache.cipher_key(sender=sender, receiver=receiver)
-        # 2. get new key from delegate
-        new_key = self.key_cache.reuse_cipher_key(key=old_key, sender=sender, receiver=receiver)
-        if new_key is None:
-            if old_key is None:
-                # 3. create a new key
-                new_key = SymmetricKey(key={'algorithm': 'AES'})
-            else:
-                new_key = old_key
-        # 4. update new key into the key store
-        if new_key != old_key:
-            self.key_cache.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
-        return new_key
+    def serialize_content(self, content: Content, msg: InstantMessage) -> bytes:
+        string = json.dumps(content)
+        return string.encode('utf-8')
 
-    def save_password(self, password: dict, sender: ID, receiver: ID) -> SymmetricKey:
-        key = SymmetricKey(password)
-        if key is not None:
-            # cache the new key in key store
-            self.key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
-        return key
+    def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> bytes:
+        assert not self.is_broadcast_message(msg=msg), 'broadcast message has no key'
+        string = json.dumps(key)
+        return string.encode('utf-8')
+
+    def deserialize_key(self, key: bytes, msg: SecureMessage) -> SymmetricKey:
+        string = key.decode('utf-8')
+        dictionary = json.loads(string)
+        # TODO: translate short keys
+        #       'A' -> 'algorithm'
+        #       'D' -> 'data'
+        #       'M' -> 'mode'
+        #       'P' -> 'padding'
+        return SymmetricKey(key=dictionary)
+
+    def deserialize_content(self, data: bytes, msg: SecureMessage) -> Content:
+        string = data.decode('utf-8')
+        dictionary = json.loads(string)
+        # TODO: translate short keys
+        #       'S' -> 'sender'
+        #       'R' -> 'receiver'
+        #       'T' -> 'time'
+        #       'D' -> 'data'
+        #       'V' -> 'signature'
+        #       'K' -> 'key'
+        #       'M' -> 'meta'
+        return Content(dictionary)
 
     #
     #   IInstantMessageDelegate
     #
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
-        password = SymmetricKey(key)
-        if password is None:
-            raise AssertionError('failed to get symmetric key: %s' % key)
+        password = SymmetricKey(key=key)
+        assert password == key, 'irregular symmetric key: %s' % key
         # encrypt with password
-        string = json.dumps(content)
-        return password.encrypt(data=string.encode('utf-8'))
+        data = self.serialize_content(content=content, msg=msg)
+        return password.encrypt(data=data)
 
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
         if self.is_broadcast_message(msg=msg):
@@ -122,24 +130,29 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
         if self.is_broadcast_message(msg=msg):
             # broadcast message has no key
             return None
+        password = SymmetricKey(key=key)
+        assert password == key, 'irregular symmetric key: %s' % key
         # TODO: check whether support reused key
 
+        data = self.serialize_key(key=password, msg=msg)
         # encrypt with receiver's public key
-        receiver = self.barrack.identifier(receiver)
-        contact = self.barrack.user(identifier=receiver)
-        if contact is not None:
-            string = json.dumps(key)
-            return contact.encrypt(data=string.encode('utf-8'))
+        contact = self.barrack.user(identifier=self.barrack.identifier(receiver))
+        assert contact is not None, 'failed to encrypt key for receiver: %s' % receiver
+        return contact.encrypt(data=data)
 
-    def encode_key_data(self, key: bytes, msg: InstantMessage) -> Optional[str]:
-        assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
+    def encode_key(self, key: bytes, msg: InstantMessage) -> Optional[str]:
+        assert not self.is_broadcast_message(msg=msg), 'broadcast message has no key'
         # encode to Base64
-        if key is not None:
-            return base64_encode(key)
+        return base64_encode(key)
 
     #
     #   ISecureMessageDelegate
     #
+    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
+        assert not self.is_broadcast_message(msg=msg), 'broadcast message has no key'
+        # decode from Base64
+        return base64_decode(key)
+
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
         assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
         sender = self.barrack.identifier(sender)
@@ -149,30 +162,19 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
             # decrypt key data with the receiver's private key
             identifier = self.barrack.identifier(msg.envelope.receiver)
             user: LocalUser = self.barrack.user(identifier=identifier)
-            data = user.decrypt(data=key)
-            if data is None:
-                raise AssertionError('failed to decrypt key data')
-            # create symmetric key from JsON data
-            pw = json.loads(data.decode('utf-8'))
-            password = self.save_password(password=pw, sender=sender, receiver=receiver)
+            assert user is not None, 'failed to decrypt key for receiver: %s, %s' % (receiver, identifier)
+            plaintext = user.decrypt(data=key)
+            if plaintext is None:
+                raise AssertionError('failed to decrypt key in msg: %s' % msg)
+            # deserialize it to symmetric key
+            password = self.deserialize_key(key=plaintext, msg=msg)
+            # cache the new key in key store
+            self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=receiver)
         if password is None:
             # if key data is empty, get it from key store
             password = self.key_cache.cipher_key(sender=sender, receiver=receiver)
+            assert password is not None, 'failed to get password from %s to %s' % (sender, receiver)
         return password
-
-    def decode_key_data(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
-        # decode from Base64
-        if key is not None:
-            return base64_decode(key)
-
-    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
-        password = SymmetricKey(key=key)
-        if password is not None:
-            plaintext = password.decrypt(data)
-            if plaintext is not None:
-                content = Content(json.loads(plaintext))
-                return content
 
     def decode_data(self, data: str, msg: SecureMessage) -> bytes:
         if self.is_broadcast_message(msg=msg):
@@ -182,11 +184,18 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
         # decode from Base64
         return base64_decode(data)
 
+    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
+        password = SymmetricKey(key=key)
+        assert password == key, 'irregular symmetric key: %s' % key
+        plaintext = password.decrypt(data)
+        if plaintext is not None:
+            return self.deserialize_content(data=plaintext, msg=msg)
+
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         sender = self.barrack.identifier(sender)
         user: LocalUser = self.barrack.user(identifier=sender)
-        if user is not None:
-            return user.sign(data)
+        assert user is not None, 'failed to sign with sender: %s' % sender
+        return user.sign(data)
 
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
         return base64_encode(signature)
@@ -194,11 +203,11 @@ class Protocol(IInstantMessageDelegate, IReliableMessageDelegate):
     #
     #   IReliableMessageDelegate
     #
+    def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
+        return base64_decode(signature)
+
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
         sender = self.barrack.identifier(sender)
         contact = self.barrack.user(identifier=sender)
-        if contact is not None:
-            return contact.verify(data=data, signature=signature)
-
-    def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
-        return base64_decode(signature)
+        assert contact is not None, 'failed to verify with sender: %s' % sender
+        return contact.verify(data=data, signature=signature)
