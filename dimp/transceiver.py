@@ -39,7 +39,7 @@ import json
 
 from mkm import SymmetricKey, ID
 
-from dkd import Content, ContentType, ForwardContent
+from dkd import Content
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 from .protocol import FileContent, Protocol
@@ -169,6 +169,20 @@ class Transceiver(Protocol):
         :param msg:
         :return:
         """
+
+        # # 0. [Meta Protocol] check meta in first contact message
+        # sender = self.barrack.identifier(msg.envelope.sender)
+        # meta = self.barrack.meta(identifier=sender)
+        # if meta is None:
+        #     # first contact, try meta in message package
+        #     meta = Meta(msg.meta)
+        #     if meta is None:
+        #         # TODO: query meta for sender from DIM network
+        #         raise LookupError('failed to get meta for sender: %s' % sender)
+        #     assert meta.match_identifier(identifier=sender), 'meta not match: %s, %s' % (sender, meta)
+        #     if not self.barrack.save_meta(meta=meta, identifier=sender):
+        #         raise ValueError('save meta error: %s, %s' % (sender, meta))
+
         # 1. verify 'data' with 'signature'
         if msg.delegate is None:
             msg.delegate = self
@@ -179,16 +193,17 @@ class Transceiver(Protocol):
             s_msg.delegate = self
         i_msg = s_msg.decrypt()
 
-        # 3. check: top-secret message
-        if i_msg.content.type == ContentType.Forward:
-            # do it again to drop the wrapper,
-            # the secret inside the content is the real message
-            content: ForwardContent = i_msg.content
-            r_msg = content.forward
-            secret = self.verify_decrypt(msg=r_msg)
-            if secret is not None:
-                return secret
-            # FIXME: not for you?
+        # # 3. check: top-secret message
+        # if i_msg.content.type == ContentType.Forward:
+        #     # do it again to drop the wrapper,
+        #     # the secret inside the content is the real message
+        #     content: ForwardContent = i_msg.content
+        #     r_msg = content.forward
+        #     secret = self.verify_decrypt(msg=r_msg)
+        #     if secret is not None:
+        #         return secret
+        #     # FIXME: not for you?
+
         # OK
         return i_msg
 
