@@ -37,6 +37,8 @@
     3. member quit
 """
 
+import time as time_lib
+
 from mkm import ID
 from dkd import ContentType
 
@@ -98,6 +100,8 @@ class GroupCommand(HistoryCommand):
     #
     @classmethod
     def membership(cls, command: str, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
+        if time == 0:
+            time = int(time_lib.time())
         content = {
             'type': ContentType.History,
             'command': command,
