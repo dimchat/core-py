@@ -110,7 +110,6 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             assert receiver.type.is_user(), 'unknown receiver type: %s' % receiver
             s_msg = msg.encrypt(password=password)
         # OK
-        s_msg.delegate = self
         return s_msg
 
     def sign_message(self, msg: SecureMessage) -> ReliableMessage:
@@ -120,7 +119,6 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         # 1. sign 'data' by sender
         r_msg = msg.sign()
         # OK
-        r_msg.delegate = self
         return r_msg
 
     def verify_message(self, msg: ReliableMessage) -> SecureMessage:
@@ -135,7 +133,6 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         s_msg = msg.verify()
 
         # OK
-        s_msg.delegate = self
         return s_msg
 
     def decrypt_message(self, msg: SecureMessage) -> InstantMessage:
@@ -153,7 +150,6 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         #       (do it by application)
 
         # OK
-        i_msg.delegate = self
         return i_msg
 
     #

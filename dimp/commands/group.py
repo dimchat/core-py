@@ -79,44 +79,62 @@ class GroupCommand(HistoryCommand):
         else:
             self['member'] = value
 
+    @property
+    def members(self) -> list:
+        value = self.get('members')
+        if value:
+            # TODO: convert all items to ID objects
+            return value
+
+    @members.setter
+    def members(self, value: list):
+        if value is None:
+            self.pop('members', None)
+        else:
+            self['members'] = value
+
     #
     #   Factories
     #
     @classmethod
-    def membership(cls, command: str, group: str, member: str=None, time: int=0) -> HistoryCommand:
+    def membership(cls, command: str, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
         content = {
             'type': ContentType.History,
             'command': command,
             'time': time,
             'group': group,
         }
-        if member:
+        if members is not None:
+            content['members'] = members
+        elif member is not None:
             content['member'] = member
         return GroupCommand(content)
 
     @classmethod
-    def invite(cls, group: str, member: str, time: int=0) -> HistoryCommand:
+    def invite(cls, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
         """
         Create invite group member command
 
         :param group: Group ID
         :param member: Member ID
+        :param members: Member list
         :param time: Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='invite', group=group, member=member, time=time)
+        return cls.membership(command='invite', group=group, member=member, members=members, time=time)
 
     @classmethod
-    def expel(cls, group: str, member: str, time: int=0) -> HistoryCommand:
+    def expel(cls, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
         """
         Create expel group member command
 
         :param group: Group ID
         :param member: Member ID
+        :param members: Member list
         :param time: Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='expel', group=group, member=member, time=time)
+        return cls.membership(command='expel', group=group, member=member, members=members, time=time)
 
     @classmethod
     def quit(cls, group: str, time: int=0) -> HistoryCommand:
@@ -128,3 +146,26 @@ class GroupCommand(HistoryCommand):
         :return: GroupCommand object
         """
         return cls.membership(command='quit', group=group, time=time)
+
+    @classmethod
+    def query(cls, group: str, time: int=0) -> HistoryCommand:
+        """
+        Create query group members command
+
+        :param group: Group ID
+        :param time: Timestamp
+        :return: GroupCommand object
+        """
+        return cls.membership(command='query', group=group, time=time)
+
+    @classmethod
+    def reset(cls, group: str, members: list, time: int=0) -> HistoryCommand:
+        """
+        Create reset group members command
+
+        :param group: Group ID
+        :param members: Member list
+        :param time: Timestamp
+        :return: GroupCommand object
+        """
+        return cls.membership(command='reset', group=group, members=members, time=time)
