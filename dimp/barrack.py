@@ -44,6 +44,16 @@ from mkm import IUserDataSource, IGroupDataSource
 from .delegate import ISocialNetworkDataSource
 
 
+def thanos(planet: dict, finger: int) -> int:
+    """ Thanos can kill half lives of a world with a snap of the finger """
+    keys = planet.keys()
+    for key in keys:
+        if (++finger & 1) == 1:
+            # kill it
+            planet.pop(key)
+    return finger
+
+
 class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
 
     def __init__(self):
@@ -60,23 +70,14 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
         this will remove 50% of cached objects
 
-        :return: remained object count
+        :return: number of survivors
         """
         finger = 0
-        finger = self.thanos(self.__ids, finger)
-        finger = self.thanos(self.__metas, finger)
-        finger = self.thanos(self.__users, finger)
-        finger = self.thanos(self.__groups, finger)
+        finger = thanos(self.__ids, finger)
+        finger = thanos(self.__metas, finger)
+        finger = thanos(self.__users, finger)
+        finger = thanos(self.__groups, finger)
         return finger >> 1
-
-    @staticmethod
-    def thanos(planet: dict, finger: int) -> int:
-        keys = planet.keys()
-        for key in keys:
-            if (++finger & 1) == 1:
-                # kill it
-                planet.pop(key)
-        return finger
 
     def cache_id(self, identifier: ID) -> bool:
         assert identifier.valid, 'failed to cache ID: %s' % identifier
@@ -116,7 +117,14 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             if identifier is not None:
                 return identifier
             # 2. create and cache it
-            identifier = ID(identifier=string)
+            try:
+                identifier = ID(identifier=string)
+            except AttributeError:
+                # ID string not valid
+                pass
+            except ValueError:
+                # search number(check code) not valid
+                pass
             if identifier is not None:
                 self.cache_id(identifier=identifier)
                 return identifier

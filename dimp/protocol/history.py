@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+import time as time_lib
+
 from dkd import Content, ContentType
 from dkd.content import message_content_classes
 
@@ -70,6 +72,8 @@ class HistoryCommand(Content):
     #
     @classmethod
     def new(cls, command: str, time: int=0) -> Content:
+        if time == 0:
+            time = int(time_lib.time())
         content = {
             'type': ContentType.History,
             'time': time,
