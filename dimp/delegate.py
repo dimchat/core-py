@@ -157,7 +157,7 @@ class ITransceiverDelegate(metaclass=ABCMeta):
     @abstractmethod
     def download_data(self, url: str, msg: InstantMessage) -> bytes:
         """
-        Download encrypted data from CDN, and decrypt it when finished
+        Download encrypted data from CDN
 
         :param url: download URL
         :param msg: instant message

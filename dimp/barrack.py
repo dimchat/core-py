@@ -37,7 +37,7 @@
 
 from abc import abstractmethod
 
-from mkm import ID, Meta, Profile, PrivateKey
+from mkm import ID, Meta, Profile, PrivateKey, NetworkID, is_broadcast
 from mkm import User, Group
 from mkm import IUserDataSource, IGroupDataSource
 
@@ -133,13 +133,23 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         if identifier is not None:
             assert identifier.valid, 'failed to get user with invalid ID: %s' % identifier
             # 1. get from user cache
-            return self.__users.get(identifier)
+            usr = self.__users.get(identifier)
+            if usr is None and is_broadcast(identifier=identifier):
+                # 2. create user 'anyone@anywhere'
+                usr = User(identifier=identifier)
+                self.cache_user(user=usr)
+            return usr
 
     def group(self, identifier: ID) -> Group:
         if identifier is not None:
             assert identifier.valid, 'failed to get group with invalid ID: %s' % identifier
             # 1. get from group cache
-            return self.__groups.get(identifier)
+            grp = self.__groups.get(identifier)
+            if grp is None and is_broadcast(identifier=identifier):
+                # 2. create group 'everyone@everywhere'
+                grp = Group(identifier=identifier)
+                self.cache_group(group=grp)
+            return grp
 
     #
     #   IEntityDataSource
@@ -173,12 +183,67 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
     #
     @abstractmethod
     def founder(self, identifier: ID) -> ID:
-        pass
+        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        # check for broadcast
+        if is_broadcast(identifier=identifier):
+            name = identifier.name
+            if name is None:
+                length = 0
+            else:
+                length = len(name)
+            if length == 0 or (length == 8 and name == 'everyone'):
+                # Consensus: the founder of group 'everyone@everywhere'
+                #            'Albert Moky'
+                founder = 'moky@anywhere'
+            else:
+                # DISCUSS: who should be the founder of group 'xxx@everywhere'?
+                #          'anyone@anywhere', or 'xxx.founder@anywhere'
+                founder = name + '.founder@anywhere'
+            return self.identifier(string=founder)
 
     @abstractmethod
     def owner(self, identifier: ID) -> ID:
-        pass
+        # check for broadcast
+        if is_broadcast(identifier=identifier):
+            name = identifier.name
+            if name is None:
+                length = 0
+            else:
+                length = len(name)
+            if length == 0 or (length == 8 and name == 'everyone'):
+                # Consensus: the owner of group 'everyone@everywhere'
+                #            'anyone@anywhere'
+                owner = 'anyone@anywhere'
+            else:
+                # DISCUSS: who should be the owner of group 'xxx@everywhere'?
+                #          'anyone@anywhere', or 'xxx.owner@anywhere'
+                owner = name + '.owner@anywhere'
+            return self.identifier(string=owner)
+        # check group type
+        if identifier.type.value == NetworkID.Polylogue:
+            # Polylogue's owner is the founder
+            return self.founder(identifier=identifier)
 
     @abstractmethod
     def members(self, identifier: ID) -> list:
-        pass
+        # check for broadcast
+        if is_broadcast(identifier=identifier):
+            name = identifier.name
+            if name is None:
+                length = 0
+            else:
+                length = len(name)
+            if length == 0 or (length == 8 and name == 'everyone'):
+                # Consensus: the member of group 'everyone@everywhere'
+                #            'anyone@anywhere'
+                member = 'anyone@anywhere'
+            else:
+                # DISCUSS: who should be the member of group 'xxx@everywhere'?
+                #          'anyone@anywhere', or 'xxx.member@anywhere'
+                member = name + '.member@anywhere'
+            member = self.identifier(string=member)
+            owner = self.owner(identifier=identifier)
+            if member == owner:
+                return [owner]
+            else:
+                return [owner, member]
