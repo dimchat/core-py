@@ -69,7 +69,7 @@ class Command(Content):
             return cmd
         elif cls is Command:
             # get class by command name
-            clazz = command_classes[cmd['command']]
+            clazz = command_classes.get(cmd['command'])
             if issubclass(clazz, Command):
                 return clazz(cmd)
         # new Command(dict)
