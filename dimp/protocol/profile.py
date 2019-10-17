@@ -29,89 +29,89 @@
 # ==============================================================================
 
 """
-    Meta Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~
+    Profile Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~~~~
 
-    1. contains 'ID' only, means query meta for ID
-    2. contains 'meta' (must match), means reply
+    1. contains 'ID' only, means query profile for ID
+    2. contains 'profile' and 'signature' (must match), means reply
 """
 
-from mkm import ID, Meta
-from dkd import ContentType
+from mkm import ID, Meta, Profile
 
-from ..protocol import Command
+from .command import Command, command_classes
+from .meta import MetaCommand
 
 
-class MetaCommand(Command):
+class ProfileCommand(MetaCommand):
     """
-        Meta Command
-        ~~~~~~~~~~~~
+        Profile Command
+        ~~~~~~~~~~~~~~~
 
         data format: {
             type : 0x88,
             sn   : 123,
 
-            command : "meta", // command name
-            ID      : "{ID}", // contact's ID
-            meta    : {...}   // When meta is empty, means query meta for ID
+            command   : "profile", // command name
+            ID        : "{ID}",    // entity ID
+            meta      : {...},     // only for handshaking with new friend
+            profile   : {...}      // when profile is empty, means query for ID
         }
+
     """
 
     def __init__(self, content: dict):
         super().__init__(content)
-        # ID
-        self.__identifier = ID(content['ID'])
-        # meta
-        self.__meta = Meta(content.get('meta'))
+        # profile
+        profile = content.get('profile')
+        if isinstance(profile, str):
+            # compatible with v1.0
+            profile = {
+                'ID': content['ID'],
+                'data': profile,
+                'signature': content.get("signature")
+            }
+        self.__profile = Profile(profile)
 
     #
-    #   ID
-    #
-    @property
-    def identifier(self) -> ID:
-        return self.__identifier
-
-    @identifier.setter
-    def identifier(self, value: ID):
-        self.__identifier = value
-        if value is None:
-            self.pop('ID', None)
-        else:
-            self['ID'] = value
-
-    #
-    #   Meta
+    #   profile
     #
     @property
-    def meta(self) -> Meta:
-        return self.__meta
+    def profile(self) -> Profile:
+        return self.__profile
 
-    @meta.setter
-    def meta(self, value: Meta):
-        self.__meta = value
+    @profile.setter
+    def profile(self, value: Profile):
+        self.__profile = value
         if value is None:
-            self.pop('meta', None)
+            self.pop('profile', None)
+            self.pop('signature', None)
         else:
-            self['meta'] = value
+            self['profile'] = value.get('data')
+            self['signature'] = value.get('signature')
 
     #
     #   Factories
     #
     @classmethod
-    def query(cls, identifier: str) -> Command:
+    def query(cls, identifier: ID):
         content = {
-            'type': ContentType.Command,
-            'command': 'meta',
+            'command': Command.PROFILE,
             'ID': identifier,
         }
-        return MetaCommand(content)
+        return Command.new(content)
 
     @classmethod
-    def response(cls, identifier: str, meta: dict) -> Command:
+    def response(cls, identifier: ID, profile: Profile, meta: Meta=None):
         content = {
-            'type': ContentType.Command,
-            'command': 'meta',
+            'command': Command.PROFILE,
             'ID': identifier,
-            'meta': meta,
+            'profile': profile.get('data'),
+            'signature': profile.get('signature'),
         }
-        return MetaCommand(content)
+        if meta is not None:
+            content['meta'] = meta
+        return Command.new(content)
+
+
+# register command class
+command_classes[Command.PROFILE] = ProfileCommand

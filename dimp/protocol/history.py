@@ -29,15 +29,18 @@
 # ==============================================================================
 
 import time as time_lib
+from typing import Union
 
-from dkd import Content, ContentType
+from dkd import ContentType
 from dkd.content import message_content_classes
 
+from .command import Command
 
-class HistoryCommand(Content):
+
+class HistoryCommand(Command):
     """
-        Group History Command
-        ~~~~~~~~~~~~~~~~~~~~~
+        History Command
+        ~~~~~~~~~~~~~~~
 
         data format: {
             type : 0x89,
@@ -49,19 +52,35 @@ class HistoryCommand(Content):
         }
     """
 
+    # -------- command names begin --------
+    # account
+    REGISTER = "register"
+    SUICIDE = "suicide"
+
+    # group: founder/owner
+    FOUND = "found"
+    ABDICATE = "abdicate"
+    # group: member
+    INVITE = "invite"
+    EXPEL = "expel"
+    JOIN = "join"
+    QUIT = "quit"
+    QUERY = "query"
+    RESET = "reset"
+    # group: administrator/assistant
+    HIRE = "hire"
+    FIRE = "fire"
+    RESIGN = "resign"
+    # -------- command names end --------
+
     def __init__(self, content: dict):
         super().__init__(content)
-        # value of 'command' & 'time' cannot be changed again
-        self.__command = content['command']
+        # value of 'time' cannot be changed again
         time = content.get('time')
         if time is None:
             self.__time = 0
         else:
             self.__time = int(time)
-
-    @property
-    def command(self) -> str:
-        return self.__command
 
     @property
     def time(self) -> int:
@@ -71,15 +90,25 @@ class HistoryCommand(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, command: str, time: int=0) -> Content:
-        if time == 0:
-            time = int(time_lib.time())
-        content = {
-            'type': ContentType.History,
-            'time': time,
-            'command': command,
-        }
-        return HistoryCommand(content)
+    def new(cls, command: Union[str, dict]):
+        if isinstance(command, str):
+            content = {
+                'type': ContentType.History,
+                'command': command,
+                'time': int(time_lib.time()),
+            }
+        elif isinstance(command, dict):
+            content = command
+            if 'type' not in content:
+                content['type'] = ContentType.History
+            if 'time' not in content:
+                content['time'] = int(time_lib.time())
+            assert 'command' in content, 'command error: %s' % command
+        else:
+            raise TypeError('history argument error: %s' % command)
+        # new HistoryCommand(dict)
+        return Command.new(content)
 
 
+# register content class
 message_content_classes[ContentType.History] = HistoryCommand

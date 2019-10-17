@@ -71,4 +71,5 @@ class TextContent(Content):
         return TextContent(content)
 
 
+# register content class
 message_content_classes[ContentType.Text] = TextContent

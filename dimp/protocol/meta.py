@@ -36,47 +36,77 @@
     2. contains 'meta' (must match), means reply
 """
 
-from dkd import ContentType
+from mkm import ID, Meta
 
-from ..protocol import Command
+from .command import Command, command_classes
 
 
-class ReceiptCommand(Command):
+class MetaCommand(Command):
     """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+        Meta Command
+        ~~~~~~~~~~~~
 
         data format: {
             type : 0x88,
             sn   : 123,
 
-            command : "receipt", // command name
-            message : "...",
+            command : "meta", // command name
+            ID      : "{ID}", // contact's ID
+            meta    : {...}   // When meta is empty, means query meta for ID
         }
     """
 
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # value of 'ID' cannot be changed again
+        self.__identifier = content['ID']
+        # meta
+        self.__meta = Meta(content.get('meta'))
+
     #
-    #   message
+    #   ID
     #
     @property
-    def message(self) -> str:
-        return self.get('message')
+    def identifier(self) -> str:
+        # TODO: convert value to ID object
+        return self.__identifier
 
-    @message.setter
-    def message(self, value: str):
+    #
+    #   Meta
+    #
+    @property
+    def meta(self) -> Meta:
+        return self.__meta
+
+    @meta.setter
+    def meta(self, value: Meta):
+        self.__meta = value
         if value is None:
-            self.pop('message', None)
+            self.pop('meta', None)
         else:
-            self['message'] = value
+            self['meta'] = value
 
     #
-    #   Factory
+    #   Factories
     #
+
     @classmethod
-    def receipt(cls, message: str) -> Command:
+    def query(cls, identifier: ID):
         content = {
-            'type': ContentType.Command,
-            'command': 'receipt',
-            'message': message,
+            'command': Command.META,
+            'ID': identifier,
         }
-        return ReceiptCommand(content)
+        return Command.new(content)
+
+    @classmethod
+    def response(cls, identifier: ID, meta: Meta):
+        content = {
+            'command': Command.META,
+            'ID': identifier,
+            'meta': meta,
+        }
+        return Command.new(content)
+
+
+# register command class
+command_classes[Command.META] = MetaCommand

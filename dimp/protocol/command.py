@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+from typing import Union
+
 from dkd import Content, ContentType
 from dkd.content import message_content_classes
 
@@ -46,6 +48,33 @@ class Command(Content):
         }
     """
 
+    # -------- command names begin --------
+    HANDSHAKE = 'handshake'
+    RECEIPT = 'receipt'
+    META = 'meta'
+    PROFILE = 'profile'
+    # -------- command names end --------
+
+    def __new__(cls, cmd: dict):
+        """
+        Create command
+
+        :param cmd: command info
+        :return: Command object
+        """
+        if cmd is None:
+            return None
+        elif isinstance(cmd, Command):
+            # return Command object directly
+            return cmd
+        elif cls is Command:
+            # get class by command name
+            clazz = command_classes[cmd['command']]
+            if issubclass(clazz, Command):
+                return clazz(cmd)
+        # new Command(dict)
+        return super().__new__(cls, cmd)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # value of 'command' cannot be changed again
@@ -59,12 +88,29 @@ class Command(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, command: str) -> Content:
-        content = {
-            'type': ContentType.Command,
-            'command': command,
-        }
-        return Command(content)
+    def new(cls, command: Union[str, dict]):
+        if isinstance(command, str):
+            content = {
+                'type': ContentType.Command,
+                'command': command,
+            }
+        elif isinstance(command, dict):
+            content = command
+            if 'type' not in content:
+                content['type'] = ContentType.Command
+            assert 'command' in content, 'command error: %s' % command
+        else:
+            raise TypeError('command argument error: %s' % command)
+        # new Command(dict)
+        return cls(content)
 
 
+"""
+    Command Classes Map
+"""
+
+command_classes = {
+}
+
+# register content class
 message_content_classes[ContentType.Command] = Command

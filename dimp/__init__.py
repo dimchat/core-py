@@ -39,8 +39,11 @@ from dkd import Envelope, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-from .protocol import TextContent, Command, HistoryCommand
-from .commands import HandshakeCommand, MetaCommand, ProfileCommand, ReceiptCommand, GroupCommand
+from .protocol import TextContent, FileContent, ImageContent, AudioContent, VideoContent
+from .protocol import Command, HistoryCommand, GroupCommand
+from .protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
+from .protocol import QueryCommand, ResetCommand
+from .protocol import HandshakeCommand, MetaCommand, ProfileCommand
 
 from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
 from .barrack import Barrack
@@ -56,8 +59,7 @@ __author__ = 'Albert Moky'
 
 __all__ = [
     # Crypto
-    'SymmetricKey',
-    'PrivateKey', 'PublicKey',
+    'SymmetricKey', 'PrivateKey', 'PublicKey',
 
     # MingKeMing
     'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
@@ -73,9 +75,11 @@ __all__ = [
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
     # DIMP
-    'TextContent', 'Command', 'HistoryCommand',
-    'HandshakeCommand', 'MetaCommand', 'ProfileCommand', 'ReceiptCommand',
-    'GroupCommand',
+    'TextContent', 'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'Command', 'HistoryCommand', 'GroupCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
+    'QueryCommand', 'ResetCommand',
+    'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
 
     'ICallback', 'ICompletionHandler', 'ITransceiverDelegate',
     'Barrack',

@@ -29,8 +29,10 @@
 # ==============================================================================
 
 """
-    DIMP - Message Contents
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    DIMP - Message Contents & Commands
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Define universal message types as contents and commands
 """
 
 from .text import TextContent
@@ -39,6 +41,14 @@ from .file import FileContent, ImageContent, AudioContent, VideoContent
 from .command import Command
 from .history import HistoryCommand
 
+from .group import GroupCommand
+from .group import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
+from .group import QueryCommand, ResetCommand
+
+from .handshake import HandshakeCommand
+from .meta import MetaCommand
+from .profile import ProfileCommand
+
 
 __all__ = [
     'TextContent',
@@ -46,4 +56,12 @@ __all__ = [
 
     'Command',
     'HistoryCommand',
+
+    'GroupCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
+    'QueryCommand', 'ResetCommand',
+
+    'HandshakeCommand',
+    'MetaCommand',
+    'ProfileCommand',
 ]

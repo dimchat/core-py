@@ -37,12 +37,8 @@
     3. member quit
 """
 
-import time as time_lib
-
-from mkm import ID
-from dkd import ContentType
-
-from ..protocol import HistoryCommand
+from .command import command_classes
+from .history import HistoryCommand
 
 
 class GroupCommand(HistoryCommand):
@@ -54,10 +50,11 @@ class GroupCommand(HistoryCommand):
             type : 0x89,
             sn   : 123,
 
-            command : "invite",      // "expel", "quit"
-            time    : 0,             // timestamp
-            group   : "{GROUP_ID}",  // group ID
-            member  : "{MEMBER_ID}", // member ID
+            command : "invite",         // "expel", "quit"
+            time    : 0,                // timestamp
+            group   : "{GROUP_ID}",     // group ID
+            member  : "{MEMBER_ID}",    // member ID
+            members : ["{MEMBER_ID}",], // member ID list
         }
     """
 
@@ -66,13 +63,12 @@ class GroupCommand(HistoryCommand):
     #
 
     #
-    #   member
+    #   member/members
     #
     @property
-    def member(self) -> ID:
-        value = self.get('member')
-        if value:
-            return ID(value)
+    def member(self) -> str:
+        # TODO: convert value to ID object
+        return self.get('member')
 
     @member.setter
     def member(self, value: str):
@@ -83,10 +79,8 @@ class GroupCommand(HistoryCommand):
 
     @property
     def members(self) -> list:
-        value = self.get('members')
-        if value:
-            # TODO: convert all items to ID objects
-            return value
+        # TODO: convert all items to ID objects
+        return self.get('members')
 
     @members.setter
     def members(self, value: list):
@@ -99,77 +93,108 @@ class GroupCommand(HistoryCommand):
     #   Factories
     #
     @classmethod
-    def membership(cls, command: str, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
-        if time == 0:
-            time = int(time_lib.time())
+    def __new(cls, command: str, group: str, member: str=None, members: list=None, time: int=0):
         content = {
-            'type': ContentType.History,
             'command': command,
-            'time': time,
             'group': group,
         }
         if members is not None:
             content['members'] = members
         elif member is not None:
             content['member'] = member
-        return GroupCommand(content)
+        if time > 0:
+            content['time'] = time
+        return HistoryCommand.new(content)
 
     @classmethod
-    def invite(cls, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
+    def invite(cls, group: str, member: str=None, members: list=None, time: int=0):
         """
         Create invite group member command
 
-        :param group: Group ID
-        :param member: Member ID
+        :param group:   Group ID
+        :param member:  Member ID
         :param members: Member list
-        :param time: Timestamp
+        :param time:    Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='invite', group=group, member=member, members=members, time=time)
+        return cls.__new(command=HistoryCommand.INVITE, group=group, member=member, members=members, time=time)
 
     @classmethod
-    def expel(cls, group: str, member: str=None, members: list=None, time: int=0) -> HistoryCommand:
+    def expel(cls, group: str, member: str=None, members: list=None, time: int=0):
         """
         Create expel group member command
 
-        :param group: Group ID
-        :param member: Member ID
+        :param group:   Group ID
+        :param member:  Member ID
         :param members: Member list
-        :param time: Timestamp
+        :param time:    Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='expel', group=group, member=member, members=members, time=time)
+        return cls.__new(command=HistoryCommand.EXPEL, group=group, member=member, members=members, time=time)
 
     @classmethod
-    def quit(cls, group: str, time: int=0) -> HistoryCommand:
+    def quit(cls, group: str, time: int=0):
         """
         Create member quit command
 
         :param group: Group ID
-        :param time: Timestamp
+        :param time:  Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='quit', group=group, time=time)
+        return cls.__new(command=HistoryCommand.QUIT, group=group, time=time)
 
     @classmethod
-    def query(cls, group: str, time: int=0) -> HistoryCommand:
+    def query(cls, group: str, time: int=0):
         """
         Create query group members command
 
         :param group: Group ID
-        :param time: Timestamp
+        :param time:  Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='query', group=group, time=time)
+        return cls.__new(command=HistoryCommand.QUERY, group=group, time=time)
 
     @classmethod
-    def reset(cls, group: str, members: list, time: int=0) -> HistoryCommand:
+    def reset(cls, group: str, members: list, time: int=0):
         """
         Create reset group members command
 
-        :param group: Group ID
+        :param group:   Group ID
         :param members: Member list
-        :param time: Timestamp
+        :param time:    Timestamp
         :return: GroupCommand object
         """
-        return cls.membership(command='reset', group=group, members=members, time=time)
+        return cls.__new(command=HistoryCommand.RESET, group=group, members=members, time=time)
+
+
+class InviteCommand(GroupCommand):
+    pass
+
+
+class ExpelCommand(GroupCommand):
+    pass
+
+
+class JoinCommand(GroupCommand):
+    pass
+
+
+class QuitCommand(GroupCommand):
+    pass
+
+
+class QueryCommand(GroupCommand):
+    pass
+
+
+class ResetCommand(GroupCommand):
+    pass
+
+
+# register group command classes
+command_classes[HistoryCommand.INVITE] = InviteCommand
+command_classes[HistoryCommand.EXPEL] = ExpelCommand
+command_classes[HistoryCommand.JOIN] = JoinCommand
+command_classes[HistoryCommand.QUIT] = QuitCommand
+command_classes[HistoryCommand.QUERY] = QueryCommand
+command_classes[HistoryCommand.RESET] = ResetCommand

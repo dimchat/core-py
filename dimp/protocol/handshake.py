@@ -38,9 +38,7 @@
     4. (S-C) handshake success
 """
 
-from dkd import ContentType
-
-from ..protocol import Command
+from .command import Command, command_classes
 
 
 class HandshakeCommand(Command):
@@ -58,19 +56,17 @@ class HandshakeCommand(Command):
         }
     """
 
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # value of 'message' cannot be changed again
+        self.__message = content['message']
+
     #
     #   message
     #
     @property
     def message(self) -> str:
-        return self.get('message')
-
-    @message.setter
-    def message(self, value: str):
-        if value is None:
-            self.pop('message', None)
-        else:
-            self['message'] = value
+        return self.__message
 
     #
     #   session
@@ -90,15 +86,14 @@ class HandshakeCommand(Command):
     #   Factories
     #
     @classmethod
-    def handshake(cls, message: str='Hello world!', session: str=None) -> Command:
+    def handshake(cls, message: str, session: str=None) -> Command:
         content = {
-            'type': ContentType.Command,
-            'command': 'handshake',
+            'command': Command.HANDSHAKE,
             'message': message,
         }
-        if session:
+        if session is not None:
             content['session'] = session
-        return HandshakeCommand(content)
+        return Command.new(content)
 
     @classmethod
     def offer(cls, session: str =None) -> Command:
@@ -108,7 +103,7 @@ class HandshakeCommand(Command):
         :param session: Old session key
         :return: HandshakeCommand object
         """
-        return cls.handshake(session=session)
+        return cls.handshake(message='Hello world!', session=session)
 
     @classmethod
     def ask(cls, session: str) -> Command:
@@ -133,3 +128,7 @@ class HandshakeCommand(Command):
     again = ask         # (2. S->C) ask client to handshake with new session key
     restart = offer     # (3. C->S) handshake with new session key
     accepted = success  # (4. S->C) notice the client that handshake accepted
+
+
+# register command class
+command_classes[Command.HANDSHAKE] = HandshakeCommand

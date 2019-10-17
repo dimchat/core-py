@@ -30,7 +30,8 @@
 
 import hashlib
 import os
-from binascii import b2a_hex, a2b_hex
+from binascii import b2a_hex
+from typing import Union
 
 from mkm.crypto.utils import base64_encode, base64_decode
 
@@ -43,15 +44,18 @@ def hex_encode(data: bytes) -> str:
     return b2a_hex(data).decode('utf-8')
 
 
-def hex_decode(string: str) -> bytes:
-    """ HEX Decode """
-    return a2b_hex(string)
-
-
 def md5(data: bytes) -> bytes:
+    """ MD5 digest """
     hash_obj = hashlib.md5()
     hash_obj.update(data)
     return hash_obj.digest()
+
+
+def data_filename(data: bytes, ext: str=None) -> str:
+    filename = hex_encode(md5(data))
+    if ext is None or len(ext) == 0:
+        return filename
+    return filename + '.' + ext
 
 
 class FileContent(Content):
@@ -71,6 +75,7 @@ class FileContent(Content):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # attachment (file data)
         self.__attachment: bytes = None
 
     # URL
@@ -88,11 +93,21 @@ class FileContent(Content):
     # file data (it's too big to set in the dictionary)
     @property
     def data(self) -> bytes:
+        if self.__attachment is None:
+            base64 = self.get('data')
+            if base64 is not None:
+                self.__attachment = base64_decode(base64)
         return self.__attachment
 
     @data.setter
     def data(self, attachment: bytes):
         self.__attachment = attachment
+        if attachment is None or len(attachment) == 0:
+            self.pop('data', None)
+        else:
+            self['data'] = base64_encode(attachment)
+            # reset filename
+            self['filename'] = data_filename(attachment, self.file_ext)
 
     # filename
     @property
@@ -127,18 +142,83 @@ class FileContent(Content):
             self['password'] = key
 
     #
-    #   Factory
+    #   Factories
     #
     @classmethod
-    def new(cls, data: bytes, filename: str=None) -> Content:
+    def new(cls, data: Union[bytes, dict]):
+        if isinstance(data, bytes):
+            content = {
+                'type': ContentType.File,
+                'data': data,
+            }
+        elif isinstance(data, dict):
+            content = data
+            if 'type' not in content:
+                content['type'] = ContentType.File
+        else:
+            raise TypeError('file content error: %s' % data)
+        # create FileContent
+        return cls(content)
+
+    @classmethod
+    def image(cls, data: bytes, thumbnail: bytes=None, filename: str=None):
+        """
+        Create image message content
+
+        :param data:      Image data
+        :param thumbnail: Image thumbnail
+        :param filename:  Image filename
+        :return: ImageContent object
+        """
         content = {
-            'type': ContentType.File,
+            'type': ContentType.Image,
+            'data': data,
         }
-        content = FileContent(content)
-        content.data = data
+        if thumbnail is not None:
+            content['thumbnail'] = base64_encode(thumbnail)
         if filename is not None:
-            content.filename = filename
-        return content
+            content['filename'] = filename
+        return cls.new(content)
+
+    @classmethod
+    def video(cls, data: bytes, snapshot: bytes=None, filename: str=None):
+        """
+        Create video message content
+
+        :param data:     Video data
+        :param snapshot: Video snapshot
+        :param filename: Video filename
+        :return: VideoContent object
+        """
+        content = {
+            'type': ContentType.Video,
+            'data': data,
+        }
+        if snapshot is not None:
+            content['snapshot'] = base64_encode(snapshot)
+        if filename is not None:
+            content['filename'] = filename
+        return cls.new(content)
+
+    @classmethod
+    def audio(cls, data: bytes, text: str=None, filename: str=None):
+        """
+        Create audio message content
+
+        :param data:     Audio data
+        :param text:     Automatic Speech Recognition
+        :param filename: Audio filename
+        :return: AudioContent
+        """
+        content = {
+            'type': ContentType.Audio,
+            'data': data,
+        }
+        if text is not None:
+            content['text'] = text
+        if filename is not None:
+            content['filename'] = filename
+        return cls.new(content)
 
 
 class ImageContent(FileContent):
@@ -159,9 +239,10 @@ class ImageContent(FileContent):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # thumbnail (lazy)
         self.__thumbnail: bytes = None
 
-    # thumbnail of image data
+    # thumbnail of image
     @property
     def thumbnail(self) -> bytes:
         if self.__thumbnail is None:
@@ -172,25 +253,11 @@ class ImageContent(FileContent):
 
     @thumbnail.setter
     def thumbnail(self, small_image: bytes):
+        self.__thumbnail = small_image
         if small_image is None:
             self.pop('thumbnail', None)
         else:
             self['thumbnail'] = base64_encode(small_image)
-        self.__thumbnail = small_image
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, data: bytes, filename: str=None) -> FileContent:
-        content = {
-            'type': ContentType.Image,
-        }
-        content = ImageContent(content)
-        content.data = data
-        if filename is not None:
-            content.filename = filename
-        return content
 
 
 class AudioContent(FileContent):
@@ -209,9 +276,6 @@ class AudioContent(FileContent):
         }
     """
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-
     # ASR text
     @property
     def text(self) -> bytes:
@@ -223,20 +287,6 @@ class AudioContent(FileContent):
             self.pop('text', None)
         else:
             self['text'] = string
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, data: bytes, filename: str=None) -> FileContent:
-        content = {
-            'type': ContentType.Audio,
-        }
-        content = ImageContent(content)
-        content.data = data
-        if filename is not None:
-            content.filename = filename
-        return content
 
 
 class VideoContent(FileContent):
@@ -257,6 +307,7 @@ class VideoContent(FileContent):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # snapshot (lazy)
         self.__snapshot: bytes = None
 
     # snapshot of video
@@ -270,27 +321,14 @@ class VideoContent(FileContent):
 
     @snapshot.setter
     def snapshot(self, small_image: bytes):
+        self.__snapshot = small_image
         if small_image is None:
             self.pop('snapshot', None)
         else:
             self['snapshot'] = base64_encode(small_image)
-        self.__snapshot = small_image
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, data: bytes, filename: str=None) -> FileContent:
-        content = {
-            'type': ContentType.Video,
-        }
-        content = VideoContent(content)
-        content.data = data
-        if filename is not None:
-            content.filename = filename
-        return content
 
 
+# register content classes
 message_content_classes[ContentType.File] = FileContent
 message_content_classes[ContentType.Image] = ImageContent
 message_content_classes[ContentType.Audio] = AudioContent
