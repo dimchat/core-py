@@ -70,7 +70,8 @@ class Command(Content):
         elif cls is Command:
             # get class by command name
             clazz = command_classes.get(cmd['command'])
-            if issubclass(clazz, Command):
+            if clazz is not None:
+                assert issubclass(clazz, Command), '%s must be sub-class of Command' % clazz
                 return clazz(cmd)
         # new Command(dict)
         return super().__new__(cls, cmd)
