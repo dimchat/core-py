@@ -73,6 +73,27 @@ class HistoryCommand(Command):
     RESIGN = "resign"
     # -------- command names end --------
 
+    def __new__(cls, cmd: dict):
+        """
+        Create history command
+
+        :param cmd: history info
+        :return: HistoryCommand object
+        """
+        if cmd is None:
+            return None
+        elif isinstance(cmd, HistoryCommand):
+            # return HistoryCommand object directly
+            return cmd
+        elif cls is HistoryCommand:
+            # check group
+            if 'group' in cmd:
+                # it's a group command
+                from .group import GroupCommand
+                return GroupCommand(cmd)
+        # new HistoryCommand(dict)
+        return super().__new__(cls, cmd)
+    
     def __init__(self, content: dict):
         super().__init__(content)
         # value of 'time' cannot be changed again
