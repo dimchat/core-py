@@ -58,6 +58,27 @@ class GroupCommand(HistoryCommand):
         }
     """
 
+    def __new__(cls, cmd: dict):
+        """
+        Create group command
+
+        :param cmd: group command info
+        :return: GroupCommand object
+        """
+        if cmd is None:
+            return None
+        elif isinstance(cmd, GroupCommand):
+            # return GroupCommand object directly
+            return cmd
+        elif cls is GroupCommand:
+            # get class by command name
+            clazz = command_classes.get(cmd['command'])
+            if clazz is not None:
+                assert issubclass(clazz, GroupCommand), '%s must be sub-class of GroupCommand' % clazz
+                return clazz(cmd)
+        # new GroupCommand(dict)
+        return super().__new__(cls, cmd)
+
     #
     #   group (group ID already fetched in Content.__init__)
     #
