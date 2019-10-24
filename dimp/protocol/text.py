@@ -63,7 +63,7 @@ class TextContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, text: str) -> Content:
+    def new(cls, text: str):
         content = {
             'type': ContentType.Text,
             'text': text,

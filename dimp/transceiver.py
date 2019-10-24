@@ -61,10 +61,14 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         self.delegate: ITransceiverDelegate = None
 
     def is_broadcast_message(self, msg: Message) -> bool:
-        receiver = self.barrack.identifier(msg.group)
+        if isinstance(msg, InstantMessage):
+            receiver = msg.content.group
+        else:
+            receiver = msg.envelope.group
         if receiver is None:
-            receiver = self.barrack.identifier(msg.envelope.receiver)
-        return is_broadcast(receiver)
+            receiver = msg.envelope.receiver
+        identifier = self.barrack.identifier(receiver)
+        return is_broadcast(identifier)
 
     def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store
@@ -90,7 +94,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         receiver = self.barrack.identifier(msg.envelope.receiver)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
-        group = self.barrack.identifier(msg.group)
+        group = self.barrack.identifier(msg.content.group)
         # 1. get symmetric key
         if group is None:
             password = self.__password(sender=sender, receiver=receiver)
