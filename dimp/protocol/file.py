@@ -165,7 +165,7 @@ class FileContent(Content):
         if isinstance(data, bytes):
             content = {
                 'type': ContentType.File,
-                'data': data,
+                'data': base64_encode(data),
             }
         elif isinstance(data, dict):
             content = data
@@ -173,8 +173,8 @@ class FileContent(Content):
                 content['type'] = ContentType.File
         else:
             raise TypeError('file content error: %s' % data)
-        # create FileContent
-        return cls(content)
+        # new
+        return Content.new(content)
 
     @classmethod
     def image(cls, data: bytes, thumbnail: bytes=None, filename: str=None):
@@ -188,12 +188,13 @@ class FileContent(Content):
         """
         content = {
             'type': ContentType.Image,
-            'data': data,
+            'data': base64_encode(data),
         }
         if thumbnail is not None:
             content['thumbnail'] = base64_encode(thumbnail)
         if filename is not None:
             content['filename'] = filename
+        # new
         return cls.new(content)
 
     @classmethod
@@ -208,12 +209,13 @@ class FileContent(Content):
         """
         content = {
             'type': ContentType.Video,
-            'data': data,
+            'data': base64_encode(data),
         }
         if snapshot is not None:
             content['snapshot'] = base64_encode(snapshot)
         if filename is not None:
             content['filename'] = filename
+        # new
         return cls.new(content)
 
     @classmethod
@@ -228,12 +230,13 @@ class FileContent(Content):
         """
         content = {
             'type': ContentType.Audio,
-            'data': data,
+            'data': base64_encode(data),
         }
         if text is not None:
             content['text'] = text
         if filename is not None:
             content['filename'] = filename
+        # new
         return cls.new(content)
 
 

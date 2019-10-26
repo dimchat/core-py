@@ -109,6 +109,7 @@ class HandshakeCommand(Command):
         }
         if session is not None:
             content['session'] = session
+        # new
         return Command.new(content)
 
     @classmethod

@@ -127,7 +127,7 @@ class HistoryCommand(Command):
             assert 'command' in content, 'command error: %s' % command
         else:
             raise TypeError('history argument error: %s' % command)
-        # new HistoryCommand(dict)
+        # new
         return Command.new(content)
 
 

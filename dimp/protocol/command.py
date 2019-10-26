@@ -102,8 +102,8 @@ class Command(Content):
             assert 'command' in content, 'command error: %s' % command
         else:
             raise TypeError('command argument error: %s' % command)
-        # new Command(dict)
-        return cls(content)
+        # new
+        return Content.new(content)
 
 
 """

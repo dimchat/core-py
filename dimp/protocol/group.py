@@ -125,6 +125,7 @@ class GroupCommand(HistoryCommand):
             content['member'] = member
         if time > 0:
             content['time'] = time
+        # new
         return HistoryCommand.new(content)
 
     @classmethod

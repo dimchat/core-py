@@ -84,7 +84,8 @@ class TextContent(Content):
             'type': ContentType.Text,
             'text': text,
         }
-        return TextContent(content)
+        # new
+        return Content.new(content)
 
 
 # register content class

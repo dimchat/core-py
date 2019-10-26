@@ -112,6 +112,7 @@ class MetaCommand(Command):
             'command': Command.META,
             'ID': identifier,
         }
+        # new
         return Command.new(content)
 
     @classmethod
@@ -121,6 +122,7 @@ class MetaCommand(Command):
             'ID': identifier,
             'meta': meta,
         }
+        # new
         return Command.new(content)
 
 

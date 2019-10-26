@@ -114,6 +114,7 @@ class ProfileCommand(MetaCommand):
             'command': Command.PROFILE,
             'ID': identifier,
         }
+        # new
         return Command.new(content)
 
     @classmethod
@@ -126,6 +127,7 @@ class ProfileCommand(MetaCommand):
         }
         if meta is not None:
             content['meta'] = meta
+        # new
         return Command.new(content)
 
 
