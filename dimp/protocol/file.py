@@ -73,6 +73,22 @@ class FileContent(Content):
         }
     """
 
+    def __new__(cls, content: dict):
+        """
+        Create file content
+
+        :param content: content info
+        :return: FileContent object
+        """
+        if content is None:
+            return None
+        elif cls is FileContent:
+            if isinstance(content, FileContent):
+                # return FileContent object directly
+                return content
+        # subclass or default FileContent(dict)
+        return super().__new__(cls, content)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # attachment (file data)
@@ -237,6 +253,22 @@ class ImageContent(FileContent):
         }
     """
 
+    def __new__(cls, content: dict):
+        """
+        Create image content
+
+        :param content: content info
+        :return: ImageContent object
+        """
+        if content is None:
+            return None
+        elif cls is ImageContent:
+            if isinstance(content, ImageContent):
+                # return ImageContent object directly
+                return content
+        # new ImageContent(dict)
+        return super().__new__(cls, content)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # thumbnail (lazy)
@@ -276,6 +308,22 @@ class AudioContent(FileContent):
         }
     """
 
+    def __new__(cls, content: dict):
+        """
+        Create audio content
+
+        :param content: content info
+        :return: AudioContent object
+        """
+        if content is None:
+            return None
+        elif cls is AudioContent:
+            if isinstance(content, AudioContent):
+                # return AudioContent object directly
+                return content
+        # new AudioContent(dict)
+        return super().__new__(cls, content)
+
     # ASR text
     @property
     def text(self) -> bytes:
@@ -304,6 +352,22 @@ class VideoContent(FileContent):
             filename : "..."
         }
     """
+
+    def __new__(cls, content: dict):
+        """
+        Create video content
+
+        :param content: content info
+        :return: VideoContent object
+        """
+        if content is None:
+            return None
+        elif cls is VideoContent:
+            if isinstance(content, VideoContent):
+                # return VideoContent object directly
+                return content
+        # new VideoContent(dict)
+        return super().__new__(cls, content)
 
     def __init__(self, content: dict):
         super().__init__(content)

@@ -82,16 +82,16 @@ class HistoryCommand(Command):
         """
         if cmd is None:
             return None
-        elif isinstance(cmd, HistoryCommand):
-            # return HistoryCommand object directly
-            return cmd
         elif cls is HistoryCommand:
+            if isinstance(cmd, HistoryCommand):
+                # return HistoryCommand object directly
+                return cmd
             # check group
             if 'group' in cmd:
                 # it's a group command
                 from .group import GroupCommand
                 return GroupCommand(cmd)
-        # new HistoryCommand(dict)
+        # subclass or default HistoryCommand(dict)
         return super().__new__(cls, cmd)
     
     def __init__(self, content: dict):

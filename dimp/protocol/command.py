@@ -64,16 +64,16 @@ class Command(Content):
         """
         if cmd is None:
             return None
-        elif isinstance(cmd, Command):
-            # return Command object directly
-            return cmd
         elif cls is Command:
+            if isinstance(cmd, Command):
+                # return Command object directly
+                return cmd
             # get class by command name
             clazz = command_classes.get(cmd['command'])
             if clazz is not None:
                 assert issubclass(clazz, Command), '%s must be sub-class of Command' % clazz
                 return clazz(cmd)
-        # new Command(dict)
+        # subclass or default Command(dict)
         return super().__new__(cls, cmd)
 
     def __init__(self, content: dict):

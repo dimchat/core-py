@@ -56,6 +56,22 @@ class HandshakeCommand(Command):
         }
     """
 
+    def __new__(cls, cmd: dict):
+        """
+        Create handshake command
+
+        :param cmd: command info
+        :return: HandshakeCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is HandshakeCommand:
+            if isinstance(cmd, HandshakeCommand):
+                # return HandshakeCommand object directly
+                return cmd
+        # new HandshakeCommand(dict)
+        return super().__new__(cls, cmd)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # value of 'message' cannot be changed again
@@ -96,7 +112,7 @@ class HandshakeCommand(Command):
         return Command.new(content)
 
     @classmethod
-    def offer(cls, session: str =None) -> Command:
+    def offer(cls, session: str=None) -> Command:
         """
         Create client-station handshake offer
 

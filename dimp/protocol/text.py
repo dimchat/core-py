@@ -45,6 +45,22 @@ class TextContent(Content):
         }
     """
 
+    def __new__(cls, content: dict):
+        """
+        Create text content
+
+        :param content: content info
+        :return: TextContent object
+        """
+        if content is None:
+            return None
+        elif cls is TextContent:
+            if isinstance(content, TextContent):
+                # return TextContent object directly
+                return content
+        # new TextContent(dict)
+        return super().__new__(cls, content)
+
     #
     #   text
     #

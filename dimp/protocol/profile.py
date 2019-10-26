@@ -59,6 +59,22 @@ class ProfileCommand(MetaCommand):
 
     """
 
+    def __new__(cls, cmd: dict):
+        """
+        Create profile command
+
+        :param cmd: command info
+        :return: ProfileCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is ProfileCommand:
+            if isinstance(cmd, ProfileCommand):
+                # return ProfileCommand object directly
+                return cmd
+        # new ProfileCommand(dict)
+        return super().__new__(cls, cmd)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # profile

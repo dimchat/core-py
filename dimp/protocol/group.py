@@ -67,16 +67,16 @@ class GroupCommand(HistoryCommand):
         """
         if cmd is None:
             return None
-        elif isinstance(cmd, GroupCommand):
-            # return GroupCommand object directly
-            return cmd
         elif cls is GroupCommand:
+            if isinstance(cmd, GroupCommand):
+                # return GroupCommand object directly
+                return cmd
             # get class by command name
             clazz = command_classes.get(cmd['command'])
             if clazz is not None:
                 assert issubclass(clazz, GroupCommand), '%s must be sub-class of GroupCommand' % clazz
                 return clazz(cmd)
-        # new GroupCommand(dict)
+        # subclass or default GroupCommand(dict)
         return super().__new__(cls, cmd)
 
     #
@@ -189,27 +189,117 @@ class GroupCommand(HistoryCommand):
 
 
 class InviteCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create invite group command
+
+        :param cmd: group command info
+        :return: InviteCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is InviteCommand:
+            if isinstance(cmd, InviteCommand):
+                # return InviteCommand object directly
+                return cmd
+        # new InviteCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 class ExpelCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create expel group command
+
+        :param cmd: group command info
+        :return: ExpelCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is ExpelCommand:
+            if isinstance(cmd, ExpelCommand):
+                # return ExpelCommand object directly
+                return cmd
+        # new ExpelCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 class JoinCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create join group command
+
+        :param cmd: group command info
+        :return: JoinCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is JoinCommand:
+            if isinstance(cmd, JoinCommand):
+                # return JoinCommand object directly
+                return cmd
+        # new JoinCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 class QuitCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create quit group command
+
+        :param cmd: group command info
+        :return: QuitCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is QuitCommand:
+            if isinstance(cmd, QuitCommand):
+                # return QuitCommand object directly
+                return cmd
+        # new QuitCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 class QueryCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create query group command
+
+        :param cmd: group command info
+        :return: QueryCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is QueryCommand:
+            if isinstance(cmd, QueryCommand):
+                # return QueryCommand object directly
+                return cmd
+        # new QueryCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 class ResetCommand(GroupCommand):
-    pass
+
+    def __new__(cls, cmd: dict):
+        """
+        Create reset group command
+
+        :param cmd: group command info
+        :return: ResetCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is ResetCommand:
+            if isinstance(cmd, ResetCommand):
+                # return ResetCommand object directly
+                return cmd
+        # new ResetCommand(dict)
+        return super().__new__(cls, cmd)
 
 
 # register group command classes

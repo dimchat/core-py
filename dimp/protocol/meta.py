@@ -56,6 +56,22 @@ class MetaCommand(Command):
         }
     """
 
+    def __new__(cls, cmd: dict):
+        """
+        Create meta command
+
+        :param cmd: command info
+        :return: MetaCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is MetaCommand:
+            if isinstance(cmd, MetaCommand):
+                # return MetaCommand object directly
+                return cmd
+        # new MetaCommand(dict)
+        return super().__new__(cls, cmd)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # value of 'ID' cannot be changed again

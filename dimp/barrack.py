@@ -118,7 +118,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
                 return identifier
             # 2. create and cache it
             try:
-                identifier = ID(identifier=string)
+                identifier = ID(string)
             except AttributeError:
                 # ID string not valid
                 pass
