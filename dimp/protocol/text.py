@@ -79,13 +79,15 @@ class TextContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, text: str):
-        content = {
-            'type': ContentType.Text,
-            'text': text,
-        }
+    def new(cls, content: dict=None, text: str=None):
+        if content is None:
+            # create empty content
+            content = {}
+        # set text
+        if text is not None:
+            content['text'] = text
         # new
-        return Content.new(content)
+        return super().new(content=content, content_type=ContentType.Text)
 
 
 # register content class

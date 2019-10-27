@@ -158,10 +158,14 @@ class TransceiverTestCase(unittest.TestCase):
     def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        content = TextContent.new('Hello')
+        content = TextContent.new(text='Hello')
         print('text content: ', content)
         self.assertEqual(content.type, ContentType.Text)
         TransceiverTestCase.content = content
+
+        image = FileContent.image(data=b'')
+        print('image content: ', image)
+        self.assertEqual(image.type, ContentType.Image)
 
         command = HandshakeCommand.start()
         print('command content: ', command)

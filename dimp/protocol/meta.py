@@ -73,18 +73,22 @@ class MetaCommand(Command):
         return super().__new__(cls, cmd)
 
     def __init__(self, content: dict):
+        if self is content:
+            # no need to init again
+            return
         super().__init__(content)
-        # value of 'ID' cannot be changed again
-        self.__identifier = content['ID']
-        # meta
-        self.__meta = Meta(content.get('meta'))
+        # lazy
+        self.__identifier: str = None
+        self.__meta: Meta = None
 
     #
     #   ID
     #
     @property
     def identifier(self) -> str:
-        # TODO: convert value to ID object
+        if self.__identifier is None:
+            # TODO: convert value to ID object
+            self.__identifier = self['ID']
         return self.__identifier
 
     #
@@ -92,38 +96,53 @@ class MetaCommand(Command):
     #
     @property
     def meta(self) -> Meta:
+        if self.__meta is None:
+            self.__meta = Meta(self.get('meta'))
         return self.__meta
 
     @meta.setter
     def meta(self, value: Meta):
-        self.__meta = value
         if value is None:
             self.pop('meta', None)
         else:
             self['meta'] = value
+        self.__meta = value
 
     #
     #   Factories
     #
+    @classmethod
+    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None):
+        """
+        Create meta command for entity
+
+        :param content:    command info
+        :param identifier: entity ID
+        :param meta:       meta info
+        :return: MetaCommand object
+        """
+        if content is None:
+            # create empty content
+            content = {}
+        # set command name: 'meta'
+        if 'command' not in content:
+            content['command'] = Command.META
+        # set entity ID
+        if identifier is not None:
+            content['ID'] = identifier
+        # set entity meta
+        if meta is not None:
+            content['meta'] = meta
+        # new MetaCommand(dict)
+        return super().new(content=content)
 
     @classmethod
     def query(cls, identifier: ID):
-        content = {
-            'command': Command.META,
-            'ID': identifier,
-        }
-        # new
-        return Command.new(content)
+        return cls.new(identifier=identifier)
 
     @classmethod
     def response(cls, identifier: ID, meta: Meta):
-        content = {
-            'command': Command.META,
-            'ID': identifier,
-            'meta': meta,
-        }
-        # new
-        return Command.new(content)
+        return cls.new(identifier=identifier, meta=meta)
 
 
 # register command class

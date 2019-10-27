@@ -72,17 +72,12 @@ class HandshakeCommand(Command):
         # new HandshakeCommand(dict)
         return super().__new__(cls, cmd)
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        # value of 'message' cannot be changed again
-        self.__message = content['message']
-
     #
     #   message
     #
     @property
     def message(self) -> str:
-        return self.__message
+        return self['message']
 
     #
     #   session
@@ -102,15 +97,18 @@ class HandshakeCommand(Command):
     #   Factories
     #
     @classmethod
-    def handshake(cls, message: str, session: str=None) -> Command:
-        content = {
-            'command': Command.HANDSHAKE,
-            'message': message,
-        }
+    def new(cls, content: dict=None, message: str=None, session: str=None):
+        if content is None:
+            # create empty content
+            content = {}
+        # set message string
+        if message is not None:
+            content['message'] = message
+        # set session key
         if session is not None:
             content['session'] = session
-        # new
-        return Command.new(content)
+        # new HandshakeCommand(dict)
+        return super().new(content=content, command=Command.HANDSHAKE)
 
     @classmethod
     def offer(cls, session: str=None) -> Command:
@@ -120,7 +118,7 @@ class HandshakeCommand(Command):
         :param session: Old session key
         :return: HandshakeCommand object
         """
-        return cls.handshake(message='Hello world!', session=session)
+        return cls.new(message='Hello world!', session=session)
 
     @classmethod
     def ask(cls, session: str) -> Command:
@@ -130,7 +128,7 @@ class HandshakeCommand(Command):
         :param session: New session key
         :return: HandshakeCommand object
         """
-        return cls.handshake(message='DIM?', session=session)
+        return cls.new(message='DIM?', session=session)
 
     @classmethod
     def success(cls) -> Command:
@@ -139,7 +137,7 @@ class HandshakeCommand(Command):
 
         :return: HandshakeCommand object
         """
-        return cls.handshake(message='DIM!')
+        return cls.new(message='DIM!')
 
     start = offer       # (1. C->S) first handshake, without session
     again = ask         # (2. S->C) ask client to handshake with new session key

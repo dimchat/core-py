@@ -37,7 +37,7 @@
     3. member quit
 """
 
-from .command import command_classes
+from .command import Command, command_classes
 from .history import HistoryCommand
 
 
@@ -74,8 +74,8 @@ class GroupCommand(HistoryCommand):
             # get class by command name
             clazz = command_classes.get(cmd['command'])
             if clazz is not None:
-                assert issubclass(clazz, GroupCommand), '%s must be sub-class of GroupCommand' % clazz
-                return clazz(cmd)
+                # noinspection PyTypeChecker
+                return clazz.__new__(clazz, cmd)
         # subclass or default GroupCommand(dict)
         return super().__new__(cls, cmd)
 
@@ -114,79 +114,90 @@ class GroupCommand(HistoryCommand):
     #   Factories
     #
     @classmethod
-    def __new(cls, command: str, group: str, member: str=None, members: list=None, time: int=0):
-        content = {
-            'command': command,
-            'group': group,
-        }
+    def new(cls, content: dict=None, command: str=None,
+            group: str=None, member: str=None, members: list=None):
+        """
+        Create group command
+
+        :param content: command info
+        :param command: command name
+        :param group:   group ID
+        :param member:  member list
+        :param members: member ID
+        :return: GroupCommand object
+        """
+        if content is None:
+            # create empty content
+            content = {}
+        # set group ID string
+        if group is not None:
+            content['group'] = group
+        # set member(s)
         if members is not None:
             content['members'] = members
         elif member is not None:
             content['member'] = member
-        if time > 0:
-            content['time'] = time
-        # new
-        return HistoryCommand.new(content)
+        # new GroupCommand(dict)
+        return super().new(content=content, command=command)
 
     @classmethod
-    def invite(cls, group: str, member: str=None, members: list=None, time: int=0):
+    def invite(cls, group: str, member: str=None, members: list=None):
         """
         Create invite group member command
 
-        :param group:   Group ID
-        :param member:  Member ID
-        :param members: Member list
-        :param time:    Timestamp
-        :return: GroupCommand object
+        :param group:   group ID
+        :param member:  member ID
+        :param members: member list
+        :return: InviteCommand object
         """
-        return cls.__new(command=HistoryCommand.INVITE, group=group, member=member, members=members, time=time)
+        return InviteCommand.new(command=HistoryCommand.INVITE,
+                                 group=group, member=member, members=members)
 
     @classmethod
-    def expel(cls, group: str, member: str=None, members: list=None, time: int=0):
+    def expel(cls, group: str, member: str=None, members: list=None):
         """
         Create expel group member command
 
-        :param group:   Group ID
-        :param member:  Member ID
-        :param members: Member list
-        :param time:    Timestamp
-        :return: GroupCommand object
+        :param group:   group ID
+        :param member:  member ID
+        :param members: member list
+        :return: ExpelCommand object
         """
-        return cls.__new(command=HistoryCommand.EXPEL, group=group, member=member, members=members, time=time)
+        return ExpelCommand.new(command=HistoryCommand.EXPEL,
+                                group=group, member=member, members=members)
 
     @classmethod
-    def quit(cls, group: str, time: int=0):
+    def quit(cls, group: str):
         """
         Create member quit command
 
-        :param group: Group ID
-        :param time:  Timestamp
-        :return: GroupCommand object
+        :param group: group ID
+        :return: QuitCommand object
         """
-        return cls.__new(command=HistoryCommand.QUIT, group=group, time=time)
+        return QuitCommand.new(command=HistoryCommand.QUIT, group=group)
 
     @classmethod
-    def query(cls, group: str, time: int=0):
-        """
-        Create query group members command
-
-        :param group: Group ID
-        :param time:  Timestamp
-        :return: GroupCommand object
-        """
-        return cls.__new(command=HistoryCommand.QUERY, group=group, time=time)
-
-    @classmethod
-    def reset(cls, group: str, members: list, time: int=0):
+    def reset(cls, group: str, members: list):
         """
         Create reset group members command
 
-        :param group:   Group ID
-        :param members: Member list
-        :param time:    Timestamp
-        :return: GroupCommand object
+        :param group:   group ID
+        :param members: member list
+        :return: ResetCommand object
         """
-        return cls.__new(command=HistoryCommand.RESET, group=group, members=members, time=time)
+        return ResetCommand.new(command=HistoryCommand.RESET, group=group, members=members)
+
+    @classmethod
+    def query(cls, group: str):
+        """
+        Create query group members command (not history command)
+
+        :param group: group ID
+        :return: QueryCommand object
+        """
+        cmd = QueryCommand.new(command=HistoryCommand.QUERY)
+        cmd.group = group
+        return cmd
 
 
 class InviteCommand(GroupCommand):
@@ -265,25 +276,6 @@ class QuitCommand(GroupCommand):
         return super().__new__(cls, cmd)
 
 
-class QueryCommand(GroupCommand):
-
-    def __new__(cls, cmd: dict):
-        """
-        Create query group command
-
-        :param cmd: group command info
-        :return: QueryCommand object
-        """
-        if cmd is None:
-            return None
-        elif cls is QueryCommand:
-            if isinstance(cmd, QueryCommand):
-                # return QueryCommand object directly
-                return cmd
-        # new QueryCommand(dict)
-        return super().__new__(cls, cmd)
-
-
 class ResetCommand(GroupCommand):
 
     def __new__(cls, cmd: dict):
@@ -303,10 +295,30 @@ class ResetCommand(GroupCommand):
         return super().__new__(cls, cmd)
 
 
+class QueryCommand(Command):
+
+    def __new__(cls, cmd: dict):
+        """
+        Create query group command (not history command)
+
+        :param cmd: group command info
+        :return: QueryCommand object
+        """
+        if cmd is None:
+            return None
+        elif cls is QueryCommand:
+            if isinstance(cmd, QueryCommand):
+                # return QueryCommand object directly
+                return cmd
+        # new QueryCommand(dict)
+        return super().__new__(cls, cmd)
+
+
 # register group command classes
 command_classes[HistoryCommand.INVITE] = InviteCommand
 command_classes[HistoryCommand.EXPEL] = ExpelCommand
 command_classes[HistoryCommand.JOIN] = JoinCommand
 command_classes[HistoryCommand.QUIT] = QuitCommand
-command_classes[HistoryCommand.QUERY] = QueryCommand
 command_classes[HistoryCommand.RESET] = ResetCommand
+
+command_classes[HistoryCommand.QUERY] = QueryCommand

@@ -28,8 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Union
-
 from dkd import Content, ContentType
 from dkd.content import message_content_classes
 
@@ -72,38 +70,48 @@ class Command(Content):
             clazz = command_classes.get(cmd['command'])
             if clazz is not None:
                 assert issubclass(clazz, Command), '%s must be sub-class of Command' % clazz
-                return clazz(cmd)
+                # noinspection PyTypeChecker
+                return clazz.__new__(clazz, cmd)
         # subclass or default Command(dict)
         return super().__new__(cls, cmd)
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        # value of 'command' cannot be changed again
-        self.__command = content['command']
+    def __init__(self, cmd: dict):
+        if self is cmd:
+            # no need to init again
+            return
+        super().__init__(cmd)
+        # command name
+        self.__command: str = None
 
     @property
     def command(self) -> str:
+        if self.__command is None:
+            self.__command = self['command']
         return self.__command
 
     #
     #   Factory
     #
     @classmethod
-    def new(cls, command: Union[str, dict]):
-        if isinstance(command, str):
-            content = {
-                'type': ContentType.Command,
-                'command': command,
-            }
-        elif isinstance(command, dict):
-            content = command
-            if 'type' not in content:
-                content['type'] = ContentType.Command
-            assert 'command' in content, 'command error: %s' % command
-        else:
-            raise TypeError('command argument error: %s' % command)
-        # new
-        return Content.new(content)
+    def new(cls, content: dict=None, command: str=None):
+        """
+        Create command message content with 'command' as name
+
+        :param content: command info
+        :param command: command name
+        :return: Command object
+        """
+        if content is None:
+            # create empty content
+            content = {}
+        # set content type: 'Command'
+        if 'type' not in content:
+            content['type'] = ContentType.Command
+        # set command name
+        if command is not None:
+            content['command'] = command
+        # new Command(dict)
+        return super().new(content=content)
 
 
 """

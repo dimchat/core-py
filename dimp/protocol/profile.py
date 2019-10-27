@@ -76,59 +76,75 @@ class ProfileCommand(MetaCommand):
         return super().__new__(cls, cmd)
 
     def __init__(self, content: dict):
+        if self is content:
+            # no need to init again
+            return
         super().__init__(content)
-        # profile
-        profile = content.get('profile')
-        if isinstance(profile, str):
-            # compatible with v1.0
-            profile = {
-                'ID': content['ID'],
-                'data': profile,
-                'signature': content.get("signature")
-            }
-        self.__profile = Profile(profile)
+        # lazy
+        self.__profile: Profile = None
 
     #
     #   profile
     #
     @property
     def profile(self) -> Profile:
+        if self.__profile is None:
+            profile = self.get('profile')
+            if isinstance(profile, str):
+                # compatible with v1.0
+                dictionary = {
+                    'ID': self.identifier,
+                    'data': profile,
+                    'signature': self.get("signature")
+                }
+                profile = dictionary
+            self.__profile = Profile(profile)
         return self.__profile
 
     @profile.setter
     def profile(self, value: Profile):
-        self.__profile = value
         if value is None:
             self.pop('profile', None)
             self.pop('signature', None)
         else:
             self['profile'] = value.get('data')
             self['signature'] = value.get('signature')
+        self.__profile = value
 
     #
     #   Factories
     #
     @classmethod
+    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None, profile: Profile=None):
+        """
+        Create profile command for entity
+
+        :param content:    command info
+        :param identifier: entity ID
+        :param meta:       entity meta
+        :param profile:    entity profile
+        :return: ProfileCommand object
+        """
+        if content is None:
+            # create empty content
+            content = {}
+        # set command name: 'profile'
+        if 'command' not in content:
+            content['command'] = Command.PROFILE
+        # set profile info
+        if profile is not None:
+            assert profile.identifier == identifier, 'profile ID error: %s, %s' % (profile, identifier)
+            content['profile'] = profile.get('data')
+            content['signature'] = profile.get('signature')
+        return super().new(content=content, identifier=identifier, meta=meta)
+
+    @classmethod
     def query(cls, identifier: ID):
-        content = {
-            'command': Command.PROFILE,
-            'ID': identifier,
-        }
-        # new
-        return Command.new(content)
+        return cls.new(identifier=identifier)
 
     @classmethod
     def response(cls, identifier: ID, profile: Profile, meta: Meta=None):
-        content = {
-            'command': Command.PROFILE,
-            'ID': identifier,
-            'profile': profile.get('data'),
-            'signature': profile.get('signature'),
-        }
-        if meta is not None:
-            content['meta'] = meta
-        # new
-        return Command.new(content)
+        return cls.new(identifier=identifier, meta=meta, profile=profile)
 
 
 # register command class
