@@ -50,9 +50,6 @@ from .barrack import Barrack
 from .keystore import KeyCache
 from .transceiver import Transceiver
 
-from .station import ServiceProvider, Station
-from .certificate import CASubject, CAValidity, CAData, CertificateAuthority
-
 name = "DIMP"
 
 __author__ = 'Albert Moky'
@@ -74,18 +71,16 @@ __all__ = [
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
-    # DIMP
+    # Protocol
     'TextContent', 'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'Command', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
 
+    # Core
     'ICallback', 'ICompletionHandler', 'ITransceiverDelegate',
     'Barrack',
     'KeyCache',
     'Transceiver',
-
-    'ServiceProvider', 'Station',
-    'CASubject', 'CAValidity', 'CAData', 'CertificateAuthority',
 ]

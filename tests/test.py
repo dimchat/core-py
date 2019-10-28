@@ -17,26 +17,6 @@ from tests.immortals import *
 from tests.database import *
 
 
-def print_data(data: CAData):
-    clazz = data.__class__.__name__
-    print('<%s>' % clazz)
-    print('    <issuer>%s</issuer>' % data.issuer)
-    print('    <validity>%s</validity>' % data.validity)
-    print('    <subject>%s</subject>' % data.subject)
-    print('    <key>%s</key>' % data.key)
-    print('</%s>' % clazz)
-
-
-def print_ca(ca: CertificateAuthority):
-    clazz = ca.__class__.__name__
-    print('<%s>' % clazz)
-    print('    <version>%d</version>' % ca.version)
-    print('    <sn>%s</sn>' % ca.sn)
-    print('    <info>%s</info>' % ca.info)
-    print('    <signature>%s</signature>' % base64_encode(ca.signature))
-    print('</%s>' % clazz)
-
-
 def print_msg(msg: Message):
     clazz = msg.__class__.__name__
     sender = msg.envelope.sender
@@ -63,78 +43,6 @@ facebook.cache_private_key(private_key=PrivateKey(moki_sk), identifier=ID(moki_i
 facebook.cache_private_key(private_key=PrivateKey(hulk_sk), identifier=ID(hulk_id))
 
 moki.delegate = facebook
-
-common = {}
-
-
-class CATestCase(unittest.TestCase):
-
-    def test1_subject(self):
-        print('\n---------------- %s' % self)
-
-        issuer = {
-            'O': 'GSP',
-            'OU': 'Service Operation Department',
-            'CN': 'dim.chat',
-        }
-
-        common['issuer'] = CASubject(issuer)
-        print('issuer: ', common['issuer'])
-        self.assertEqual(common['issuer'].organization, issuer['O'])
-
-        subject = {
-            'C': 'CN',
-            'ST': 'Guangdong',
-            'L': 'Guangzhou',
-
-            'O': 'GSP',
-            'OU': 'Service Operation Department',
-            'CN': '127.0.0.1',
-        }
-
-        common['subject'] = CASubject(subject)
-        print('subject: ', common['subject'])
-        self.assertEqual(common['subject'].organization, subject['O'])
-
-    def test2_validity(self):
-        print('\n---------------- %s' % self)
-
-        validity = {
-            'NotBefore': 123,
-            'NotAfter': 456,
-        }
-        common['validity'] = CAValidity(validity)
-        print('validity: ', common['validity'])
-
-    def test3_key(self):
-        print('\n---------------- %s' % self)
-
-        key = moki_pk
-        common['key'] = PublicKey(key)
-        print('pubic key: ', common['key'])
-
-    def test4_ca(self):
-        print('\n---------------- %s' % self)
-
-        info = {
-            'Issuer': common['issuer'],
-            'Validity': common['validity'],
-            'Subject': common['subject'],
-            'Key': common['key'],
-        }
-        common['info'] = CAData(info)
-        print_data(common['info'])
-
-        string = json.dumps(common['info']).encode('utf-8')
-        signature = moki.sign(string)
-        ca = {
-            'version': 1,
-            'sn': 1234567,
-            'info': string,
-            'signature': base64_encode(signature)
-        }
-        common['ca'] = CertificateAuthority(ca)
-        print_ca(common['ca'])
 
 
 class TransceiverTestCase(unittest.TestCase):
@@ -284,8 +192,8 @@ class CommandTestCase(unittest.TestCase):
         self.assertEqual(cmd.profile, profile)
 
         string = cmd['profile']
-        base64 = cmd['signature']
-        self.assertTrue(pk1.verify(string.encode('utf-8'), base64_decode(base64)))
+        b64 = cmd['signature']
+        self.assertTrue(pk1.verify(string.encode('utf-8'), base64_decode(b64)))
 
 
 if __name__ == '__main__':
