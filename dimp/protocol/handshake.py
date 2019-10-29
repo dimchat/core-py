@@ -38,6 +38,8 @@
     4. (S-C) handshake success
 """
 
+from typing import Optional
+
 from .command import Command
 
 
@@ -83,7 +85,7 @@ class HandshakeCommand(Command):
     #   session
     #
     @property
-    def session(self) -> str:
+    def session(self) -> Optional[str]:
         return self.get('session')
 
     @session.setter

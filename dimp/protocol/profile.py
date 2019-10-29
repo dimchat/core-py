@@ -36,6 +36,8 @@
     2. contains 'profile' and 'signature' (must match), means reply
 """
 
+from typing import Optional
+
 from mkm import ID, Meta, Profile
 
 from .command import Command
@@ -87,7 +89,7 @@ class ProfileCommand(MetaCommand):
     #   profile
     #
     @property
-    def profile(self) -> Profile:
+    def profile(self) -> Optional[Profile]:
         if self.__profile is None:
             profile = self.get('profile')
             if isinstance(profile, str):

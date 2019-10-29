@@ -36,6 +36,8 @@
     2. contains 'meta' (must match), means reply
 """
 
+from typing import Optional
+
 from mkm import ID, Meta
 
 from .command import Command
@@ -95,7 +97,7 @@ class MetaCommand(Command):
     #   Meta
     #
     @property
-    def meta(self) -> Meta:
+    def meta(self) -> Optional[Meta]:
         if self.__meta is None:
             self.__meta = Meta(self.get('meta'))
         return self.__meta

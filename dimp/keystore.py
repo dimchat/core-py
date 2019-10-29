@@ -36,6 +36,7 @@
 """
 
 from abc import abstractmethod
+from typing import Optional
 
 from mkm import SymmetricKey, ID
 
@@ -53,7 +54,7 @@ class PlainKey(SymmetricKey):
     def encrypt(self, data: bytes) -> bytes:
         return data
 
-    def decrypt(self, data: bytes) -> bytes:
+    def decrypt(self, data: bytes) -> Optional[bytes]:
         return data
 
 
@@ -90,7 +91,7 @@ class KeyCache(CipherKeyDelegate):
         pass
 
     @abstractmethod
-    def load_keys(self) -> dict:
+    def load_keys(self) -> Optional[dict]:
         """
         Load cipher key table from local storage
 
@@ -122,7 +123,7 @@ class KeyCache(CipherKeyDelegate):
                 self.__cache_cipher_key(key, sender, receiver)
         return changed
 
-    def __cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+    def __cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         assert sender.valid and receiver.valid, 'error: (%s -> %s)' % (sender, receiver)
         table = self.__key_map.get(sender)
         if table is not None:
@@ -139,7 +140,7 @@ class KeyCache(CipherKeyDelegate):
     #
     #   ICipherKeyDataSource
     #
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+    def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         if receiver.is_broadcast:
             return plain_key
         return self.__cipher_key(sender, receiver)
@@ -150,6 +151,6 @@ class KeyCache(CipherKeyDelegate):
         self.__cache_cipher_key(key, sender, receiver)
         self.__dirty = True
 
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
+    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         # TODO: check whether renew the old key
         return key

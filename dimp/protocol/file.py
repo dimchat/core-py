@@ -31,6 +31,7 @@
 import hashlib
 import os
 from binascii import b2a_hex
+from typing import Optional
 
 from mkm.crypto.utils import base64_encode, base64_decode
 
@@ -97,7 +98,7 @@ class FileContent(Content):
 
     # URL
     @property
-    def url(self) -> str:
+    def url(self) -> Optional[str]:
         return self.get('URL')
 
     @url.setter
@@ -109,7 +110,7 @@ class FileContent(Content):
 
     # file data (it's too big to set in the dictionary)
     @property
-    def data(self) -> bytes:
+    def data(self) -> Optional[bytes]:
         if self.__attachment is None:
             base64 = self.get('data')
             if base64 is not None:
@@ -128,7 +129,7 @@ class FileContent(Content):
 
     # filename
     @property
-    def filename(self) -> str:
+    def filename(self) -> Optional[str]:
         return self.get('filename')
 
     @filename.setter
@@ -139,7 +140,7 @@ class FileContent(Content):
             self['filename'] = string
 
     @property
-    def file_ext(self) -> str:
+    def file_ext(self) -> Optional[str]:
         filename = self.filename
         if filename is not None:
             root, ext = os.path.splitext(filename)
@@ -148,7 +149,7 @@ class FileContent(Content):
 
     # password for decrypting the downloaded data from CDN
     @property
-    def password(self) -> dict:
+    def password(self) -> Optional[dict]:
         return self.get('password')
 
     @password.setter
@@ -241,7 +242,7 @@ class ImageContent(FileContent):
 
     # thumbnail of image
     @property
-    def thumbnail(self) -> bytes:
+    def thumbnail(self) -> Optional[bytes]:
         if self.__thumbnail is None:
             base64 = self.get('thumbnail')
             if base64 is not None:
@@ -323,7 +324,7 @@ class AudioContent(FileContent):
 
     # ASR text
     @property
-    def text(self) -> bytes:
+    def text(self) -> Optional[bytes]:
         return self.get('text')
 
     @text.setter
@@ -402,7 +403,7 @@ class VideoContent(FileContent):
 
     # snapshot of video
     @property
-    def snapshot(self) -> bytes:
+    def snapshot(self) -> Optional[bytes]:
         if self.__snapshot is None:
             base64 = self.get('snapshot')
             if base64 is not None:

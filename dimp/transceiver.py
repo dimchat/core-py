@@ -70,7 +70,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         identifier = self.barrack.identifier(receiver)
         return identifier.is_broadcast
 
-    def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
+    def __password(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         # 1. get old key from store
         old_key = self.key_cache.cipher_key(sender=sender, receiver=receiver)
         # 2. get new key from delegate

@@ -36,6 +36,7 @@
 """
 
 from abc import abstractmethod
+from typing import Optional
 
 from mkm import ID, Meta, Profile, PrivateKey, NetworkID
 from mkm import User, Group
@@ -58,7 +59,6 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
 
     def __init__(self):
         super().__init__()
-
         # memory caches
         self.__ids = {}
         self.__metas = {}
@@ -107,7 +107,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
     #
     #   SocialNetworkDelegate
     #
-    def identifier(self, string: str) -> ID:
+    def identifier(self, string: str) -> Optional[ID]:
         if string is not None:
             if isinstance(string, ID):
                 return string
@@ -129,7 +129,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
                 self.cache_id(identifier=identifier)
                 return identifier
 
-    def user(self, identifier: ID) -> User:
+    def user(self, identifier: ID) -> Optional[User]:
         if identifier is not None:
             assert identifier.valid, 'failed to get user with invalid ID: %s' % identifier
             # 1. get from user cache
@@ -140,7 +140,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
                 self.cache_user(user=usr)
             return usr
 
-    def group(self, identifier: ID) -> Group:
+    def group(self, identifier: ID) -> Optional[Group]:
         if identifier is not None:
             assert identifier.valid, 'failed to get group with invalid ID: %s' % identifier
             # 1. get from group cache
@@ -154,35 +154,35 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
     #
     #   EntityDataSource
     #
-    def meta(self, identifier: ID) -> Meta:
+    def meta(self, identifier: ID) -> Optional[Meta]:
         if identifier is not None:
             assert identifier.valid, 'failed to get meta with invalid ID: %s' % identifier
             return self.__metas.get(identifier)
 
     @abstractmethod
-    def profile(self, identifier: ID) -> Profile:
+    def profile(self, identifier: ID) -> Optional[Profile]:
         pass
 
     #
     #   UserDataSource
     #
     @abstractmethod
-    def private_key_for_signature(self, identifier: ID) -> PrivateKey:
+    def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
         pass
 
     @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> list:
+    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
         pass
 
     @abstractmethod
-    def contacts(self, identifier: ID) -> list:
+    def contacts(self, identifier: ID) -> Optional[list]:
         pass
 
     #
     #   GroupDataSource
     #
     @abstractmethod
-    def founder(self, identifier: ID) -> ID:
+    def founder(self, identifier: ID) -> Optional[ID]:
         assert identifier.type.is_group(), 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
@@ -202,7 +202,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
             return self.identifier(string=founder)
 
     @abstractmethod
-    def owner(self, identifier: ID) -> ID:
+    def owner(self, identifier: ID) -> Optional[ID]:
         # check for broadcast
         if identifier.is_broadcast:
             name = identifier.name
@@ -225,7 +225,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
             return self.founder(identifier=identifier)
 
     @abstractmethod
-    def members(self, identifier: ID) -> list:
+    def members(self, identifier: ID) -> Optional[list]:
         # check for broadcast
         if identifier.is_broadcast:
             name = identifier.name

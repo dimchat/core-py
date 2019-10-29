@@ -36,6 +36,7 @@
 """
 
 from abc import ABCMeta, abstractmethod
+from typing import Optional
 
 from mkm import SymmetricKey, ID, User, Group
 
@@ -45,7 +46,7 @@ from dkd import InstantMessage
 class SocialNetworkDelegate(metaclass=ABCMeta):
 
     @abstractmethod
-    def identifier(self, string: str) -> ID:
+    def identifier(self, string: str) -> Optional[ID]:
         """
         Create entity ID with String
 
@@ -55,7 +56,7 @@ class SocialNetworkDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def user(self, identifier: ID) -> User:
+    def user(self, identifier: ID) -> Optional[User]:
         """
         Create user with ID
 
@@ -65,7 +66,7 @@ class SocialNetworkDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def group(self, identifier: ID) -> Group:
+    def group(self, identifier: ID) -> Optional[Group]:
         """
         Create group with ID
 
@@ -78,7 +79,7 @@ class SocialNetworkDelegate(metaclass=ABCMeta):
 class CipherKeyDelegate(metaclass=ABCMeta):
 
     @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
+    def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         """
         Get cipher key for encrypt message from 'sender' to 'receiver'
 
@@ -100,7 +101,7 @@ class CipherKeyDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> SymmetricKey:
+    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         """
         Update/create cipher key for encrypt message content
 
@@ -115,7 +116,7 @@ class CipherKeyDelegate(metaclass=ABCMeta):
 class TransceiverDelegate(metaclass=ABCMeta):
 
     @abstractmethod
-    def upload_data(self, data: bytes, msg: InstantMessage) -> str:
+    def upload_data(self, data: bytes, msg: InstantMessage) -> Optional[str]:
         """
         Upload encrypted data to CDN
 
@@ -126,7 +127,7 @@ class TransceiverDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def download_data(self, url: str, msg: InstantMessage) -> bytes:
+    def download_data(self, url: str, msg: InstantMessage) -> Optional[bytes]:
         """
         Download encrypted data from CDN
 

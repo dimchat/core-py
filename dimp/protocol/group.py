@@ -37,6 +37,8 @@
     3. member quit
 """
 
+from typing import Optional
+
 from .command import Command
 from .history import HistoryCommand
 
@@ -87,7 +89,7 @@ class GroupCommand(HistoryCommand):
     #   member/members
     #
     @property
-    def member(self) -> str:
+    def member(self) -> Optional[str]:
         # TODO: convert value to ID object
         return self.get('member')
 
@@ -99,7 +101,7 @@ class GroupCommand(HistoryCommand):
             self['member'] = value
 
     @property
-    def members(self) -> list:
+    def members(self) -> Optional[list]:
         # TODO: convert all items to ID objects
         return self.get('members')
 
