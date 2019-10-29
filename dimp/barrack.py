@@ -37,7 +37,7 @@
 
 from abc import abstractmethod
 
-from mkm import ID, Meta, Profile, PrivateKey, NetworkID, is_broadcast
+from mkm import ID, Meta, Profile, PrivateKey, NetworkID
 from mkm import User, Group
 from mkm import IUserDataSource, IGroupDataSource
 
@@ -134,7 +134,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             assert identifier.valid, 'failed to get user with invalid ID: %s' % identifier
             # 1. get from user cache
             usr = self.__users.get(identifier)
-            if usr is None and is_broadcast(identifier=identifier):
+            if usr is None and identifier.is_broadcast:
                 # 2. create user 'anyone@anywhere'
                 usr = User(identifier=identifier)
                 self.cache_user(user=usr)
@@ -145,7 +145,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             assert identifier.valid, 'failed to get group with invalid ID: %s' % identifier
             # 1. get from group cache
             grp = self.__groups.get(identifier)
-            if grp is None and is_broadcast(identifier=identifier):
+            if grp is None and identifier.is_broadcast:
                 # 2. create group 'everyone@everywhere'
                 grp = Group(identifier=identifier)
                 self.cache_group(group=grp)
@@ -185,7 +185,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
     def founder(self, identifier: ID) -> ID:
         assert identifier.type.is_group(), 'group ID error: %s' % identifier
         # check for broadcast
-        if is_broadcast(identifier=identifier):
+        if identifier.is_broadcast:
             name = identifier.name
             if name is None:
                 length = 0
@@ -204,7 +204,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
     @abstractmethod
     def owner(self, identifier: ID) -> ID:
         # check for broadcast
-        if is_broadcast(identifier=identifier):
+        if identifier.is_broadcast:
             name = identifier.name
             if name is None:
                 length = 0
@@ -227,7 +227,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
     @abstractmethod
     def members(self, identifier: ID) -> list:
         # check for broadcast
-        if is_broadcast(identifier=identifier):
+        if identifier.is_broadcast:
             name = identifier.name
             if name is None:
                 length = 0

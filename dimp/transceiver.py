@@ -39,7 +39,7 @@ import json
 from typing import Optional
 
 from mkm.crypto.utils import base64_encode, base64_decode
-from mkm import SymmetricKey, ID, is_broadcast
+from mkm import SymmetricKey, ID
 from mkm import LocalUser
 
 from dkd import Content, Message
@@ -68,7 +68,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         if receiver is None:
             receiver = msg.envelope.receiver
         identifier = self.barrack.identifier(receiver)
-        return is_broadcast(identifier)
+        return identifier.is_broadcast
 
     def __password(self, sender: ID, receiver: ID) -> SymmetricKey:
         # 1. get old key from store

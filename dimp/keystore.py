@@ -37,8 +37,7 @@
 
 from abc import abstractmethod
 
-from mkm import SymmetricKey, ID, is_broadcast
-from mkm.crypto.symmetric import symmetric_key_classes
+from mkm import SymmetricKey, ID
 
 from .delegate import ICipherKeyDataSource
 
@@ -58,7 +57,9 @@ class PlainKey(SymmetricKey):
         return data
 
 
-symmetric_key_classes[PlainKey.PLAIN] = PlainKey
+# register key class with algorithm
+SymmetricKey.register(algorithm=PlainKey.PLAIN, key_class=PlainKey)
+
 plain_key = PlainKey({'algorithm': PlainKey.PLAIN})
 
 
@@ -139,12 +140,12 @@ class KeyCache(ICipherKeyDataSource):
     #   ICipherKeyDataSource
     #
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
-        if is_broadcast(receiver):
+        if receiver.is_broadcast:
             return plain_key
         return self.__cipher_key(sender, receiver)
 
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        if is_broadcast(receiver):
+        if receiver.is_broadcast:
             return
         self.__cache_cipher_key(key, sender, receiver)
         self.__dirty = True

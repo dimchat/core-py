@@ -55,30 +55,44 @@ name = "DIMP"
 __author__ = 'Albert Moky'
 
 __all__ = [
-    # Crypto
+
+    #
+    #   MingKeMing
+    #
+
+    # crypto
     'SymmetricKey', 'PrivateKey', 'PublicKey',
 
-    # MingKeMing
+    # entity
     'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
     'Entity', 'IEntityDataSource',
     'User', 'LocalUser', 'IUserDataSource',
     'Group', 'IGroupDataSource',
 
-    # DaoKeDao
+    #
+    #   DaoKeDao
+    #
+
+    # message
     'Content', 'ContentType', 'ForwardContent',
     'Envelope', 'Message',
-    # message transform
+
+    # transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 
-    # Protocol
+    #
+    #   DIMP
+    #
+
+    # protocol
     'TextContent', 'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'Command', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
 
-    # Core
+    # core
     'ICallback', 'ICompletionHandler', 'ITransceiverDelegate',
     'Barrack',
     'KeyCache',

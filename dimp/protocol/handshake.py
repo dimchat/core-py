@@ -38,7 +38,7 @@
     4. (S-C) handshake success
 """
 
-from .command import Command, command_classes
+from .command import Command
 
 
 class HandshakeCommand(Command):
@@ -146,4 +146,4 @@ class HandshakeCommand(Command):
 
 
 # register command class
-command_classes[Command.HANDSHAKE] = HandshakeCommand
+Command.register(command=Command.HANDSHAKE, command_class=HandshakeCommand)

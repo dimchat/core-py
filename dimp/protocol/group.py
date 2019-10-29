@@ -37,7 +37,7 @@
     3. member quit
 """
 
-from .command import Command, command_classes
+from .command import Command
 from .history import HistoryCommand
 
 
@@ -72,7 +72,7 @@ class GroupCommand(HistoryCommand):
                 # return GroupCommand object directly
                 return cmd
             # get class by command name
-            clazz = command_classes.get(cmd['command'])
+            clazz = cls.command_class(command=cmd['command'])
             if clazz is not None:
                 # noinspection PyTypeChecker
                 return clazz.__new__(clazz, cmd)
@@ -315,10 +315,10 @@ class QueryCommand(Command):
 
 
 # register group command classes
-command_classes[HistoryCommand.INVITE] = InviteCommand
-command_classes[HistoryCommand.EXPEL] = ExpelCommand
-command_classes[HistoryCommand.JOIN] = JoinCommand
-command_classes[HistoryCommand.QUIT] = QuitCommand
-command_classes[HistoryCommand.RESET] = ResetCommand
+GroupCommand.register(command=GroupCommand.INVITE, command_class=InviteCommand)
+GroupCommand.register(command=GroupCommand.EXPEL, command_class=ExpelCommand)
+GroupCommand.register(command=GroupCommand.JOIN, command_class=JoinCommand)
+GroupCommand.register(command=GroupCommand.QUIT, command_class=QuitCommand)
+GroupCommand.register(command=GroupCommand.RESET, command_class=ResetCommand)
 
-command_classes[HistoryCommand.QUERY] = QueryCommand
+Command.register(command=GroupCommand.QUERY, command_class=QueryCommand)

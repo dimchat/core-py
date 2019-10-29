@@ -29,7 +29,6 @@
 # ==============================================================================
 
 from dkd import Content, ContentType
-from dkd.content import message_content_classes
 
 
 class Command(Content):
@@ -67,7 +66,7 @@ class Command(Content):
                 # return Command object directly
                 return cmd
             # get class by command name
-            clazz = command_classes.get(cmd['command'])
+            clazz = cls.command_class(command=cmd['command'])
             if clazz is not None:
                 assert issubclass(clazz, Command), '%s must be sub-class of Command' % clazz
                 # noinspection PyTypeChecker
@@ -113,13 +112,37 @@ class Command(Content):
         # new Command(dict)
         return super().new(content=content)
 
+    #
+    #   Runtime
+    #
+    __command_classes = {}  # class map
 
-"""
-    Command Classes Map
-"""
+    @classmethod
+    def register(cls, command: str, command_class=None) -> bool:
+        """
+        Register command class with command name
 
-command_classes = {
-}
+        :param command:  command name
+        :param command_class: if command class is None, then remove with type
+        :return: False on error
+        """
+        if command_class is None:
+            cls.__command_classes.pop(command, None)
+        else:
+            cls.__command_classes[command] = command_class
+        # TODO: check issubclass(command_class, Command)
+        return True
 
-# register content class
-message_content_classes[ContentType.Command] = Command
+    @classmethod
+    def command_class(cls, command: str):
+        """
+        Get command class with command name
+
+        :param command: command name
+        :return: command class
+        """
+        return cls.__command_classes.get(command)
+
+
+# register content class with type
+Content.register(content_type=ContentType.Command, content_class=Command)

@@ -30,8 +30,7 @@
 
 import time as time_lib
 
-from dkd import ContentType
-from dkd.content import message_content_classes
+from dkd import ContentType, Content
 
 from .command import Command
 
@@ -92,6 +91,11 @@ class HistoryCommand(Command):
                 # it's a group command
                 # noinspection PyTypeChecker
                 return dimp.GroupCommand.__new__(dimp.GroupCommand, cmd)
+            # get class by command name
+            clazz = cls.command_class(command=cmd['command'])
+            if clazz is not None:
+                # noinspection PyTypeChecker
+                return clazz.__new__(clazz, cmd)
         # subclass or default HistoryCommand(dict)
         return super().__new__(cls, cmd)
     
@@ -138,5 +142,5 @@ class HistoryCommand(Command):
         return super().new(content, command=command)
 
 
-# register content class
-message_content_classes[ContentType.History] = HistoryCommand
+# register content class with type
+Content.register(content_type=ContentType.History, content_class=HistoryCommand)

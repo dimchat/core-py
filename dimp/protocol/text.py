@@ -29,7 +29,6 @@
 # ==============================================================================
 
 from dkd import Content, ContentType
-from dkd.content import message_content_classes
 
 
 class TextContent(Content):
@@ -90,5 +89,5 @@ class TextContent(Content):
         return super().new(content=content, content_type=ContentType.Text)
 
 
-# register content class
-message_content_classes[ContentType.Text] = TextContent
+# register content class with type
+Content.register(content_type=ContentType.Text, content_class=TextContent)

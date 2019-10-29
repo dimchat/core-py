@@ -38,7 +38,7 @@
 
 from mkm import ID, Meta
 
-from .command import Command, command_classes
+from .command import Command
 
 
 class MetaCommand(Command):
@@ -146,4 +146,4 @@ class MetaCommand(Command):
 
 
 # register command class
-command_classes[Command.META] = MetaCommand
+Command.register(command=Command.META, command_class=MetaCommand)

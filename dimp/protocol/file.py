@@ -35,7 +35,6 @@ from binascii import b2a_hex
 from mkm.crypto.utils import base64_encode, base64_decode
 
 from dkd import Content, ContentType
-from dkd.content import message_content_classes
 
 
 def hex_encode(data: bytes) -> str:
@@ -445,8 +444,8 @@ class VideoContent(FileContent):
         return super().new(content=content, data=data, filename=filename)
 
 
-# register content classes
-message_content_classes[ContentType.File] = FileContent
-message_content_classes[ContentType.Image] = ImageContent
-message_content_classes[ContentType.Audio] = AudioContent
-message_content_classes[ContentType.Video] = VideoContent
+# register content class with type
+Content.register(content_type=ContentType.File, content_class=FileContent)
+Content.register(content_type=ContentType.Image, content_class=ImageContent)
+Content.register(content_type=ContentType.Audio, content_class=AudioContent)
+Content.register(content_type=ContentType.Video, content_class=VideoContent)
