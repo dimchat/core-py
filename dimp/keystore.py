@@ -39,7 +39,7 @@ from abc import abstractmethod
 
 from mkm import SymmetricKey, ID
 
-from .delegate import ICipherKeyDataSource
+from .delegate import CipherKeyDelegate
 
 
 class PlainKey(SymmetricKey):
@@ -63,7 +63,7 @@ SymmetricKey.register(algorithm=PlainKey.PLAIN, key_class=PlainKey)
 plain_key = PlainKey({'algorithm': PlainKey.PLAIN})
 
 
-class KeyCache(ICipherKeyDataSource):
+class KeyCache(CipherKeyDelegate):
 
     def __init__(self):
         super().__init__()

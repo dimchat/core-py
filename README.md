@@ -1,7 +1,7 @@
 # Decentralized Instant Messaging Protocol (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/core-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.7.1-red.svg)](https://github.com/dimchat/core-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.7.3-red.svg)](https://github.com/dimchat/core-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 
@@ -57,7 +57,7 @@ class Facebook(Barrack):
             return profile.verify(public_key=meta.key)
     
     #
-    #   ISocialNetworkDataSource
+    #   SocialNetworkDelegate
     #
     def user(self, identifier: ID) -> User:
         entity = super().user(identifier=identifier)
@@ -114,7 +114,7 @@ keystore = KeyStore()
 messanger.py
 
 ```python
-class Messanger(Transceiver, ITransceiverDelegate):
+class Messanger(Transceiver, TransceiverDelegate):
     """ Transform and send message """
     
     def __init__(self):
@@ -122,12 +122,8 @@ class Messanger(Transceiver, ITransceiverDelegate):
         self.delegate = self
 
     #
-    #  ITransceiverDelegate
+    #  TransceiverDelegate
     #
-    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
-        # TODO: send out data
-        pass
-
     def upload_data(self, data: bytes, msg: InstantMessage) -> str:
         # TODO: upload onto FTP server
         pass

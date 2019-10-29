@@ -39,9 +39,9 @@ from abc import abstractmethod
 
 from mkm import ID, Meta, Profile, PrivateKey, NetworkID
 from mkm import User, Group
-from mkm import IUserDataSource, IGroupDataSource
+from mkm import UserDataSource, GroupDataSource
 
-from .delegate import ISocialNetworkDataSource
+from .delegate import SocialNetworkDelegate
 
 
 def thanos(planet: dict, finger: int) -> int:
@@ -54,7 +54,7 @@ def thanos(planet: dict, finger: int) -> int:
     return finger
 
 
-class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
+class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
 
     def __init__(self):
         super().__init__()
@@ -79,16 +79,16 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         finger = thanos(self.__groups, finger)
         return finger >> 1
 
-    def cache_id(self, identifier: ID) -> bool:
-        assert identifier.valid, 'failed to cache ID: %s' % identifier
-        self.__ids[identifier] = identifier
-        return True
-
     def cache_meta(self, meta: Meta, identifier: ID) -> bool:
         assert meta is not None and identifier.valid, 'failed to cache meta: %s, %s' % (identifier, meta)
         if meta.match_identifier(identifier):
             self.__metas[identifier] = meta
             return True
+
+    def cache_id(self, identifier: ID) -> bool:
+        assert identifier.valid, 'failed to cache ID: %s' % identifier
+        self.__ids[identifier] = identifier
+        return True
 
     def cache_user(self, user: User) -> bool:
         assert user is not None and user.identifier.valid, 'failed to cache user: %s' % user
@@ -105,7 +105,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         return True
 
     #
-    #   ISocialNetworkDataSource
+    #   SocialNetworkDelegate
     #
     def identifier(self, string: str) -> ID:
         if string is not None:
@@ -152,7 +152,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
             return grp
 
     #
-    #   IEntityDataSource
+    #   EntityDataSource
     #
     def meta(self, identifier: ID) -> Meta:
         if identifier is not None:
@@ -164,7 +164,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         pass
 
     #
-    #   IUserDataSource
+    #   UserDataSource
     #
     @abstractmethod
     def private_key_for_signature(self, identifier: ID) -> PrivateKey:
@@ -179,7 +179,7 @@ class Barrack(ISocialNetworkDataSource, IUserDataSource, IGroupDataSource):
         pass
 
     #
-    #   IGroupDataSource
+    #   GroupDataSource
     #
     @abstractmethod
     def founder(self, identifier: ID) -> ID:

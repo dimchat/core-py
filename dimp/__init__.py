@@ -28,16 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm import SymmetricKey, PrivateKey, PublicKey
-from mkm import NetworkID, Address, ID, Meta, Profile
-from mkm import Entity, IEntityDataSource
-from mkm import User, LocalUser, IUserDataSource
-from mkm import Group, IGroupDataSource
+from mkm import *
 
-from dkd import Content, ContentType, ForwardContent
-from dkd import Envelope, Message
-from dkd import InstantMessage, SecureMessage, ReliableMessage
-from dkd import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
+from dkd import *
 
 from .protocol import TextContent, FileContent, ImageContent, AudioContent, VideoContent
 from .protocol import Command, HistoryCommand, GroupCommand
@@ -45,10 +38,11 @@ from .protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
 from .protocol import QueryCommand, ResetCommand
 from .protocol import HandshakeCommand, MetaCommand, ProfileCommand
 
-from .delegate import ICallback, ICompletionHandler, ITransceiverDelegate
 from .barrack import Barrack
 from .keystore import KeyCache
 from .transceiver import Transceiver
+
+from .delegate import SocialNetworkDelegate, CipherKeyDelegate, TransceiverDelegate
 
 name = "DIMP"
 
@@ -65,21 +59,28 @@ __all__ = [
 
     # entity
     'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
-    'Entity', 'IEntityDataSource',
-    'User', 'LocalUser', 'IUserDataSource',
-    'Group', 'IGroupDataSource',
+    'Entity', 'User', 'LocalUser', 'Group',
+
+    # delegate
+    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
+
+    'ANYONE', 'EVERYONE',
 
     #
     #   DaoKeDao
     #
 
     # message
-    'Content', 'ContentType', 'ForwardContent',
-    'Envelope', 'Message',
+    'Envelope', 'Content', 'Message',
+
+    # content types
+    'ContentType', 'ForwardContent',
 
     # transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
+
+    # delegate
+    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
     #   DIMP
@@ -93,8 +94,10 @@ __all__ = [
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
 
     # core
-    'ICallback', 'ICompletionHandler', 'ITransceiverDelegate',
     'Barrack',
     'KeyCache',
     'Transceiver',
+
+    # delegate
+    'SocialNetworkDelegate', 'CipherKeyDelegate', 'TransceiverDelegate',
 ]

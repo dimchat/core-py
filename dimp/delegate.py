@@ -32,17 +32,17 @@
     Delegates
     ~~~~~~~~~
 
-    Delegates for Transceiver, such as Barrack, KeyStore, Callbacks, ...
+    Delegates for Transceiver, such as Barrack, KeyStore, FTP, ...
 """
 
 from abc import ABCMeta, abstractmethod
 
-from mkm import SymmetricKey, ID, User, Group, IEntityDataSource
+from mkm import SymmetricKey, ID, User, Group
 
 from dkd import InstantMessage
 
 
-class ISocialNetworkDataSource(IEntityDataSource):
+class SocialNetworkDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def identifier(self, string: str) -> ID:
@@ -75,7 +75,7 @@ class ISocialNetworkDataSource(IEntityDataSource):
         pass
 
 
-class ICipherKeyDataSource(metaclass=ABCMeta):
+class CipherKeyDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def cipher_key(self, sender: ID, receiver: ID) -> SymmetricKey:
@@ -112,36 +112,7 @@ class ICipherKeyDataSource(metaclass=ABCMeta):
         pass
 
 
-class ICallback(metaclass=ABCMeta):
-
-    @abstractmethod
-    def finished(self, result, error):
-        pass
-
-
-class ICompletionHandler(metaclass=ABCMeta):
-
-    @abstractmethod
-    def success(self):
-        pass
-
-    @abstractmethod
-    def failed(self, error):
-        pass
-
-
-class ITransceiverDelegate(metaclass=ABCMeta):
-
-    @abstractmethod
-    def send_package(self, data: bytes, handler: ICompletionHandler) -> bool:
-        """
-        Send out a data package onto network
-
-        :param data:    package data
-        :param handler: completion handler
-        :return:        False on data/delegate error
-        """
-        pass
+class TransceiverDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def upload_data(self, data: bytes, msg: InstantMessage) -> str:
