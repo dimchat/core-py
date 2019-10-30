@@ -39,7 +39,7 @@ from .protocol import QueryCommand, ResetCommand
 from .protocol import HandshakeCommand, MetaCommand, ProfileCommand
 
 from .barrack import Barrack
-from .keystore import KeyCache
+from .keycache import KeyCache
 from .transceiver import Transceiver
 
 from .delegate import SocialNetworkDelegate, CipherKeyDelegate, TransceiverDelegate

@@ -13,8 +13,21 @@ import unittest
 
 from mkm.crypto.utils import *
 
-from tests.immortals import *
-from tests.database import *
+from dimp import*
+
+from tests.facebook import Facebook
+from tests.keystore import KeyStore
+
+facebook = Facebook()
+
+keystore = KeyStore()
+
+transceiver = Transceiver()
+transceiver.barrack = facebook
+transceiver.key_cache = keystore
+
+moki_id = facebook.identifier(string='moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+hulk_id = facebook.identifier(string='hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
 
 
 def print_msg(msg: Message):
@@ -34,15 +47,6 @@ def print_msg(msg: Message):
     if isinstance(msg, ReliableMessage):
         print('    <signature>%s</signature>' % msg['signature'])
     print('</%s>' % clazz)
-
-
-facebook.cache_meta(meta=Meta(moki_meta), identifier=ID(moki_id))
-facebook.cache_meta(meta=Meta(hulk_meta), identifier=ID(hulk_id))
-
-facebook.cache_private_key(private_key=PrivateKey(moki_sk), identifier=ID(moki_id))
-facebook.cache_private_key(private_key=PrivateKey(hulk_sk), identifier=ID(hulk_id))
-
-moki.delegate = facebook
 
 
 class TransceiverTestCase(unittest.TestCase):
@@ -164,6 +168,7 @@ class CommandTestCase(unittest.TestCase):
         print(cmd)
         self.assertEqual(cmd.identifier, moki_id)
 
+        moki_meta = facebook.meta(identifier=moki_id)
         cmd = MetaCommand.response(identifier=moki_id, meta=moki_meta)
         print(cmd)
         print('cmd.meta: %s' % cmd.meta)
@@ -172,7 +177,7 @@ class CommandTestCase(unittest.TestCase):
     def test_profile(self):
         print('\n---------------- %s' % self)
         id1 = ID(moki_id)
-        sk1 = PrivateKey(moki_sk)
+        sk1 = facebook.private_key_for_signature(identifier=id1)
         pk1 = sk1.public_key
         profile = {
             'names': ['moky', 'albert']

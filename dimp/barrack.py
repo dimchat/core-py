@@ -35,7 +35,6 @@
     Manage meta for all entities
 """
 
-from abc import abstractmethod
 from typing import Optional
 
 from mkm import ID, Meta, Profile, PrivateKey, NetworkID
@@ -159,29 +158,28 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
             assert identifier.valid, 'failed to get meta with invalid ID: %s' % identifier
             return self.__metas.get(identifier)
 
-    @abstractmethod
     def profile(self, identifier: ID) -> Optional[Profile]:
+        # NOTICE: load profile from database
         pass
 
     #
     #   UserDataSource
     #
-    @abstractmethod
     def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
+        # NOTICE: access private key in secret storage
         pass
 
-    @abstractmethod
     def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
+        # NOTICE: access private keys in secret storage
         pass
 
-    @abstractmethod
     def contacts(self, identifier: ID) -> Optional[list]:
+        # NOTICE: load contacts from database
         pass
 
     #
     #   GroupDataSource
     #
-    @abstractmethod
     def founder(self, identifier: ID) -> Optional[ID]:
         assert identifier.type.is_group(), 'group ID error: %s' % identifier
         # check for broadcast
@@ -201,7 +199,6 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
                 founder = name + '.founder@anywhere'
             return self.identifier(string=founder)
 
-    @abstractmethod
     def owner(self, identifier: ID) -> Optional[ID]:
         # check for broadcast
         if identifier.is_broadcast:
@@ -224,7 +221,6 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
             # Polylogue's owner is the founder
             return self.founder(identifier=identifier)
 
-    @abstractmethod
     def members(self, identifier: ID) -> Optional[list]:
         # check for broadcast
         if identifier.is_broadcast:

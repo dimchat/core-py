@@ -71,8 +71,13 @@ class KeyCache(CipherKeyDelegate):
         # memory cache
         self.__key_map = {}
         self.__dirty = False
+
+    def reload(self) -> bool:
         # load keys from local storage
-        self.update_keys(self.load_keys())
+        dictionary = self.load_keys()
+        if dictionary is None:
+            return False
+        return self.update_keys(dictionary)
 
     def flush(self):
         """ Trigger for saving cipher key table """
@@ -106,8 +111,6 @@ class KeyCache(CipherKeyDelegate):
         :param key_map: cipher keys(with direction) from local storage
         :return:        False on nothing changed
         """
-        if key_map is None:
-            return False
         changed = False
         for _from in key_map:
             sender = ID(_from)
