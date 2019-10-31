@@ -40,8 +40,6 @@ from typing import Optional
 
 from mkm import SymmetricKey, ID, User, Group
 
-from dkd import InstantMessage
-
 
 class SocialNetworkDelegate(metaclass=ABCMeta):
 
@@ -109,30 +107,5 @@ class CipherKeyDelegate(metaclass=ABCMeta):
         :param receiver: contact/group ID
         :param key:      old key to be reused (nullable)
         :return:         new key
-        """
-        pass
-
-
-class TransceiverDelegate(metaclass=ABCMeta):
-
-    @abstractmethod
-    def upload_data(self, data: bytes, msg: InstantMessage) -> Optional[str]:
-        """
-        Upload encrypted data to CDN
-
-        :param data: encrypted file data
-        :param msg:  instant message
-        :return:     download URL
-        """
-        pass
-
-    @abstractmethod
-    def download_data(self, url: str, msg: InstantMessage) -> Optional[bytes]:
-        """
-        Download encrypted data from CDN
-
-        :param url: download URL
-        :param msg: instant message
-        :return:    encrypted file data
         """
         pass

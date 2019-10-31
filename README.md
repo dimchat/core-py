@@ -1,7 +1,7 @@
 # Decentralized Instant Messaging Protocol (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/core-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.7.3-red.svg)](https://github.com/dimchat/core-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.7.5-red.svg)](https://github.com/dimchat/core-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 
@@ -111,10 +111,10 @@ class KeyStore(KeyCache):
 keystore = KeyStore()
 ```
 
-messanger.py
+messenger.py
 
 ```python
-class Messanger(Transceiver, TransceiverDelegate):
+class Messenger(Transceiver, MessengerDelegate):
     """ Transform and send message """
     
     def __init__(self):
@@ -122,23 +122,26 @@ class Messanger(Transceiver, TransceiverDelegate):
         self.delegate = self
 
     #
-    #  TransceiverDelegate
+    #  MessengerDelegate
     #
+    def send_package(self, data: bytes, handler: CompletionHandler) -> bool:
+        # TODO: Send out a data package onto network
+        pass
     def upload_data(self, data: bytes, msg: InstantMessage) -> str:
-        # TODO: upload onto FTP server
+        # TODO: Upload encrypted data to CDN
         pass
 
     def download_data(self, url: str, msg: InstantMessage) -> bytes:
-        # TODO: download from FTP server
+        # TODO: Download encrypted data from CDN
         pass
 
 
 #
 #  global
 #
-messanger = Messanger()
-messanger.barrack = facebook
-messanger.key_cache = keystore
+messenger = Messenger()
+messenger.barrack = facebook
+messenger.key_cache = keystore
 ```
 
 ### User Account
@@ -171,7 +174,7 @@ send.py
 ```python
 def pack(content: Content, sender: ID, receiver: ID) -> ReliableMessage:
     msg = InstantMessage.new(content=content, sender=sender, receiver=receiver)
-    return messanger.encrypt_sign(msg)
+    return messenger.encrypt_sign(msg)
 
 
 if __name__ == '__main__':
@@ -191,7 +194,7 @@ receive.py
 def receive(pack: bytes) -> InstantMessage:
     msg = json.loads(pack.decode('utf-8'))
     r_msg = ReliableMessage(msg)
-    i_msg = messanger.verify_decrypt(r_msg)
+    i_msg = messenger.verify_decrypt(r_msg)
     # TODO: process message content
     pass
 ```

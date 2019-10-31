@@ -46,8 +46,7 @@ from dkd import Content, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import InstantMessageDelegate, ReliableMessageDelegate
 
-from .protocol import FileContent
-from .delegate import SocialNetworkDelegate, CipherKeyDelegate, TransceiverDelegate
+from .delegate import SocialNetworkDelegate, CipherKeyDelegate
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
@@ -58,7 +57,6 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         # delegates
         self.barrack: SocialNetworkDelegate = None
         self.key_cache: CipherKeyDelegate = None
-        self.delegate: TransceiverDelegate = None
 
     def __is_broadcast_message(self, msg: Message) -> bool:
         if isinstance(msg, InstantMessage):
@@ -218,18 +216,12 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #   InstantMessageDelegate
     #
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+        # NOTICE: check attachment for File/Image/Audio/Video message content
+        #         before serialize content, this job should be do in subclass
+        data = self.serialize_content(content=content, msg=msg)
+        # encrypt with password
         password = SymmetricKey(key=key)
         assert password == key, 'irregular symmetric key: %s' % key
-        # check attachment for File/Image/Audio/Video message content before
-        if isinstance(content, FileContent):
-            data = password.encrypt(data=content.data)
-            # upload (encrypted) file data onto CDN and save the URL in message content
-            url = self.delegate.upload_data(data=data, msg=msg)
-            if url is not None:
-                content.url = url
-                content.data = None
-        # encrypt with password
-        data = self.serialize_content(content=content, msg=msg)
         return password.encrypt(data=data)
 
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
@@ -305,21 +297,9 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         if plaintext is None:
             # raise ValueError('failed to decrypt data: %s, password: %s' % (data, password))
             return None
-        content = self.deserialize_content(data=plaintext, msg=msg)
-        # check attachment for File/Image/Audio/Video message content after
-        if isinstance(content, FileContent):
-            i_msg = InstantMessage.new(content=content, envelope=msg.envelope)
-            # download from CDN
-            file_data = self.delegate.download_data(content.url, i_msg)
-            if file_data is None:
-                # save symmetric key for decrypted file data after download from CDN
-                content.password = password
-            else:
-                # decrypt file data
-                content.data = password.decrypt(data=file_data)
-                assert content.data is not None, 'failed to decrypt file data with key: %s' % key
-                content.url = None
-        return content
+        # NOTICE: check attachment for File/Image/Audio/Video message content
+        #         after deserialize content, this job should be do in subclass
+        return self.deserialize_content(data=plaintext, msg=msg)
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         sender = self.barrack.identifier(sender)

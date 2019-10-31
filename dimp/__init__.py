@@ -42,7 +42,7 @@ from .barrack import Barrack
 from .keycache import KeyCache
 from .transceiver import Transceiver
 
-from .delegate import SocialNetworkDelegate, CipherKeyDelegate, TransceiverDelegate
+from .delegate import SocialNetworkDelegate, CipherKeyDelegate
 
 name = "DIMP"
 
@@ -99,5 +99,5 @@ __all__ = [
     'Transceiver',
 
     # delegate
-    'SocialNetworkDelegate', 'CipherKeyDelegate', 'TransceiverDelegate',
+    'SocialNetworkDelegate', 'CipherKeyDelegate',
 ]

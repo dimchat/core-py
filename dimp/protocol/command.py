@@ -128,9 +128,10 @@ class Command(Content):
         """
         if command_class is None:
             cls.__command_classes.pop(command, None)
-        else:
+        elif issubclass(command_class, Command):
             cls.__command_classes[command] = command_class
-        # TODO: check issubclass(command_class, Command)
+        else:
+            raise TypeError('%s must be subclass of Command' % command_class)
         return True
 
     @classmethod
