@@ -94,9 +94,7 @@ __all__ = [
     'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
 
     # core
-    'Barrack',
-    'KeyCache',
-    'Transceiver',
+    'Barrack', 'KeyCache', 'Transceiver',
 
     # delegate
     'SocialNetworkDelegate', 'CipherKeyDelegate',

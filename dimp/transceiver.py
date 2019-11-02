@@ -243,8 +243,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         data = self.serialize_key(key=password, msg=msg)
         # encrypt with receiver's public key
         contact = self.barrack.user(identifier=self.barrack.identifier(receiver))
-        assert contact is not None, 'failed to encrypt key for receiver: %s' % receiver
-        return contact.encrypt(data=data)
+        if contact is not None:
+            return contact.encrypt(data=data)
 
     def encode_key(self, key: bytes, msg: InstantMessage) -> Optional[str]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'

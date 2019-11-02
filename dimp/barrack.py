@@ -151,31 +151,35 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
     #   EntityDataSource
     #
     def meta(self, identifier: ID) -> Optional[Meta]:
-        assert identifier.valid, 'failed to get meta with invalid ID: %s' % identifier
+        assert identifier.valid, 'entity ID error: %s' % identifier
         return self.__metas.get(identifier)
 
     @abstractmethod
     def profile(self, identifier: ID) -> Optional[Profile]:
+        assert identifier.valid, 'entity ID error: %s' % identifier
         # NOTICE: load profile from database
-        pass
+        return None
 
     #
     #   UserDataSource
     #
     @abstractmethod
     def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
+        assert identifier.type.is_user(), 'user ID error: %s' % identifier
         # NOTICE: access private key in secret storage
-        pass
+        return None
 
     @abstractmethod
     def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
+        assert identifier.type.is_user(), 'user ID error: %s' % identifier
         # NOTICE: access private keys in secret storage
-        pass
+        return None
 
     @abstractmethod
     def contacts(self, identifier: ID) -> Optional[list]:
+        assert identifier.type.is_user(), 'user ID error: %s' % identifier
         # NOTICE: load contacts from database
-        pass
+        return None
 
     #
     #   GroupDataSource
