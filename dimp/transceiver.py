@@ -269,8 +269,9 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         else:
             # decrypt key data with the receiver's private key
             identifier = self.barrack.identifier(msg.envelope.receiver)
-            user: LocalUser = self.barrack.user(identifier=identifier)
-            assert user is not None, 'failed to decrypt key for receiver: %s, %s' % (receiver, identifier)
+            user = self.barrack.user(identifier=identifier)
+            if not isinstance(user, LocalUser):
+                return None
             plaintext = user.decrypt(data=key)
             if plaintext is None:
                 raise AssertionError('failed to decrypt key in msg: %s' % msg)
