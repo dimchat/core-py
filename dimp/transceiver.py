@@ -36,6 +36,7 @@
 """
 
 import json
+import weakref
 from typing import Optional
 
 from mkm.crypto.utils import base64_encode, base64_decode
@@ -53,10 +54,38 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def __init__(self):
         super().__init__()
+        self.__barrack: weakref.ReferenceType = None
+        self.__key_cache: weakref.ReferenceType = None
 
-        # delegates
-        self.barrack: SocialNetworkDelegate = None
-        self.key_cache: CipherKeyDelegate = None
+    #
+    #   Barrack (SocialNetworkDelegate)
+    #
+    @property
+    def barrack(self) -> SocialNetworkDelegate:
+        if self.__barrack is not None:
+            return self.__barrack()
+
+    @barrack.setter
+    def barrack(self, value: SocialNetworkDelegate):
+        if value is None:
+            self.__barrack = None
+        else:
+            self.__barrack = weakref.ref(value)
+
+    #
+    #   KeyCache (CipherKeyDelegate)
+    #
+    @property
+    def key_cache(self) -> CipherKeyDelegate:
+        if self.__key_cache is not None:
+            return self.__key_cache()
+
+    @key_cache.setter
+    def key_cache(self, value: CipherKeyDelegate):
+        if value is None:
+            self.__key_cache = None
+        else:
+            self.__key_cache = weakref.ref(value)
 
     def __is_broadcast_message(self, msg: Message) -> bool:
         if isinstance(msg, InstantMessage):
