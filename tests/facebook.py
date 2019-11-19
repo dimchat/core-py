@@ -4,8 +4,8 @@ from typing import Optional
 
 from mkm.immortals import Immortals
 
-from dimp import NetworkID, ID, Meta, Profile, User, Group
-from dimp import Barrack, LocalUser, PrivateKey
+from dimp import NetworkID, ID, Meta, Profile, Group
+from dimp import Barrack, User, PrivateKey
 
 
 class Facebook(Barrack):
@@ -63,11 +63,7 @@ class Facebook(Barrack):
         # check meta and private key
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            key = self.private_key_for_signature(identifier=identifier)
-            if key is None:
-                user = User(identifier=identifier)
-            else:
-                user = LocalUser(identifier=identifier)
+            user = User(identifier=identifier)
             # cache it in barrack
             self.cache_user(user=user)
             return user
@@ -96,34 +92,25 @@ class Facebook(Barrack):
         # TODO: load meta from database
 
     def profile(self, identifier: ID) -> Optional[Profile]:
-        info = super().profile(identifier=identifier)
-        if info is not None:
-            return info
         return self.__immortals.profile(identifier=identifier)
         # TODO: load profile from database
 
     #
     #   UserDataSource
     #
-    def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
-        key = super().private_key_for_signature(identifier=identifier)
-        if key is not None:
-            return key
-        return self.__immortals.private_key_for_signature(identifier=identifier)
-        # TODO: load private key from local storage
-
-    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
-        keys = super().private_keys_for_decryption(identifier=identifier)
-        if keys is not None:
-            return keys
-        return self.__immortals.private_keys_for_decryption(identifier=identifier)
-        # TODO: load private keys from local storage
-
     def contacts(self, identifier: ID) -> Optional[list]:
         array = super().contacts(identifier=identifier)
         if array is not None:
             return array
         # TODO: load contacts from database
+
+    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
+        return self.__immortals.private_keys_for_decryption(identifier=identifier)
+        # TODO: load private keys from local storage
+
+    def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
+        return self.__immortals.private_key_for_signature(identifier=identifier)
+        # TODO: load private key from local storage
 
     #
     #   GroupDataSource

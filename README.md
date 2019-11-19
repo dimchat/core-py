@@ -1,7 +1,7 @@
 # Decentralized Instant Messaging Protocol (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/core-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.7.8-red.svg)](https://github.com/dimchat/core-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.8.0-red.svg)](https://github.com/dimchat/core-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 
@@ -65,11 +65,7 @@ class Facebook(Barrack):
             return entity
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            key = self.private_key_for_signature(identifier=identifier)
-            if key is None:
-                entity = User(identifier=identifier)
-            else:
-                entity = LocalUser(identifier=identifier)
+            entity = User(identifier=identifier)
             self.cache_user(user=entity)
             return entity
 
@@ -135,7 +131,7 @@ class Messenger(Transceiver, ConnectionDelegate):
         self.delegate: MessengerDelegate = None
         
     @property
-    def current_user(self) -> Optional[LocalUser]:
+    def current_user(self) -> Optional[User]:
         # TODO: get current user from context
         pass
 

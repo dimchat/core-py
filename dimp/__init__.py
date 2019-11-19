@@ -55,11 +55,12 @@ __all__ = [
     #
 
     # crypto
+    'SignKey', 'VerifyKey', 'EncryptKey', 'DecryptKey',
     'SymmetricKey', 'PrivateKey', 'PublicKey',
 
     # entity
     'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
-    'Entity', 'User', 'LocalUser', 'Group',
+    'Entity', 'User', 'Group',
 
     # delegate
     'EntityDataSource', 'UserDataSource', 'GroupDataSource',

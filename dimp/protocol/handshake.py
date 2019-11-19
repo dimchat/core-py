@@ -82,7 +82,7 @@ class HandshakeCommand(Command):
         return self['message']
 
     #
-    #   session
+    #   session key
     #
     @property
     def session(self) -> Optional[str]:

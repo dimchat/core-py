@@ -5,7 +5,7 @@ from typing import Optional
 
 from mkm.dos import JSONFile
 
-from dimp import ID, SymmetricKey, LocalUser
+from dimp import ID, SymmetricKey, User
 from dimp import KeyCache
 
 
@@ -13,15 +13,15 @@ class KeyStore(KeyCache):
 
     def __init__(self):
         super().__init__()
-        self.__user: LocalUser = None
+        self.__user: User = None
         self.__base_dir: str = '/tmp/.dim/'
 
     @property
-    def user(self) -> Optional[LocalUser]:
+    def user(self) -> Optional[User]:
         return self.__user
 
     @user.setter
-    def user(self, value: LocalUser):
+    def user(self, value: User):
         if value is None:
             # save key map for old user
             self.flush()

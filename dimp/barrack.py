@@ -35,10 +35,11 @@
     Manage meta for all entities
 """
 
-from abc import abstractmethod
+from abc import ABC
 from typing import Optional
 
-from mkm import ID, Meta, Profile, PrivateKey, NetworkID
+from mkm import EncryptKey
+from mkm import ID, Meta, NetworkID
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
 
@@ -55,7 +56,7 @@ def thanos(planet: dict, finger: int) -> int:
     return finger
 
 
-class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
+class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
 
     def __init__(self):
         super().__init__()
@@ -90,62 +91,91 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
         return True
 
     def cache_user(self, user: User) -> bool:
-        assert user.identifier.valid, 'failed to cache user: %s' % user
         if user.delegate is None:
             user.delegate = self
         self.__users[user.identifier] = user
         return True
 
     def cache_group(self, group: Group) -> bool:
-        assert group.identifier.valid, 'failed to cache group: %s' % group
         if group.delegate is None:
             group.delegate = self
         self.__groups[group.identifier] = group
         return True
 
-    #
-    #   SocialNetworkDelegate
-    #
-    def identifier(self, string: str) -> Optional[ID]:
-        assert isinstance(string, str), 'ID must be a string: %s' % string
-        if isinstance(string, ID):
-            return string
-        # 1. get from ID cache
-        identifier = self.__ids.get(string)
-        if identifier is not None:
-            return identifier
-        # 2. create and cache it
+    def create_identifier(self, string: str) -> ID:
+        assert isinstance(string, str), 'ID error: %s' % string
+        assert self.__ids.get(string) is None, 'ID already exists: %s' % string
         try:
-            identifier = ID(string)
+            return ID(string)
         except AttributeError:
             # ID string not valid
             pass
         except ValueError:
             # search number(check code) not valid
             pass
+
+    def create_user(self, identifier: ID) -> User:
+        assert identifier.type.is_user(), 'user ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create user 'anyone@anywhere'
+            return User(identifier=identifier)
+        # make sure meta exists
+        assert self.meta(identifier) is not None, 'failed to get meta for user: %s' % identifier
+        # TODO: check user type
+        return User(identifier=identifier)
+
+    def create_group(self, identifier: ID) -> Group:
+        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create group 'everyone@everywhere'
+            return Group(identifier=identifier)
+        # make sure meta exists
+        assert self.meta(identifier) is not None, 'failed to get meta for group: %s' % identifier
+        # TODO: check group type
+        return Group(identifier=identifier)
+
+    #
+    #   SocialNetworkDelegate
+    #
+    def identifier(self, string: str) -> Optional[ID]:
+        if string is None:
+            return None
+        elif isinstance(string, ID):
+            return string
+        # 1. get from ID cache
+        identifier = self.__ids.get(string)
         if identifier is not None:
+            return identifier
+        # 2. create
+        identifier = self.create_identifier(string=string)
+        if identifier is not None:
+            # 3. cache it
             self.cache_id(identifier=identifier)
             return identifier
 
     def user(self, identifier: ID) -> Optional[User]:
-        assert identifier.type.is_user(), 'failed to get user with invalid ID: %s' % identifier
         # 1. get from user cache
         usr = self.__users.get(identifier)
-        if usr is None and identifier.is_broadcast:
-            # 2. create user 'anyone@anywhere'
-            usr = User(identifier=identifier)
+        if usr is not None:
+            return usr
+        # 2. create
+        usr = self.create_user(identifier=identifier)
+        if usr is not None:
+            # 3. cache it
             self.cache_user(user=usr)
-        return usr
+            return usr
 
     def group(self, identifier: ID) -> Optional[Group]:
-        assert identifier.type.is_group(), 'failed to get group with invalid ID: %s' % identifier
         # 1. get from group cache
         grp = self.__groups.get(identifier)
-        if grp is None and identifier.is_broadcast:
-            # 2. create group 'everyone@everywhere'
-            grp = Group(identifier=identifier)
+        if grp is not None:
+            return grp
+        # 2. create
+        grp = self.create_group(identifier=identifier)
+        if grp is not None:
+            # 3. cache it
             self.cache_group(group=grp)
-        return grp
+            return grp
 
     #
     #   EntityDataSource
@@ -154,32 +184,16 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
         assert identifier.valid, 'entity ID error: %s' % identifier
         return self.__metas.get(identifier)
 
-    @abstractmethod
-    def profile(self, identifier: ID) -> Optional[Profile]:
-        assert identifier.valid, 'entity ID error: %s' % identifier
-        # NOTICE: load profile from database
-        return None
-
     #
     #   UserDataSource
     #
-    @abstractmethod
-    def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
-        assert identifier.type.is_user(), 'user ID error: %s' % identifier
-        # NOTICE: access private key in secret storage
-        return None
+    def public_key_for_encryption(self, identifier: ID) -> EncryptKey:
+        # NOTICE: return nothing to use profile.key or meta.key
+        pass
 
-    @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
-        assert identifier.type.is_user(), 'user ID error: %s' % identifier
-        # NOTICE: access private keys in secret storage
-        return None
-
-    @abstractmethod
-    def contacts(self, identifier: ID) -> Optional[list]:
-        assert identifier.type.is_user(), 'user ID error: %s' % identifier
-        # NOTICE: load contacts from database
-        return None
+    def public_keys_for_verification(self, identifier: ID) -> list:
+        # NOTICE: return nothing to use meta.key
+        pass
 
     #
     #   GroupDataSource
@@ -221,10 +235,6 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
                 #          'anyone@anywhere', or 'xxx.owner@anywhere'
                 owner = name + '.owner@anywhere'
             return self.identifier(string=owner)
-        # check group type
-        if identifier.type.value == NetworkID.Polylogue:
-            # Polylogue's owner is the founder
-            return self.founder(identifier=identifier)
 
     def members(self, identifier: ID) -> Optional[list]:
         assert identifier.type.is_group(), 'group ID error: %s' % identifier
