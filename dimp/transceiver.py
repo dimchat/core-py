@@ -129,6 +129,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         else:
             # group message
             password = self.__password(sender=sender, receiver=group)
+        assert isinstance(password, dict), 'password error: %s' % password
         if msg.delegate is None:
             msg.delegate = self
         assert msg.content is not None, 'message content empty: %s' % msg

@@ -43,11 +43,19 @@ from mkm import SymmetricKey, ID
 from .delegate import CipherKeyDelegate
 
 
-class PlainKey(SymmetricKey):
+class PlainKey(dict, SymmetricKey):
     """
         Symmetric key for broadcast message,
         which will do nothing when en/decoding message data
     """
+
+    @property
+    def size(self) -> int:
+        return 0
+
+    @property
+    def data(self) -> bytes:
+        return b''
 
     PLAIN = 'PLAIN'
 

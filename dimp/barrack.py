@@ -39,7 +39,7 @@ from abc import ABC
 from typing import Optional
 
 from mkm import EncryptKey
-from mkm import ID, Meta, NetworkID
+from mkm import ID, Meta
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
 
