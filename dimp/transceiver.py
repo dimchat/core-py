@@ -40,7 +40,7 @@ import weakref
 from typing import Optional
 
 from mkm.crypto.utils import base64_encode, base64_decode
-from mkm import SymmetricKey, ID, User
+from mkm import SymmetricKey, ID
 
 from dkd import Content, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
@@ -289,7 +289,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         else:
             # decrypt key data with the receiver's private key
             identifier = self.barrack.identifier(msg.envelope.receiver)
-            user: User = self.barrack.user(identifier=identifier)
+            user = self.barrack.user(identifier=identifier)
             assert user is not None, 'failed to create local user: %s' % identifier
             plaintext = user.decrypt(data=key)
             if plaintext is None:
@@ -322,7 +322,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         sender = self.barrack.identifier(sender)
-        user: User = self.barrack.user(identifier=sender)
+        user = self.barrack.user(identifier=sender)
         assert user is not None, 'failed to sign with sender: %s' % sender
         return user.sign(data)
 
@@ -338,7 +338,5 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
         sender = self.barrack.identifier(sender)
         contact = self.barrack.user(identifier=sender)
-        if contact is None:
-            # failed to get meta for sender
-            return False
+        assert contact is not None, 'failed to verify signature for sender: %s' % sender
         return contact.verify(data=data, signature=signature)

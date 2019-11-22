@@ -35,10 +35,10 @@
     Manage meta for all entities
 """
 
-from abc import ABC
+from abc import abstractmethod
 from typing import Optional
 
-from mkm import EncryptKey
+from mkm import EncryptKey, SignKey
 from mkm import ID, Meta
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
@@ -56,7 +56,7 @@ def thanos(planet: dict, finger: int) -> int:
     return finger
 
 
-class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
+class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
 
     def __init__(self):
         super().__init__()
@@ -146,11 +146,9 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
         identifier = self.__ids.get(string)
         if identifier is not None:
             return identifier
-        # 2. create
+        # 2. create and cache it
         identifier = self.create_identifier(string=string)
-        if identifier is not None:
-            # 3. cache it
-            self.cache_id(identifier=identifier)
+        if identifier is not None and self.cache_id(identifier=identifier):
             return identifier
 
     def user(self, identifier: ID) -> Optional[User]:
@@ -158,11 +156,9 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
         usr = self.__users.get(identifier)
         if usr is not None:
             return usr
-        # 2. create
+        # 2. create and cache it
         usr = self.create_user(identifier=identifier)
-        if usr is not None:
-            # 3. cache it
-            self.cache_user(user=usr)
+        if usr is not None and self.cache_user(user=usr):
             return usr
 
     def group(self, identifier: ID) -> Optional[Group]:
@@ -170,11 +166,9 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
         grp = self.__groups.get(identifier)
         if grp is not None:
             return grp
-        # 2. create
+        # 2. create and cache it
         grp = self.create_group(identifier=identifier)
-        if grp is not None:
-            # 3. cache it
-            self.cache_group(group=grp)
+        if grp is not None and self.cache_group(group=grp):
             return grp
 
     #
@@ -190,6 +184,14 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate, ABC):
     def public_key_for_encryption(self, identifier: ID) -> EncryptKey:
         # NOTICE: return nothing to use profile.key or meta.key
         pass
+
+    @abstractmethod
+    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
+        raise NotImplemented
+
+    @abstractmethod
+    def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
+        raise NotImplemented
 
     def public_keys_for_verification(self, identifier: ID) -> list:
         # NOTICE: return nothing to use meta.key

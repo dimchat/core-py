@@ -81,7 +81,7 @@ class KeyCache(CipherKeyDelegate):
         self.__dirty = False
 
     def reload(self) -> bool:
-        # load keys from local storage
+        """ Trigger for loading cipher key table """
         dictionary = self.load_keys()
         if dictionary is None:
             return False

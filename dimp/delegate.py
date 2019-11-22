@@ -35,13 +35,13 @@
     Delegates for Transceiver, such as Barrack, KeyStore, FTP, ...
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import SymmetricKey, ID, User, Group
 
 
-class SocialNetworkDelegate(metaclass=ABCMeta):
+class SocialNetworkDelegate(ABC):
 
     @abstractmethod
     def identifier(self, string: str) -> Optional[ID]:
@@ -74,7 +74,7 @@ class SocialNetworkDelegate(metaclass=ABCMeta):
         pass
 
 
-class CipherKeyDelegate(metaclass=ABCMeta):
+class CipherKeyDelegate(ABC):
 
     @abstractmethod
     def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
