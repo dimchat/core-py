@@ -57,27 +57,39 @@ class Facebook(Barrack):
             return profile.verify(public_key=meta.key)
     
     #
-    #   SocialNetworkDelegate
+    #   Barrack
     #
-    def user(self, identifier: ID) -> User:
-        entity = super().user(identifier=identifier)
-        if entity is not None:
-            return entity
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            entity = User(identifier=identifier)
-            self.cache_user(user=entity)
-            return entity
+    def create_user(self, identifier: ID) -> User:
+        assert identifier.type.is_user(), 'user ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create user 'anyone@anywhere'
+            return User(identifier=identifier)
+        assert self.meta(identifier) is not None, 'failed to get meta for user: %s' % identifier
+        # TODO: check user type
+        u_type = identifier.type
+        if u_type.is_person():
+            return User(identifier=identifier)
+        if u_type.is_robot():
+            return Robot(identifier=identifier)
+        if u_type.is_station():
+            return Station(identifier=identifier)
+        raise TypeError('unsupported user type: %s' % u_type)
 
-    def group(self, identifier: ID) -> Group:
-        entity = super().group(identifier=identifier)
-        if entity is not None:
-            return entity
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            entity = Group(identifier=identifier)
-            self.cache_group(group=entity)
-            return entity
+    def create_group(self, identifier: ID) -> Group:
+        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create group 'everyone@everywhere'
+            return Group(identifier=identifier)
+        assert self.meta(identifier) is not None, 'failed to get meta for group: %s' % identifier
+        # TODO: check group type
+        g_type = identifier.type
+        if g_type == NetworkID.Polylogue:
+            return Polylogue(identifier=identifier)
+        if g_type == NetworkID.Chatroom:
+            raise NotImplementedError('Chatroom not implemented')
+        if g_type.is_provider():
+            return ServiceProvider(identifier=identifier)
+        raise TypeError('unsupported group type: %s' % g_type)
 
 
 #
@@ -110,98 +122,121 @@ keystore = KeyStore()
 messenger.py
 
 ```python
-class MessengerDelegate(metaclass=ABCMeta):
-
-    @abstractmethod
-    def send_package(self, data: bytes) -> bool:
-        """
-        Send out a data package onto network
-
-        :param data:    package data
-        :return: True on success
-        """
-        pass
-
-
 class Messenger(Transceiver, ConnectionDelegate):
     """ Transform and send/receive message """
     
     def __init__(self):
         super().__init__()
+        # self.barrack = facebook
+        # self.key_cache = keystore
         self.delegate: MessengerDelegate = None
-        
-    @property
-    def current_user(self) -> Optional[User]:
-        # TODO: get current user from context
-        pass
 
-    #
-    #  Conveniences
-    #
-    def encrypt_sign(self, msg: InstantMessage) -> ReliableMessage:
-        # 1. encrypt 'content' to 'data' for receiver
-        s_msg = self.encrypt_message(msg=msg)
-        # 1.1. check group
-        group = msg.content.group
-        if group is not None:
-            # NOTICE: this help the receiver knows the group ID
-            #         when the group message separated to multi-messages,
-            #         if don't want the others know you are the group members,
-            #         remove it.
-            s_msg.envelope.group = group
-        # 1.2. copy content type to envelope
-        #      NOTICE: this help the intermediate nodes to recognize message type
-        s_msg.envelope.type = msg.content.type
-        # 2. sign 'data' by sender
-        r_msg = self.sign_message(msg=s_msg)
-        # OK
-        return r_msg
+    def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+        password = SymmetricKey(key=key)
+        assert password == key, 'irregular symmetric key: %s' % key
+        # check attachment for File/Image/Audio/Video message content before
+        if isinstance(content, FileContent):
+            data = password.encrypt(data=content.data)
+            # upload (encrypted) file data onto CDN and save the URL in message content
+            url = self.delegate.upload_data(data=data, msg=msg)
+            if url is not None:
+                content.url = url
+                content.data = None
+        return super().encrypt_content(content=content, key=password, msg=msg)
 
-    def verify_decrypt(self, msg: ReliableMessage) -> Optional[InstantMessage]:
-        # 1. verify 'data' with 'signature'
-        s_msg = self.verify_message(msg=msg)
-        if s_msg is None:
-            # failed to verify message
+    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
+        password = SymmetricKey(key=key)
+        content = super().decrypt_content(data=data, key=password, msg=msg)
+        if content is None:
             return None
-        # 2. decrypt 'data' to 'content'
-        i_msg = self.decrypt_message(msg=s_msg)
-        # OK
-        return i_msg
+        # check attachment for File/Image/Audio/Video message content after
+        if isinstance(content, FileContent):
+            i_msg = InstantMessage.new(content=content, envelope=msg.envelope)
+            # download from CDN
+            file_data = self.delegate.download_data(content.url, i_msg)
+            if file_data is None:
+                # save symmetric key for decrypted file data after download from CDN
+                content.password = password
+            else:
+                # decrypt file data
+                content.data = password.decrypt(data=file_data)
+                assert content.data is not None, 'failed to decrypt file data with key: %s' % key
+                content.url = None
+        return content
 
     #
-    #   Sending
+    #   Send message
     #
-    def send_content(self, content: Content, receiver: ID) -> bool:
-        sender = self.current_user.identifier
-        i_msg = InstantMessage.new(content=content, sender=sender, receiver=receiver)
-        return self.send_message(msg=i_msg)
-    
-    def send_message(self, msg: InstantMessage) -> bool:
-        r_msg = messenger.encrypt_sign(msg=msg)
-        data = messenger.serialize_message(msg=r_msg)
-        package = data + b'\n'
-        self.delegate.send_package(data=package)
+    def send_message(self, msg: InstantMessage, callback: Callback=None, split: bool=True) -> bool:
+        """
+        Send instant message (encrypt and sign) onto DIM network
+
+        :param msg:      instant message
+        :param callback: callback function
+        :param split:    if it's a group message, split it before sending out
+        :return:         False on data/delegate error
+        """
+        # Send message (secured + certified) to target station
+        s_msg = self.encrypt_message(msg=msg)
+        r_msg = self.sign_message(msg=s_msg)
+        receiver = self.facebook.identifier(msg.envelope.receiver)
+        ok = True
+        if split and receiver.type.is_group():
+            # split for each members
+            members = self.facebook.members(identifier=receiver)
+            if members is None or len(members) == 0:
+                # FIXME: query group members from sender
+                messages = None
+            else:
+                messages = r_msg.split(members=members)
+            if messages is None:
+                # failed to split msg, send it to group
+                ok = self.__send_message(msg=r_msg, callback=callback)
+            else:
+                # sending group message one by one
+                for r_msg in messages:
+                    if not self.__send_message(msg=r_msg, callback=callback):
+                        ok = False
+        else:
+            ok = self.__send_message(msg=r_msg, callback=callback)
+        # TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
+        return ok
+
+    def __send_message(self, msg: ReliableMessage, callback: Callback) -> bool:
+        data = self.serialize_message(msg=msg)
+        handler = MessageCallback(msg=msg, cb=callback)
+        return self.delegate.send_package(data=data, handler=handler)
 
     #
     #   ConnectionDelegate
     #
     def received_package(self, data: bytes) -> Optional[bytes]:
-        """ Processing received message package """
+        """
+        Processing received message package
+
+        :param data: message data
+        :return: response message data
+        """
+        # 1. deserialize message
         r_msg = self.deserialize_message(data=data)
+        # 2. process message
         response = self.process_message(msg=r_msg)
         if response is None:
             # nothing to response
             return None
-        # response to the sender
-        sender = self.current_user.identifier
-        receiver = self.barrack.identifier(r_msg.envelope.sender)
-        i_msg = InstantMessage.new(content=response, sender=sender, receiver=receiver)
-        msg_r = self.encrypt_sign(msg=i_msg)
+        # 3. pack response
+        user = self.facebook.current_user
+        assert user is not None, 'failed to get current user'
+        sender = self.facebook.identifier(r_msg.envelope.sender)
+        i_msg = InstantMessage.new(content=response, sender=user.identifier, receiver=sender)
+        s_msg = self.encrypt_message(msg=i_msg)
+        msg_r = self.sign_message(msg=s_msg)
+        assert msg_r is not None, 'failed to response: %s' % i_msg
+        # serialize message
         return self.serialize_message(msg=msg_r)
 
     def process_message(self, msg: ReliableMessage) -> Optional[Content]:
-        # TODO: verify, decrypt and process this message
-        #       return a receipt as response
+        # TODO: try to verify/decrypt message and process it
         pass
 
 
@@ -241,45 +276,61 @@ def register(username: str) -> User:
 send.py
 
 ```python
-def pack(content: Content, sender: ID, receiver: ID) -> bytes:
+def pack(content: Content, sender: ID, receiver: ID) -> ReliableMessage:
+    # 1. create InstantMessage
     i_msg = InstantMessage.new(content=content, sender=sender, receiver=receiver)
-    r_msg = messenger.encrypt_sign(msg=i_msg)
-    return messenger.serialize_message(msg=r_msg)
+    # 2. encrypt 'content' to 'data' for receiver
+    s_msg = messenger.encrypt_message(msg=i_msg)
+    # 3. sign 'data' by sender
+    r_msg = messenger.sign_message(msg= s_msg)
+    # OK
+    return r_msg
 
 
-def send(text: str, receiver: str, sender: str) -> bool:
-    sender = facebook.identifier(sender)
-    receiver = facebook.identifier(receiver)
-    content = TextContent.new(text=text)
-    data = pack(content=content, sender=sender, receiver=receiver)
-    request = data + b'\n'
-    # TODO: send out the request data
+def send(content: Content, sender: ID, receiver: ID) -> bool:
+    # 1. pack message
+    r_msg = pack(content=content, sender=sender, receiver=receiver)
+    # 2. callback handler
+    callback = None
+    # 3. encode and send out
+    return messenger.send_message(msg=r_msg, callback=callback)
 
 
 if __name__ == '__main__':
-    moki = 'moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk'
-    hulk = 'hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj'
+    moki = facebook.identifier('moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+    hulk = facebook.identifier('hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
     # Say Hi
-    send(text='Hello world!', sender=moki, receiver=hulk)
+    text='Hello world!'
+    content = TextContent.new(text=text)
+    send(content=content, sender=moki, receiver=hulk)
 ```
 
 receive.py
 
 ```python
-def unpack(data: bytes) -> InstantMessage:
+def unpack(msg: ReliableMessage) -> Content:
+    # 1. verify 'data' with 'signature'
+    s_msg = messenger.verify_message(msg=msg)
+    # 2. check group message
+    receiver = facebook.identifier(msg.envelope.receiver)
+    if receiver.type.is_group():
+        # TODO: split it
+        pass
+    # 3. decrypt 'data' to 'content'
+    i_msg = messenger.decrypt_message(msg=s_msg)
+    # OK
+    return i_msg.content
+
+
+#
+#   StationDelegate
+#
+def receive_package(data: bytes, station: Station):
+    # 1. decode messsage package
     r_msg = messenger.deserialize_message(data=data)
-    return messenger.verify_decrypt(r_msg)
-
-
-def process(content: Content, sender: ID) -> Content:
-    # TODO: process message content from sender
-    pass
-
-
-def receive(pack: bytes) -> Content:
-    i_msg = unpack(data)
-    sender = facebook.identifier(i_msg.envelope.sender)
-    return process(content=i_msg.content, sender=sender)
+    # 2. verify and decrypt message
+    content = unpack(msg=r_msg)
+    # TODO: process message content
 ```
 
 Copyright &copy; 2019 Albert Moky
