@@ -72,6 +72,8 @@ class TransceiverTestCase(unittest.TestCase):
 
         content = TextContent.new(text='Hello')
         print('text content: ', content)
+        string = json.dumps(content)
+        print('JSON: ', string)
         self.assertEqual(content.type, ContentType.Text)
         TransceiverTestCase.content = content
 

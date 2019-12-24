@@ -38,9 +38,18 @@
     4. (S-C) handshake success
 """
 
+from enum import IntEnum
 from typing import Optional
 
 from .command import Command
+
+
+class HandshakeState(IntEnum):
+    Init = 0
+    Start = 1    # C -> S, without session key(or session expired)
+    Again = 2    # S -> C, with new session key
+    Restart = 3  # C -> S, with new session key
+    Success = 4  # S -> C, handshake accepted
 
 
 class HandshakeCommand(Command):
@@ -88,12 +97,23 @@ class HandshakeCommand(Command):
     def session(self) -> Optional[str]:
         return self.get('session')
 
-    @session.setter
-    def session(self, value: str):
-        if value is None:
-            self.pop('session', None)
+    #
+    #   state
+    #
+    @property
+    def state(self) -> HandshakeState:
+        message = self.message
+        session = self.session
+        if message is None or len(message) == 0:
+            return HandshakeState.Init
+        if message == 'DIM!' or message == 'OK!':
+            return HandshakeState.Success
+        if message == 'DIM?':
+            return HandshakeState.Again
+        if session is None or len(session) == 0:
+            return HandshakeState.Start
         else:
-            self['session'] = value
+            return HandshakeState.Restart
 
     #
     #   Factories
@@ -133,18 +153,18 @@ class HandshakeCommand(Command):
         return cls.new(message='DIM?', session=session)
 
     @classmethod
-    def success(cls) -> Command:
+    def accepted(cls, session: str=None) -> Command:
         """
         Create station-client handshake success notice
 
         :return: HandshakeCommand object
         """
-        return cls.new(message='DIM!')
+        return cls.new(message='DIM!', session=session)
 
     start = offer       # (1. C->S) first handshake, without session
     again = ask         # (2. S->C) ask client to handshake with new session key
     restart = offer     # (3. C->S) handshake with new session key
-    accepted = success  # (4. S->C) notice the client that handshake accepted
+    success = accepted  # (4. S->C) notice the client that handshake accepted
 
 
 # register command class

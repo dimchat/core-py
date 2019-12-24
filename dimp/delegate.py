@@ -41,7 +41,7 @@ from typing import Optional
 from mkm import SymmetricKey, ID, User, Group
 
 
-class SocialNetworkDelegate(ABC):
+class EntityDelegate(ABC):
 
     @abstractmethod
     def identifier(self, string: str) -> Optional[ID]:

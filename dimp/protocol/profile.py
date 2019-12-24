@@ -56,7 +56,8 @@ class ProfileCommand(MetaCommand):
             command   : "profile", // command name
             ID        : "{ID}",    // entity ID
             meta      : {...},     // only for handshaking with new friend
-            profile   : {...}      // when profile is empty, means query for ID
+            profile   : {...},     // when profile is empty, means query for ID
+            signature : "..."      // old profile's signature for querying
         }
 
     """
@@ -114,10 +115,25 @@ class ProfileCommand(MetaCommand):
         self.__profile = value
 
     #
+    #   signature
+    #
+    @property
+    def signature(self) -> Optional[str]:
+        return self.get('signature')
+
+    @signature.setter
+    def signature(self, value: str):
+        if value is None:
+            self.pop('signature', None)
+        else:
+            assert 'data' not in self and 'profile' not in self and 'meta' not in self, 'profile cmd error'
+            self['signature'] = value
+
+    #
     #   Factories
     #
     @classmethod
-    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None, profile: Profile=None):
+    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None, profile: Profile=None, signature: str=None):
         """
         Create profile command for entity
 
@@ -125,6 +141,7 @@ class ProfileCommand(MetaCommand):
         :param identifier: entity ID
         :param meta:       entity meta
         :param profile:    entity profile
+        :param signature:  old profile's signature for querying
         :return: ProfileCommand object
         """
         if content is None:
@@ -138,11 +155,13 @@ class ProfileCommand(MetaCommand):
             assert profile.identifier == identifier, 'profile ID error: %s, %s' % (profile, identifier)
             content['profile'] = profile.get('data')
             content['signature'] = profile.get('signature')
+        elif signature is not None:
+            content['signature'] = signature
         return super().new(content=content, identifier=identifier, meta=meta)
 
     @classmethod
-    def query(cls, identifier: ID):
-        return cls.new(identifier=identifier)
+    def query(cls, identifier: ID, signature: str=None):
+        return cls.new(identifier=identifier, signature=signature)
 
     @classmethod
     def response(cls, identifier: ID, profile: Profile, meta: Meta=None):

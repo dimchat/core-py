@@ -43,7 +43,7 @@ from mkm import ID, Meta
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
 
-from .delegate import SocialNetworkDelegate
+from .delegate import EntityDelegate
 
 
 def thanos(planet: dict, finger: int) -> int:
@@ -56,7 +56,7 @@ def thanos(planet: dict, finger: int) -> int:
     return finger
 
 
-class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
+class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
 
     def __init__(self):
         super().__init__()
@@ -104,15 +104,7 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
 
     def create_identifier(self, string: str) -> ID:
         assert isinstance(string, str), 'ID error: %s' % string
-        assert self.__ids.get(string) is None, 'ID already exists: %s' % string
-        try:
-            return ID(string)
-        except AttributeError:
-            # ID string not valid
-            pass
-        except ValueError:
-            # search number(check code) not valid
-            pass
+        return ID(string)
 
     def create_user(self, identifier: ID) -> User:
         assert identifier.type.is_user(), 'user ID error: %s' % identifier
@@ -135,13 +127,14 @@ class Barrack(UserDataSource, GroupDataSource, SocialNetworkDelegate):
         return Group(identifier=identifier)
 
     #
-    #   SocialNetworkDelegate
+    #   EntityDelegate
     #
     def identifier(self, string: str) -> Optional[ID]:
         if string is None:
             return None
         elif isinstance(string, ID):
             return string
+        assert isinstance(string, str), 'ID string error: %s' % string
         # 1. get from ID cache
         identifier = self.__ids.get(string)
         if identifier is not None:

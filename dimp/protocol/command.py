@@ -68,7 +68,6 @@ class Command(Content):
             # get class by command name
             clazz = cls.command_class(command=cmd['command'])
             if clazz is not None:
-                assert issubclass(clazz, Command), '%s must be sub-class of Command' % clazz
                 # noinspection PyTypeChecker
                 return clazz.__new__(clazz, cmd)
         # subclass or default Command(dict)

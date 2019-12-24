@@ -80,7 +80,6 @@ class MetaCommand(Command):
             return
         super().__init__(content)
         # lazy
-        self.__identifier: str = None
         self.__meta: Meta = None
 
     #
@@ -88,10 +87,7 @@ class MetaCommand(Command):
     #
     @property
     def identifier(self) -> str:
-        if self.__identifier is None:
-            # TODO: convert value to ID object
-            self.__identifier = self['ID']
-        return self.__identifier
+        return self['ID']
 
     #
     #   Meta
