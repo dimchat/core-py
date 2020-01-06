@@ -100,20 +100,14 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def __password(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         key_cache = self.key_cache
-        # 1. get old key from store
-        old_key = key_cache.cipher_key(sender=sender, receiver=receiver)
-        # 2. get new key from delegate
-        new_key = key_cache.reuse_cipher_key(key=old_key, sender=sender, receiver=receiver)
-        if new_key is None:
-            if old_key is None:
-                # 3. create a new key
-                new_key = SymmetricKey(key={'algorithm': SymmetricKey.AES})
-            else:
-                new_key = old_key
-        # 4. update new key into the key store
-        if new_key != old_key:
-            key_cache.cache_cipher_key(key=new_key, sender=sender, receiver=receiver)
-        return new_key
+        # get old key from cache
+        key = key_cache.cipher_key(sender=sender, receiver=receiver)
+        if key is None:
+            # create new key and cache it
+            key = SymmetricKey(key={'algorithm': SymmetricKey.AES})
+            assert key is not None, 'failed to generate AES key'
+            key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+        return key
 
     #
     #  Transform
@@ -293,8 +287,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         sender = barrack.identifier(sender)
         receiver = barrack.identifier(receiver)
         if key is None:
-            # if key data is empty, get it from key store
-            password = key_cache.cipher_key(sender=sender, receiver=receiver)
+            password = None
         else:
             # decrypt key data with the receiver's private key
             identifier = barrack.identifier(msg.envelope.receiver)
@@ -305,8 +298,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
                 raise AssertionError('failed to decrypt key in msg: %s' % msg)
             # deserialize it to symmetric key
             password = self.deserialize_key(key=plaintext, msg=msg)
-            # cache the new key in key store
-            key_cache.cache_cipher_key(key=password, sender=sender, receiver=receiver)
+        # get/cache cipher key for reusing
+        password = key_cache.reuse_cipher_key(key=password, sender=sender, receiver=receiver)
         assert isinstance(password, dict), 'failed to decrypt key: %s -> %s' % (sender, receiver)
         return password
 

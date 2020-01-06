@@ -154,6 +154,7 @@ class KeyCache(CipherKeyDelegate):
     def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         if receiver.is_broadcast:
             return plain_key
+        # get key from cache
         return self.__cipher_key(sender, receiver)
 
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
@@ -163,5 +164,10 @@ class KeyCache(CipherKeyDelegate):
         self.__dirty = True
 
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
-        # TODO: check whether renew the old key
-        return key
+        if key is None:
+            # reuse key from cache
+            return self.cipher_key(sender=sender, receiver=receiver)
+        else:
+            # cache the key for reuse
+            self.cache_cipher_key(key=key, sender=sender, receiver=receiver)
+            return key

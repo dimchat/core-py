@@ -101,7 +101,7 @@ class CipherKeyDelegate(ABC):
     @abstractmethod
     def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         """
-        Update/create cipher key for encrypt message content
+        Get/cache cipher key for decrypt message from 'sender' to 'receiver'
 
         :param sender:   user ID
         :param receiver: contact/group ID
