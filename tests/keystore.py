@@ -5,7 +5,7 @@ from typing import Optional
 
 from mkm.dos import JSONFile
 
-from dimp import ID, SymmetricKey, User
+from dimp import User
 from dimp import KeyCache
 
 
@@ -58,19 +58,3 @@ class KeyStore(KeyCache):
         if path is None:
             return None
         return JSONFile(path).read()
-
-    #
-    #   ICipherKeyDataSource
-    #
-    def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
-        key = super().cipher_key(sender=sender, receiver=receiver)
-        if key is None:
-            if self.__user is not None and self.__user.identifier == sender:
-                # create a new key & save it into the Key Store
-                key = SymmetricKey({'algorithm': 'AES'})
-                self.cache_cipher_key(key=key, sender=sender, receiver=receiver)
-        return key
-
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
-        # TODO: check reuse key
-        pass

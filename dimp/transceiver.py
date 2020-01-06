@@ -107,7 +107,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         if new_key is None:
             if old_key is None:
                 # 3. create a new key
-                new_key = SymmetricKey(key={'algorithm': 'AES'})
+                new_key = SymmetricKey(key={'algorithm': SymmetricKey.AES})
             else:
                 new_key = old_key
         # 4. update new key into the key store

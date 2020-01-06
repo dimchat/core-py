@@ -92,27 +92,29 @@ class ProfileCommand(MetaCommand):
     @property
     def profile(self) -> Optional[Profile]:
         if self.__profile is None:
-            profile = self.get('profile')
-            if isinstance(profile, str):
+            data = self.get('profile')
+            if isinstance(data, str):
                 # compatible with v1.0
+                #    "ID"        : "{ID}",
+                #    "profile"   : "{JsON}",
+                #    "signature" : "{BASE64}"
                 dictionary = {
                     'ID': self.identifier,
-                    'data': profile,
+                    'data': data,
                     'signature': self.get("signature")
                 }
-                profile = dictionary
-            self.__profile = Profile(profile)
+                data = dictionary
+            else:
+                # (v1.1)
+                #    "ID"      : "{ID}",
+                #    "profile" : {
+                #        "ID"        : "{ID}",
+                #        "data"      : "{JsON}",
+                #        "signature" : "{BASE64}"
+                #    }
+                assert data is None or isinstance(data, dict), 'profile data error: %s' % data
+            self.__profile = Profile(data)
         return self.__profile
-
-    @profile.setter
-    def profile(self, value: Profile):
-        if value is None:
-            self.pop('profile', None)
-            self.pop('signature', None)
-        else:
-            self['profile'] = value.get('data')
-            self['signature'] = value.get('signature')
-        self.__profile = value
 
     #
     #   signature
@@ -120,14 +122,6 @@ class ProfileCommand(MetaCommand):
     @property
     def signature(self) -> Optional[str]:
         return self.get('signature')
-
-    @signature.setter
-    def signature(self, value: str):
-        if value is None:
-            self.pop('signature', None)
-        else:
-            assert 'data' not in self and 'profile' not in self and 'meta' not in self, 'profile cmd error'
-            self['signature'] = value
 
     #
     #   Factories
@@ -153,6 +147,7 @@ class ProfileCommand(MetaCommand):
         # set profile info
         if profile is not None:
             assert profile.identifier == identifier, 'profile ID error: %s, %s' % (profile, identifier)
+            # TODO: upgrade to v1.1 later
             content['profile'] = profile.get('data')
             content['signature'] = profile.get('signature')
         elif signature is not None:

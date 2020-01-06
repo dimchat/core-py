@@ -98,14 +98,6 @@ class MetaCommand(Command):
             self.__meta = Meta(self.get('meta'))
         return self.__meta
 
-    @meta.setter
-    def meta(self, value: Meta):
-        if value is None:
-            self.pop('meta', None)
-        else:
-            self['meta'] = value
-        self.__meta = value
-
     #
     #   Factories
     #

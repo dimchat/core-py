@@ -149,7 +149,7 @@ class KeyCache(CipherKeyDelegate):
         table[receiver] = key
 
     #
-    #   ICipherKeyDataSource
+    #   CipherKeyDelegate
     #
     def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         if receiver.is_broadcast:

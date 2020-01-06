@@ -101,7 +101,7 @@ class TransceiverTestCase(unittest.TestCase):
     def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        pwd = SymmetricKey({'algorithm': 'AES'})
+        pwd = SymmetricKey({'algorithm': SymmetricKey.AES})
         print('password: %s' % pwd)
 
         i_msg = TransceiverTestCase.i_msg
