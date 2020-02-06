@@ -37,6 +37,6 @@ setup(
     ],
     install_requires=[
         'dkd>=0.6.8',
-        'mkm>=0.8.5',
+        'mkm>=0.8.6',
     ]
 )
