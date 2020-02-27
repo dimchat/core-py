@@ -118,14 +118,24 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         receiver = barrack.identifier(msg.envelope.receiver)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
-        group = barrack.identifier(msg.content.group)
+
+        # NOTICE: while sending group message, don't split it before encrypting.
+        #         this means you could set group ID into message content, but
+        #         keep the "receiver" to be the group ID;
+        #         after encrypted (and signed), you could split the message
+        #         with group members before sending out, or just send it directly
+        #         to the group assistant to let it split messages for you!
+        #    BUT,
+        #         if you don't want to share the symmetric key with other members,
+        #         you could split it (set group ID into message content and
+        #         set contact ID to the "receiver") before encrypting, this usually
+        #         for sending group command to robot assistant,
+        #         which cannot shared the symmetric key (msg key) with other members.
+
         # 1. get symmetric key
-        if group is None:
-            password = self.__password(sender=sender, receiver=receiver)
-        else:
-            # group message
-            password = self.__password(sender=sender, receiver=group)
+        password = self.__password(sender=sender, receiver=receiver)
         assert isinstance(password, dict), 'password error: %s' % password
+
         # check message delegate
         if msg.delegate is None:
             msg.delegate = self
