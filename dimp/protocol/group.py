@@ -39,7 +39,6 @@
 
 from typing import Optional
 
-from .command import Command
 from .history import HistoryCommand
 
 
@@ -152,7 +151,7 @@ class GroupCommand(HistoryCommand):
         :param members: member list
         :return: InviteCommand object
         """
-        return InviteCommand.new(command=HistoryCommand.INVITE,
+        return InviteCommand.new(command=cls.INVITE,
                                  group=group, member=member, members=members)
 
     @classmethod
@@ -165,7 +164,7 @@ class GroupCommand(HistoryCommand):
         :param members: member list
         :return: ExpelCommand object
         """
-        return ExpelCommand.new(command=HistoryCommand.EXPEL,
+        return ExpelCommand.new(command=cls.EXPEL,
                                 group=group, member=member, members=members)
 
     @classmethod
@@ -176,7 +175,7 @@ class GroupCommand(HistoryCommand):
         :param group: group ID
         :return: QuitCommand object
         """
-        return QuitCommand.new(command=HistoryCommand.QUIT, group=group)
+        return QuitCommand.new(command=cls.QUIT, group=group)
 
     @classmethod
     def reset(cls, group: str, members: list):
@@ -187,7 +186,7 @@ class GroupCommand(HistoryCommand):
         :param members: member list
         :return: ResetCommand object
         """
-        return ResetCommand.new(command=HistoryCommand.RESET, group=group, members=members)
+        return ResetCommand.new(command=cls.RESET, group=group, members=members)
 
     @classmethod
     def query(cls, group: str):
@@ -197,7 +196,7 @@ class GroupCommand(HistoryCommand):
         :param group: group ID
         :return: QueryCommand object
         """
-        cmd = QueryCommand.new(command=HistoryCommand.QUERY)
+        cmd = QueryCommand.new(command=cls.QUERY)
         cmd.group = group
         return cmd
 
@@ -297,7 +296,7 @@ class ResetCommand(GroupCommand):
         return super().__new__(cls, cmd)
 
 
-class QueryCommand(Command):
+class QueryCommand(GroupCommand):
 
     def __new__(cls, cmd: dict):
         """
@@ -322,5 +321,4 @@ GroupCommand.register(command=GroupCommand.EXPEL, command_class=ExpelCommand)
 GroupCommand.register(command=GroupCommand.JOIN, command_class=JoinCommand)
 GroupCommand.register(command=GroupCommand.QUIT, command_class=QuitCommand)
 GroupCommand.register(command=GroupCommand.RESET, command_class=ResetCommand)
-
-Command.register(command=GroupCommand.QUERY, command_class=QueryCommand)
+GroupCommand.register(command=GroupCommand.QUERY, command_class=QueryCommand)
