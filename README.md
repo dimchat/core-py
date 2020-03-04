@@ -45,10 +45,10 @@ class Facebook(Barrack):
             return True
         identifier = profile.identifier
         meta = None
-        if identifier.type.is_user():
+        if identifier.is_user:
             # verify with user's meta.key
             meta = self.meta(identifier=identifier)
-        elif identifier.type.is_group():
+        elif identifier.is_group:
             # verify with group owner's meta.key
             group = self.group(identifier=identifier)
             if group is not None:
@@ -60,23 +60,23 @@ class Facebook(Barrack):
     #   Barrack
     #
     def create_user(self, identifier: ID) -> User:
-        assert identifier.type.is_user(), 'user ID error: %s' % identifier
+        assert identifier.is_user, 'user ID error: %s' % identifier
         if identifier.is_broadcast:
             # create user 'anyone@anywhere'
             return User(identifier=identifier)
         assert self.meta(identifier) is not None, 'failed to get meta for user: %s' % identifier
         # TODO: check user type
         u_type = identifier.type
-        if u_type.is_person():
+        if u_type == NetworkID.Main or u_type == NetworkID.BTCMain:
             return User(identifier=identifier)
-        if u_type.is_robot():
+        if u_type == NetworkID.Robot:
             return Robot(identifier=identifier)
-        if u_type.is_station():
+        if u_type == NetworkID.Station:
             return Station(identifier=identifier)
         raise TypeError('unsupported user type: %s' % u_type)
 
     def create_group(self, identifier: ID) -> Group:
-        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        assert identifier.is_group, 'group ID error: %s' % identifier
         if identifier.is_broadcast:
             # create group 'everyone@everywhere'
             return Group(identifier=identifier)
@@ -87,7 +87,7 @@ class Facebook(Barrack):
             return Polylogue(identifier=identifier)
         if g_type == NetworkID.Chatroom:
             raise NotImplementedError('Chatroom not implemented')
-        if g_type.is_provider():
+        if g_type == NetworkID.Provider:
             return ServiceProvider(identifier=identifier)
         raise TypeError('unsupported group type: %s' % g_type)
 
@@ -181,7 +181,7 @@ class Messenger(Transceiver, ConnectionDelegate):
         r_msg = self.sign_message(msg=s_msg)
         receiver = self.facebook.identifier(msg.envelope.receiver)
         ok = True
-        if split and receiver.type.is_group():
+        if split and receiver.is_group:
             # split for each members
             members = self.facebook.members(identifier=receiver)
             if members is None or len(members) == 0:
@@ -313,7 +313,7 @@ def unpack(msg: ReliableMessage) -> Content:
     s_msg = messenger.verify_message(msg=msg)
     # 2. check group message
     receiver = facebook.identifier(msg.envelope.receiver)
-    if receiver.type.is_group():
+    if receiver.is_group:
         # TODO: split it
         pass
     # 3. decrypt 'data' to 'content'

@@ -15,7 +15,7 @@ class Facebook(Barrack):
         self.__immortals = Immortals()
 
     def nickname(self, identifier: ID) -> str:
-        assert identifier.type.is_user(), 'ID error: %s' % identifier
+        assert identifier.is_user, 'ID error: %s' % identifier
         user = self.user(identifier=identifier)
         if user is not None:
             return user.name
@@ -28,7 +28,7 @@ class Facebook(Barrack):
             return True
         # try to verify the profile
         identifier = self.identifier(profile.identifier)
-        if identifier.type.is_user() or identifier.type.value == NetworkID.Polylogue:
+        if identifier.is_user or identifier.type == NetworkID.Polylogue:
             # if this is a user profile,
             #     verify it with the user's meta.key
             # else if this is a polylogue profile,

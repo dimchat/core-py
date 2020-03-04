@@ -141,13 +141,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             msg.delegate = self
         assert msg.content is not None, 'message content empty: %s' % msg
         # 2. encrypt 'content' to 'data' for receiver/group members
-        if receiver.type.is_group():
+        if receiver.is_group:
             # group message
             grp = barrack.group(identifier=receiver)
             s_msg = msg.encrypt(password=password, members=grp.members)
         else:
             # personal message (or split group message)
-            assert receiver.type.is_user(), 'unknown receiver type: %s' % receiver
+            assert receiver.is_user, 'unknown receiver type: %s' % receiver
             s_msg = msg.encrypt(password=password)
         # OK
         return s_msg

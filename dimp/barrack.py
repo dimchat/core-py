@@ -107,7 +107,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         return ID(string)
 
     def create_user(self, identifier: ID) -> User:
-        assert identifier.type.is_user(), 'user ID error: %s' % identifier
+        assert identifier.is_user, 'user ID error: %s' % identifier
         if identifier.is_broadcast:
             # create user 'anyone@anywhere'
             return User(identifier=identifier)
@@ -117,7 +117,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         return User(identifier=identifier)
 
     def create_group(self, identifier: ID) -> Group:
-        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        assert identifier.is_group, 'group ID error: %s' % identifier
         if identifier.is_broadcast:
             # create group 'everyone@everywhere'
             return Group(identifier=identifier)
@@ -194,7 +194,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     #   GroupDataSource
     #
     def founder(self, identifier: ID) -> Optional[ID]:
-        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
             name = identifier.name
@@ -213,7 +213,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             return self.identifier(string=founder)
 
     def owner(self, identifier: ID) -> Optional[ID]:
-        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
             name = identifier.name
@@ -232,7 +232,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             return self.identifier(string=owner)
 
     def members(self, identifier: ID) -> Optional[list]:
-        assert identifier.type.is_group(), 'group ID error: %s' % identifier
+        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
             name = identifier.name
