@@ -46,6 +46,7 @@ from dkd import Content, Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import InstantMessageDelegate, ReliableMessageDelegate
 
+from .protocol import Command
 from .delegate import EntityDelegate, CipherKeyDelegate
 
 
@@ -118,6 +119,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         receiver = barrack.identifier(msg.envelope.receiver)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
+        group = barrack.identifier(msg.content.group)
 
         # NOTICE: while sending group message, don't split it before encrypting.
         #         this means you could set group ID into message content, but
@@ -133,7 +135,12 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #         which cannot shared the symmetric key (msg key) with other members.
 
         # 1. get symmetric key
-        password = self.__password(sender=sender, receiver=receiver)
+        if group is None or isinstance(msg.content, Command):
+            # personal message or (group) command
+            password = self.__password(sender=sender, receiver=receiver)
+        else:
+            # group message (excludes group command)
+            password = self.__password(sender=sender, receiver=group)
         assert isinstance(password, dict), 'password error: %s' % password
 
         # check message delegate
@@ -297,7 +304,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         sender = barrack.identifier(sender)
         receiver = barrack.identifier(receiver)
         if key is None:
-            password = None
+            # get key from cache
+            password = key_cache.cipher_key(sender=sender, receiver=receiver)
         else:
             # decrypt key data with the receiver's private key
             identifier = barrack.identifier(msg.envelope.receiver)
@@ -308,8 +316,6 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
                 raise AssertionError('failed to decrypt key in msg: %s' % msg)
             # deserialize it to symmetric key
             password = self.deserialize_key(key=plaintext, msg=msg)
-        # get/cache cipher key for reusing
-        password = key_cache.reuse_cipher_key(key=password, sender=sender, receiver=receiver)
         assert isinstance(password, dict), 'failed to decrypt key: %s -> %s' % (sender, receiver)
         return password
 
@@ -329,9 +335,24 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         if plaintext is None:
             # raise ValueError('failed to decrypt data: %s, password: %s' % (data, password))
             return None
+        content = self.deserialize_content(data=plaintext, msg=msg)
+        assert content is not None, 'content error: %d' % len(plaintext)
+        # check and cache key for reuse
+        barrack = self.barrack
+        sender = barrack.identifier(msg.envelope.sender)
+        group = barrack.identifier(content.group)
+        if group is None or isinstance(content, Command):
+            receiver = barrack.identifier(msg.envelope.receiver)
+            # personal message or (group) command
+            # cache key with direction (sender -> receiver)
+            self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=receiver)
+        else:
+            # group message (excludes group command)
+            # cache the key with direction (sender -> group)
+            self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=group)
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         after deserialize content, this job should be do in subclass
-        return self.deserialize_content(data=plaintext, msg=msg)
+        return content
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         barrack = self.barrack

@@ -12,7 +12,7 @@
 
 from setuptools import setup, find_packages
 
-__version__ = '0.8.9'
+__version__ = '0.8.10'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
@@ -37,6 +37,6 @@ setup(
     ],
     install_requires=[
         'dkd>=0.6.9',
-        'mkm>=0.8.9',
+        'mkm>=0.8.10',
     ]
 )

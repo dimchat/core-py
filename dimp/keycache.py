@@ -146,11 +146,29 @@ class KeyCache(CipherKeyDelegate):
         if table is None:
             table = {}
             self.__key_map[sender] = table
+        else:
+            old = table.get(receiver)
+            if old is not None:
+                # check whether same key exists
+                equals = True
+                assert isinstance(key, dict), 'key info error: %s' % key
+                for k in key:
+                    v1 = key.get(k)
+                    v2 = old.get(k)
+                    if v1 == v2:
+                        continue
+                    equals = False
+                    break
+                if equals:
+                    # no need to update
+                    return
         table[receiver] = key
 
     #
     #   CipherKeyDelegate
     #
+
+    # TODO: override to check whether key expired for sending message
     def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
         if receiver.is_broadcast:
             return plain_key
@@ -162,12 +180,3 @@ class KeyCache(CipherKeyDelegate):
             return
         self.__cache_cipher_key(key, sender, receiver)
         self.__dirty = True
-
-    def reuse_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
-        if key is None:
-            # reuse key from cache
-            return self.cipher_key(sender=sender, receiver=receiver)
-        else:
-            # cache the key for reuse
-            self.cache_cipher_key(key=key, sender=sender, receiver=receiver)
-            return key
