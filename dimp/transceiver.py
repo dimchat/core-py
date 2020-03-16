@@ -113,13 +113,28 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
     #  Transform
     #
+
+    def __overt_group(self, content: Content) -> Optional[ID]:
+        group = content.group
+        if group is None:
+            return None
+        group = self.barrack.identifier(group)
+        if group.is_broadcast:
+            # broadcast message is always overt
+            return group
+        if isinstance(content, Command):
+            # group command should be sent to each member directly, so
+            # don't expose group ID
+            return None
+        else:
+            return group
+
     def encrypt_message(self, msg: InstantMessage) -> SecureMessage:
         barrack = self.barrack
         sender = barrack.identifier(msg.envelope.sender)
         receiver = barrack.identifier(msg.envelope.receiver)
         # if 'group' exists and the 'receiver' is a group ID,
         # they must be equal
-        group = barrack.identifier(msg.content.group)
 
         # NOTICE: while sending group message, don't split it before encrypting.
         #         this means you could set group ID into message content, but
@@ -131,11 +146,12 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #         if you don't want to share the symmetric key with other members,
         #         you could split it (set group ID into message content and
         #         set contact ID to the "receiver") before encrypting, this usually
-        #         for sending group command to robot assistant,
-        #         which cannot shared the symmetric key (msg key) with other members.
+        #         for sending group command to assistant robot, which should not
+        #         shared the symmetric key (group msg key) with other members.
 
         # 1. get symmetric key
-        if group is None or isinstance(msg.content, Command):
+        group = self.__overt_group(content=msg.content)
+        if group is None:
             # personal message or (group) command
             password = self.__password(sender=sender, receiver=receiver)
         else:
@@ -156,6 +172,19 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             # personal message (or split group message)
             assert receiver.is_user, 'unknown receiver type: %s' % receiver
             s_msg = msg.encrypt(password=password)
+
+        # overt group ID
+        if group is not None and receiver != group:
+            # NOTICE: this help the receiver knows the group ID
+            #         when the group message separated to multi-messages,
+            #         if don't want the others know you are the group members,
+            #         remove it.
+            s_msg.envelope.group = group
+
+        # NOTICE: copy content type to envelope
+        #         this help the intermediate nodes to recognize message type
+        s_msg.envelope.type = msg.content.type
+
         # OK
         return s_msg
 
@@ -340,8 +369,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         # check and cache key for reuse
         barrack = self.barrack
         sender = barrack.identifier(msg.envelope.sender)
-        group = barrack.identifier(content.group)
-        if group is None or isinstance(content, Command):
+        group = self.__overt_group(content=content)
+        if group is None:
             receiver = barrack.identifier(msg.envelope.receiver)
             # personal message or (group) command
             # cache key with direction (sender -> receiver)
