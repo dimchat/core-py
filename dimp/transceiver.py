@@ -147,7 +147,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #         you could split it (set group ID into message content and
         #         set contact ID to the "receiver") before encrypting, this usually
         #         for sending group command to assistant robot, which should not
-        #         shared the symmetric key (group msg key) with other members.
+        #         share the symmetric key (group msg key) with other members.
 
         # 1. get symmetric key
         group = self.__overt_group(content=msg.content)
@@ -342,9 +342,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             assert user is not None, 'failed to create local user: %s' % identifier
             plaintext = user.decrypt(data=key)
             if plaintext is None:
-                raise AssertionError('failed to decrypt key in msg: %s' % msg)
+                raise AssertionError('failed to decrypt key in msg: %s, key len: %d' % (msg, len(key)))
             # deserialize it to symmetric key
             password = self.deserialize_key(key=plaintext, msg=msg)
+            assert password is not None, 'failed to deserialize key: %s' % plaintext
         assert isinstance(password, dict), 'failed to decrypt key: %s -> %s' % (sender, receiver)
         return password
 

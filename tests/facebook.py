@@ -48,38 +48,29 @@ class Facebook(Barrack):
         # TODO: save meta into local storage
         pass
 
-    #
-    #   SocialNetworkDataSource
-    #
-    def identifier(self, string: str) -> Optional[ID]:
-        # get from barrack
-        return super().identifier(string=string)
+    def create_identifier(self, string: str) -> ID:
+        assert isinstance(string, str), 'ID error: %s' % string
+        return ID(string)
 
-    def user(self, identifier: ID) -> Optional[User]:
-        #  get from barrack cache
-        user = super().user(identifier=identifier)
-        if user is not None:
-            return user
-        # check meta and private key
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            user = User(identifier=identifier)
-            # cache it in barrack
-            self.cache_user(user=user)
-            return user
+    def create_user(self, identifier: ID) -> User:
+        assert identifier.is_user, 'user ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create user 'anyone@anywhere'
+            return User(identifier=identifier)
+        # make sure meta exists
+        assert self.meta(identifier) is not None, 'failed to get meta for user: %s' % identifier
+        # TODO: check user type
+        return User(identifier=identifier)
 
-    def group(self, identifier: ID) -> Optional[Group]:
-        # get from barrack cache
-        group = super().group(identifier=identifier)
-        if group is not None:
-            return group
-        # check meta
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            group = Group(identifier=identifier)
-            # cache it in barrack
-            self.cache_group(group=group)
-            return group
+    def create_group(self, identifier: ID) -> Group:
+        assert identifier.is_group, 'group ID error: %s' % identifier
+        if identifier.is_broadcast:
+            # create group 'everyone@everywhere'
+            return Group(identifier=identifier)
+        # make sure meta exists
+        assert self.meta(identifier) is not None, 'failed to get meta for group: %s' % identifier
+        # TODO: check group type
+        return Group(identifier=identifier)
 
     #
     #   EntityDataSource

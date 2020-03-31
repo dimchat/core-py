@@ -38,7 +38,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import EncryptKey, SignKey
+from mkm import EncryptKey, SignKey, VerifyKey
 from mkm import ID, Meta
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
@@ -103,28 +103,13 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         return True
 
     def create_identifier(self, string: str) -> ID:
-        assert isinstance(string, str), 'ID error: %s' % string
-        return ID(string)
+        raise NotImplemented
 
     def create_user(self, identifier: ID) -> User:
-        assert identifier.is_user, 'user ID error: %s' % identifier
-        if identifier.is_broadcast:
-            # create user 'anyone@anywhere'
-            return User(identifier=identifier)
-        # make sure meta exists
-        assert self.meta(identifier) is not None, 'failed to get meta for user: %s' % identifier
-        # TODO: check user type
-        return User(identifier=identifier)
+        raise NotImplemented
 
     def create_group(self, identifier: ID) -> Group:
-        assert identifier.is_group, 'group ID error: %s' % identifier
-        if identifier.is_broadcast:
-            # create group 'everyone@everywhere'
-            return Group(identifier=identifier)
-        # make sure meta exists
-        assert self.meta(identifier) is not None, 'failed to get meta for group: %s' % identifier
-        # TODO: check group type
-        return Group(identifier=identifier)
+        raise NotImplemented
 
     #
     #   EntityDelegate
@@ -175,8 +160,42 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     #   UserDataSource
     #
     def public_key_for_encryption(self, identifier: ID) -> EncryptKey:
-        # NOTICE: return nothing to use profile.key or meta.key
-        pass
+        # get profile.key
+        profile = self.profile(identifier=identifier)
+        if profile is not None:
+            key = profile.key
+            if key is not None:
+                # if profile.key exists,
+                #     use it for encryption
+                return key
+        # get meta.key
+        meta = self.meta(identifier=identifier)
+        if meta is not None:
+            key = meta.key
+            if isinstance(key, EncryptKey):
+                # if profile.key not exists and meta.key is encrypt key,
+                #     use it for encryption
+                return key
+
+    def public_keys_for_verification(self, identifier: ID) -> list:
+        keys = []
+        # get profile.key
+        profile = self.profile(identifier=identifier)
+        if profile is not None:
+            key = profile.key
+            if isinstance(key, VerifyKey):
+                # the sender may use communication key to sign message.data,
+                # so try to verify it with profile.key here
+                keys.append(key)
+        # get meta.key
+        meta = self.meta(identifier=identifier)
+        if meta is not None:
+            key = meta.key
+            if key is not None:
+                # the sender may use identity key to sign message.data,
+                # try to verify it with meta.key
+                keys.append(key)
+        return keys
 
     @abstractmethod
     def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
@@ -185,10 +204,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     @abstractmethod
     def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
         raise NotImplemented
-
-    def public_keys_for_verification(self, identifier: ID) -> list:
-        # NOTICE: return nothing to use meta.key
-        pass
 
     #
     #   GroupDataSource
