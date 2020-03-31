@@ -89,7 +89,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     # --------
 
-    def __is_broadcast_message(self, msg: Message) -> bool:
+    def _is_broadcast_message(self, msg: Message) -> bool:
         if isinstance(msg, InstantMessage):
             receiver = msg.content.group
         else:
@@ -231,7 +231,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return string.encode('utf-8')
 
     def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> bytes:
-        assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not self._is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
         string = json.dumps(key)
         return string.encode('utf-8')
 
@@ -259,7 +259,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return ReliableMessage(dictionary)
 
     def deserialize_key(self, key: bytes, msg: SecureMessage) -> Optional[SymmetricKey]:
-        assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not self._is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
         string = key.decode('utf-8')
         dictionary = json.loads(string)
         # TODO: translate short keys
@@ -292,14 +292,14 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return password.encrypt(data=data)
 
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
-        if self.__is_broadcast_message(msg=msg):
+        if self._is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
             return data.decode('utf-8')
         return base64_encode(data)
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
-        if self.__is_broadcast_message(msg=msg):
+        if self._is_broadcast_message(msg=msg):
             # broadcast message has no key
             return None
         password = SymmetricKey(key=key)
@@ -314,7 +314,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return contact.encrypt(data=data)
 
     def encode_key(self, key: bytes, msg: InstantMessage) -> Optional[str]:
-        assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
+        assert not self._is_broadcast_message(msg=msg), 'broadcast message has no key'
         # encode to Base64
         return base64_encode(key)
 
@@ -322,12 +322,12 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #   SecureMessageDelegate
     #
     def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
+        assert not self._is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decode from Base64
         return base64_decode(key)
 
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
-        assert not self.__is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
+        assert not self._is_broadcast_message(msg=msg) or key is None, 'broadcast message has no key'
         barrack = self.barrack
         key_cache = self.key_cache
         sender = barrack.identifier(sender)
@@ -350,7 +350,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return password
 
     def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
-        if self.__is_broadcast_message(msg=msg):
+        if self._is_broadcast_message(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
             return data.encode('utf-8')
@@ -367,19 +367,20 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             return None
         content = self.deserialize_content(data=plaintext, msg=msg)
         assert content is not None, 'content error: %d' % len(plaintext)
-        # check and cache key for reuse
-        barrack = self.barrack
-        sender = barrack.identifier(msg.envelope.sender)
-        group = self.__overt_group(content=content)
-        if group is None:
-            receiver = barrack.identifier(msg.envelope.receiver)
-            # personal message or (group) command
-            # cache key with direction (sender -> receiver)
-            self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=receiver)
-        else:
-            # group message (excludes group command)
-            # cache the key with direction (sender -> group)
-            self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=group)
+        if not self._is_broadcast_message(msg=msg):
+            # check and cache key for reuse
+            barrack = self.barrack
+            sender = barrack.identifier(msg.envelope.sender)
+            group = self.__overt_group(content=content)
+            if group is None:
+                receiver = barrack.identifier(msg.envelope.receiver)
+                # personal message or (group) command
+                # cache key with direction (sender -> receiver)
+                self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=receiver)
+            else:
+                # group message (excludes group command)
+                # cache the key with direction (sender -> group)
+                self.key_cache.cache_cipher_key(key=password, sender=sender, receiver=group)
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         after deserialize content, this job should be do in subclass
         return content
