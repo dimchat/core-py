@@ -5,7 +5,7 @@ from typing import Optional
 from mkm.immortals import Immortals
 
 from dimp import NetworkID, ID, Meta, Profile, Group
-from dimp import Barrack, User, PrivateKey
+from dimp import Barrack, User, SignKey
 
 
 class Facebook(Barrack):
@@ -76,32 +76,27 @@ class Facebook(Barrack):
     #   EntityDataSource
     #
     def meta(self, identifier: ID) -> Optional[Meta]:
-        info = super().meta(identifier=identifier)
-        if info is not None:
-            return info
-        return self.__immortals.meta(identifier=identifier)
         # TODO: load meta from database
+        return self.__immortals.meta(identifier=identifier)
 
     def profile(self, identifier: ID) -> Optional[Profile]:
-        return self.__immortals.profile(identifier=identifier)
         # TODO: load profile from database
+        return self.__immortals.profile(identifier=identifier)
 
     #
     #   UserDataSource
     #
     def contacts(self, identifier: ID) -> Optional[list]:
-        array = super().contacts(identifier=identifier)
-        if array is not None:
-            return array
         # TODO: load contacts from database
+        return super().contacts(identifier=identifier)
 
     def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
-        return self.__immortals.private_keys_for_decryption(identifier=identifier)
         # TODO: load private keys from local storage
+        return self.__immortals.private_keys_for_decryption(identifier=identifier)
 
-    def private_key_for_signature(self, identifier: ID) -> Optional[PrivateKey]:
-        return self.__immortals.private_key_for_signature(identifier=identifier)
+    def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
         # TODO: load private key from local storage
+        return self.__immortals.private_key_for_signature(identifier=identifier)
 
     #
     #   GroupDataSource

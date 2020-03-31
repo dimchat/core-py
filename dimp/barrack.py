@@ -39,7 +39,7 @@ from abc import abstractmethod
 from typing import Optional
 
 from mkm import EncryptKey, SignKey, VerifyKey
-from mkm import ID, Meta
+from mkm import ID
 from mkm import User, Group
 from mkm import UserDataSource, GroupDataSource
 
@@ -62,7 +62,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         super().__init__()
         # memory caches
         self.__ids = {}
-        self.__metas = {}
         self.__users = {}
         self.__groups = {}
 
@@ -75,7 +74,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         """
         finger = 0
         finger = thanos(self.__ids, finger)
-        finger = thanos(self.__metas, finger)
         finger = thanos(self.__users, finger)
         finger = thanos(self.__groups, finger)
         return finger >> 1
@@ -83,11 +81,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     def cache_id(self, identifier: ID) -> bool:
         assert identifier.valid, 'ID not valid: %s' % identifier
         self.__ids[identifier] = identifier
-        return True
-
-    def cache_meta(self, meta: Meta, identifier: ID) -> bool:
-        assert meta.match_identifier(identifier), 'meta not match ID: %s, %s' % (identifier, meta)
-        self.__metas[identifier] = meta
         return True
 
     def cache_user(self, user: User) -> bool:
@@ -148,13 +141,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         grp = self.create_group(identifier=identifier)
         if grp is not None and self.cache_group(group=grp):
             return grp
-
-    #
-    #   EntityDataSource
-    #
-    def meta(self, identifier: ID) -> Optional[Meta]:
-        assert identifier.valid, 'entity ID error: %s' % identifier
-        return self.__metas.get(identifier)
 
     #
     #   UserDataSource
