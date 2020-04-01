@@ -222,32 +222,6 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #       (do it by application)
 
     #
-    #  Serialization
-    #
-    def serialize_message(self, msg: ReliableMessage) -> bytes:
-        assert self.barrack.identifier(msg.envelope.receiver).valid, 'receiver ID error: %s' % msg
-        string = json.dumps(msg)
-        return string.encode('utf-8')
-
-    def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
-        assert self
-        string = data.decode('utf-8')
-        dictionary = json.loads(string)
-        # TODO: translate short keys
-        #       'S' -> 'sender'
-        #       'R' -> 'receiver'
-        #       'W' -> 'time'
-        #       'T' -> 'type'
-        #       'G' -> 'group'
-        #       ------------------
-        #       'D' -> 'data'
-        #       'V' -> 'signature'
-        #       'K' -> 'key'
-        #       ------------------
-        #       'M' -> 'meta'
-        return ReliableMessage(dictionary)
-
-    #
     #   InstantMessageDelegate
     #
     def serialize_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
