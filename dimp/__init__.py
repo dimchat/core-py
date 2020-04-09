@@ -62,11 +62,12 @@ __all__ = [
     'BaseCoder',
     'Base64', 'Base58', 'Hex',
     'Digest',
-    'MD5', 'SHA256', 'RipeMD160',
-    'md5', 'sha256', 'ripemd160',
+    'MD5', 'SHA1', 'SHA256', 'RipeMD160',
+    'md5', 'sha1', 'sha256', 'ripemd160',
 
     # entity
-    'NetworkID', 'Address', 'ID', 'Meta', 'Profile',
+    'NetworkID', 'MetaVersion',
+    'Address', 'ID', 'Meta', 'Profile',
     'Entity', 'User', 'Group',
 
     # delegate
