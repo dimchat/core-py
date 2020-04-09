@@ -39,7 +39,7 @@ import json
 import weakref
 from typing import Optional
 
-from mkm.crypto.utils import base64_encode, base64_decode
+from mkm import Base64
 from mkm import SymmetricKey, ID
 
 from dkd import Content, Message
@@ -129,7 +129,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         else:
             return group
 
-    def encrypt_message(self, msg: InstantMessage) -> SecureMessage:
+    def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
         barrack = self.barrack
         sender = barrack.identifier(msg.envelope.sender)
         receiver = barrack.identifier(msg.envelope.receiver)
@@ -172,6 +172,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             # personal message (or split group message)
             assert receiver.is_user, 'unknown receiver type: %s' % receiver
             s_msg = msg.encrypt(password=password)
+        if s_msg is None:
+            # public key for encryption not found
+            # TODO: suspend this message for waiting receiver's meta
+            return None
 
         # overt group ID
         if group is not None and receiver != group:
@@ -194,6 +198,27 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         assert msg.data is not None, 'message data empty: %s' % msg
         # sign 'data' by sender
         return msg.sign()
+
+    def serialize_message(self, msg: ReliableMessage) -> bytes:
+        string = json.dumps(msg)
+        return string.encode('utf-8')
+
+    def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
+        string = data.decode('utf-8')
+        dictionary = json.loads(string)
+        # TODO: translate short keys
+        #       'S' -> 'sender'
+        #       'R' -> 'receiver'
+        #       'W' -> 'time'
+        #       'T' -> 'type'
+        #       'G' -> 'group'
+        #       ------------------
+        #       'D' -> 'data'
+        #       'V' -> 'signature'
+        #       'K' -> 'key'
+        #       ------------------
+        #       'M' -> 'meta'
+        return ReliableMessage(dictionary)
 
     def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
         #
@@ -242,7 +267,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
             return data.decode('utf-8')
-        return base64_encode(data)
+        return Base64.encode(data)
 
     def serialize_key(self, key: dict, msg: InstantMessage) -> Optional[bytes]:
         if self.__is_broadcast_message(msg=msg):
@@ -253,16 +278,17 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def encrypt_key(self, data: bytes, receiver: str, msg: InstantMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
-        # encrypt with receiver's public key
+        # TODO: make sure the receiver's public key exists
         barrack = self.barrack
         contact = barrack.user(identifier=barrack.identifier(receiver))
         assert contact is not None, 'failed to encrypt for receiver: %s' % receiver
+        # encrypt with receiver's public key
         return contact.encrypt(data=data)
 
-    def encode_key(self, data: bytes, msg: InstantMessage) -> Optional[str]:
+    def encode_key(self, data: bytes, msg: InstantMessage) -> str:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
         # encode to Base64
-        return base64_encode(data)
+        return Base64.encode(data)
 
     #
     #   SecureMessageDelegate
@@ -270,30 +296,24 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def decode_key(self, string: str, msg: SecureMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decode from Base64
-        return base64_decode(string)
+        return Base64.decode(string)
 
     def decrypt_key(self, data: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[bytes]:
-        if data is None:
-            return None
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decrypt key data with the receiver's private key
         barrack = self.barrack
         identifier = barrack.identifier(msg.envelope.receiver)
         user = barrack.user(identifier=identifier)
         assert user is not None, 'failed to create local user: %s' % identifier
-        plaintext = user.decrypt(data=data)
-        if plaintext is None:
-            raise AssertionError('failed to decrypt key in msg: %s, key data len: %d' % (msg, len(data)))
-        return plaintext
+        return user.decrypt(data=data)
 
-    def deserialize_key(self, data: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
+    def deserialize_key(self, data: Optional[bytes], sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
         if data is None:
             # get key from cache
             barrack = self.barrack
             sender = barrack.identifier(sender)
             receiver = barrack.identifier(receiver)
-            key_cache = self.key_cache
-            return key_cache.cipher_key(sender=sender, receiver=receiver)
+            return self.key_cache.cipher_key(sender=sender, receiver=receiver)
         else:
             assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key: %s' % msg
             string = data.decode('utf-8')
@@ -311,17 +331,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
             return data.encode('utf-8')
-        return base64_decode(data)
+        return Base64.decode(data)
 
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[bytes]:
         password = SymmetricKey(key=key)
         if password is None:
-            # irregular symmetric key
-            return None
-        plaintext = password.decrypt(data)
-        if plaintext is None:
-            raise ValueError('failed to decrypt data: %s, password: %s' % (data, password))
-        return plaintext
+            raise ValueError('irregular symmetric key: %s' % key)
+        return password.decrypt(data)
 
     def deserialize_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
         assert self.barrack.identifier(msg.envelope.sender).valid, 'sender ID error: %s' % msg
@@ -361,13 +377,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return user.sign(data)
 
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
-        return base64_encode(signature)
+        return Base64.encode(signature)
 
     #
     #   ReliableMessageDelegate
     #
     def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
-        return base64_decode(signature)
+        return Base64.decode(signature)
 
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
         barrack = self.barrack

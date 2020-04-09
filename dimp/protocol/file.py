@@ -28,30 +28,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-import hashlib
 import os
-from binascii import b2a_hex
 from typing import Optional
 
-from mkm.crypto.utils import base64_encode, base64_decode
+from mkm import Base64, Hex
+from mkm import md5
 
 from dkd import Content, ContentType
 
 
-def hex_encode(data: bytes) -> str:
-    """ HEX Encode """
-    return b2a_hex(data).decode('utf-8')
-
-
-def md5(data: bytes) -> bytes:
-    """ MD5 digest """
-    hash_obj = hashlib.md5()
-    hash_obj.update(data)
-    return hash_obj.digest()
-
-
 def data_filename(data: bytes, ext: str=None) -> str:
-    filename = hex_encode(md5(data))
+    filename = Hex.encode(md5(data))
     if ext is None or len(ext) == 0:
         return filename
     return filename + '.' + ext
@@ -114,7 +101,7 @@ class FileContent(Content):
         if self.__attachment is None:
             base64 = self.get('data')
             if base64 is not None:
-                self.__attachment = base64_decode(base64)
+                self.__attachment = Base64.decode(base64)
         return self.__attachment
 
     @data.setter
@@ -122,7 +109,7 @@ class FileContent(Content):
         if attachment is None:
             self.pop('data', None)
         else:
-            self['data'] = base64_encode(attachment)
+            self['data'] = Base64.encode(attachment)
             # reset filename
             self['filename'] = data_filename(attachment, self.file_ext)
         self.__attachment = attachment
@@ -180,7 +167,7 @@ class FileContent(Content):
             content['type'] = ContentType.File
         # set file data
         if data is not None:
-            content['data'] = base64_encode(data)
+            content['data'] = Base64.encode(data)
         # set filename
         if filename is not None:
             content['filename'] = filename
@@ -246,7 +233,7 @@ class ImageContent(FileContent):
         if self.__thumbnail is None:
             base64 = self.get('thumbnail')
             if base64 is not None:
-                self.__thumbnail = base64_decode(base64)
+                self.__thumbnail = Base64.decode(base64)
         return self.__thumbnail
 
     @thumbnail.setter
@@ -254,7 +241,7 @@ class ImageContent(FileContent):
         if small_image is None:
             self.pop('thumbnail', None)
         else:
-            self['thumbnail'] = base64_encode(small_image)
+            self['thumbnail'] = Base64.encode(small_image)
         self.__thumbnail = small_image
 
     #
@@ -279,7 +266,7 @@ class ImageContent(FileContent):
             content['type'] = ContentType.Image
         # set thumbnail data
         if thumbnail is not None:
-            content['thumbnail'] = base64_encode(thumbnail)
+            content['thumbnail'] = Base64.encode(thumbnail)
         # new ImageContent(dict)
         return super().new(content=content, data=data, filename=filename)
 
@@ -407,7 +394,7 @@ class VideoContent(FileContent):
         if self.__snapshot is None:
             base64 = self.get('snapshot')
             if base64 is not None:
-                self.__snapshot = base64_decode(base64)
+                self.__snapshot = Base64.decode(base64)
         return self.__snapshot
 
     @snapshot.setter
@@ -415,7 +402,7 @@ class VideoContent(FileContent):
         if small_image is None:
             self.pop('snapshot', None)
         else:
-            self['snapshot'] = base64_encode(small_image)
+            self['snapshot'] = Base64.encode(small_image)
         self.__snapshot = small_image
 
     #
@@ -440,7 +427,7 @@ class VideoContent(FileContent):
             content['type'] = ContentType.Video
         # set snapshot data
         if snapshot is not None:
-            content['snapshot'] = base64_encode(snapshot)
+            content['snapshot'] = Base64.encode(snapshot)
         # new VideoContent(dict)
         return super().new(content=content, data=data, filename=filename)
 
