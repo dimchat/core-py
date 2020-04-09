@@ -62,7 +62,7 @@ __all__ = [
     'BaseCoder',
     'Base64', 'Base58', 'Hex',
     'Digest',
-    'MD5', 'SHA1', 'SHA256', 'RipeMD160',
+    'MD5', 'SHA1', 'SHA256', 'RIPEMD160',
     'md5', 'sha1', 'sha256', 'ripemd160',
 
     # entity
