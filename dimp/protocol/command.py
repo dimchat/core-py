@@ -46,10 +46,11 @@ class Command(Content):
     """
 
     # -------- command names begin --------
-    HANDSHAKE = 'handshake'
-    RECEIPT = 'receipt'
     META = 'meta'
     PROFILE = 'profile'
+    RECEIPT = 'receipt'
+    HANDSHAKE = 'handshake'
+    LOGIN = 'login'
     # -------- command names end --------
 
     def __new__(cls, cmd: dict):

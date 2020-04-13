@@ -36,7 +36,7 @@ from .protocol import TextContent, FileContent, ImageContent, AudioContent, Vide
 from .protocol import Command, HistoryCommand, GroupCommand
 from .protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
 from .protocol import QueryCommand, ResetCommand
-from .protocol import HandshakeCommand, MetaCommand, ProfileCommand
+from .protocol import MetaCommand, ProfileCommand
 
 from .barrack import Barrack
 from .keycache import KeyCache
@@ -100,7 +100,7 @@ __all__ = [
     'Command', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
-    'HandshakeCommand', 'MetaCommand', 'ProfileCommand',
+    'MetaCommand', 'ProfileCommand',
 
     # core
     'Barrack', 'KeyCache', 'Transceiver',

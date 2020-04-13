@@ -45,7 +45,6 @@ from .group import GroupCommand
 from .group import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
 from .group import QueryCommand, ResetCommand
 
-from .handshake import HandshakeCommand
 from .meta import MetaCommand
 from .profile import ProfileCommand
 
@@ -61,7 +60,6 @@ __all__ = [
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
 
-    'HandshakeCommand',
     'MetaCommand',
     'ProfileCommand',
 ]
