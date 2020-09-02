@@ -89,8 +89,9 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     # --------
 
-    @staticmethod
-    def __is_broadcast_message(msg: Message) -> bool:
+    def __is_broadcast_message(self, msg: Message) -> bool:
+        if msg.delegate is None:
+            msg.delegate = self
         receiver = msg.group
         if receiver is None:
             receiver = msg.receiver
@@ -127,6 +128,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             return group
 
     def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
+        # check message delegate
+        if msg.delegate is None:
+            msg.delegate = self
+
         sender = msg.sender
         receiver = msg.receiver
         # if 'group' exists and the 'receiver' is a group ID,
@@ -155,9 +160,6 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             password = self.__password(sender=sender, receiver=group)
         assert isinstance(password, dict), 'password error: %s' % password
 
-        # check message delegate
-        if msg.delegate is None:
-            msg.delegate = self
         assert msg.content is not None, 'message content empty: %s' % msg
         # 2. encrypt 'content' to 'data' for receiver/group members
         if receiver.is_group:
@@ -189,6 +191,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return s_msg
 
     def sign_message(self, msg: SecureMessage) -> ReliableMessage:
+        # check message delegate
         if msg.delegate is None:
             msg.delegate = self
         assert msg.data is not None, 'message data empty: %s' % msg
@@ -219,25 +222,27 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return ReliableMessage(dictionary)
 
     def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
+        # check message delegate
+        if msg.delegate is None:
+            msg.delegate = self
         #
         # TODO: check [Meta Protocol]
         #       make sure the sender's meta exists
         #       (do in by application)
         #
-        if msg.delegate is None:
-            msg.delegate = self
         assert msg.signature is not None, 'message signature empty: %s' % msg
         # verify 'data' with 'signature'
         return msg.verify()
 
     def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
+        # check message delegate
+        if msg.delegate is None:
+            msg.delegate = self
         #
         # NOTICE: make sure the receiver is YOU!
         #         which means the receiver's private key exists;
         #         if the receiver is a group ID, split it first
         #
-        if msg.delegate is None:
-            msg.delegate = self
         assert msg.data is not None, 'message data empty: %s' % msg
         # decrypt 'data' to 'content'
         return msg.decrypt()
@@ -254,13 +259,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #   InstantMessageDelegate
     #
     def content(self, content: dict) -> Optional[Content]:
-        return Content(content=content)
+        body = Content(content=content)
+        body.delegate = self
+        return body
 
     def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         before serialize content, this job should be do in subclass
-        assert msg.receiver.valid, 'receiver ID error: %s' % msg
-        assert content == msg.content, 'content not match: %s, %s' % (content, msg)
         string = json.dumps(content)
         return string.encode('utf-8')
 
@@ -297,10 +302,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
     #   SecureMessageDelegate
     #
-    def decode_key(self, string: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decode from Base64
-        return Base64.decode(string)
+        return Base64.decode(key)
 
     def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
@@ -343,7 +348,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #       'T' -> 'type'
         #       'N' -> 'sn'
         #       'G' -> 'group'
-        content = Content(dictionary)
+        content = self.content(content=dictionary)
         assert content is not None, 'content error: %d' % len(data)
         if not self.__is_broadcast_message(msg=msg):
             # check and cache key for reuse
