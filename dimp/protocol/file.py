@@ -28,13 +28,15 @@
 # SOFTWARE.
 # ==============================================================================
 
-import os
 from typing import Optional
 
 from mkm import Base64, Hex
 from mkm import md5
+from mkm import SymmetricKey
 
-from dkd import Content, ContentType
+from dkd import ContentType
+
+from .content import Content
 
 
 def data_filename(data: bytes, ext: str=None) -> str:
@@ -82,6 +84,8 @@ class FileContent(Content):
         super().__init__(content)
         # attachment (file data)
         self.__attachment: bytes = None
+        # symmetric key for decryption
+        self.__password: SymmetricKey = None
 
     # URL
     @property
@@ -110,8 +114,6 @@ class FileContent(Content):
             self.pop('data', None)
         else:
             self['data'] = Base64.encode(attachment)
-            # reset filename
-            self['filename'] = data_filename(attachment, self.file_ext)
         self.__attachment = attachment
 
     # filename
@@ -126,25 +128,21 @@ class FileContent(Content):
         else:
             self['filename'] = string
 
-    @property
-    def file_ext(self) -> Optional[str]:
-        filename = self.filename
-        if filename is not None:
-            root, ext = os.path.splitext(filename)
-            if ext is not None:
-                return ext[1:]
-
     # password for decrypting the downloaded data from CDN
     @property
-    def password(self) -> Optional[dict]:
-        return self.get('password')
+    def password(self) -> Optional[SymmetricKey]:
+        if self.__password is None:
+            self.__password = SymmetricKey(self.get('password'))
+        return self.__password
 
     @password.setter
     def password(self, key: dict):
         if key is None:
             self.pop('password', None)
+            self.__password = None
         else:
             self['password'] = key
+            self.__password = SymmetricKey(key)
 
     #
     #   Factories

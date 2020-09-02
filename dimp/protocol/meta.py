@@ -86,8 +86,8 @@ class MetaCommand(Command):
     #   ID
     #
     @property
-    def identifier(self) -> str:
-        return self['ID']
+    def identifier(self) -> ID:
+        return self.delegate.identifier(string=self['ID'])
 
     #
     #   Meta

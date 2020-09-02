@@ -131,7 +131,7 @@ class Messenger(Transceiver, ConnectionDelegate):
         # self.key_cache = keystore
         self.delegate: MessengerDelegate = None
 
-    def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+    def encrypt_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         password = SymmetricKey(key=key)
         assert password == key, 'irregular symmetric key: %s' % key
         # check attachment for File/Image/Audio/Video message content before
@@ -144,7 +144,7 @@ class Messenger(Transceiver, ConnectionDelegate):
                 content.data = None
         return super().encrypt_content(content=content, key=password, msg=msg)
 
-    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
+    def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
         password = SymmetricKey(key=key)
         content = super().decrypt_content(data=data, key=password, msg=msg)
         if content is None:
@@ -179,7 +179,7 @@ class Messenger(Transceiver, ConnectionDelegate):
         # Send message (secured + certified) to target station
         s_msg = self.encrypt_message(msg=msg)
         r_msg = self.sign_message(msg=s_msg)
-        receiver = self.facebook.identifier(msg.envelope.receiver)
+        receiver = msg.receiver
         ok = True
         if split and receiver.is_group:
             # split for each members
@@ -227,7 +227,7 @@ class Messenger(Transceiver, ConnectionDelegate):
         # 3. pack response
         user = self.facebook.current_user
         assert user is not None, 'failed to get current user'
-        sender = self.facebook.identifier(r_msg.envelope.sender)
+        sender = r_msg.sender
         i_msg = InstantMessage.new(content=response, sender=user.identifier, receiver=sender)
         s_msg = self.encrypt_message(msg=i_msg)
         msg_r = self.sign_message(msg=s_msg)
@@ -312,7 +312,7 @@ def unpack(msg: ReliableMessage) -> Content:
     # 1. verify 'data' with 'signature'
     s_msg = messenger.verify_message(msg=msg)
     # 2. check group message
-    receiver = facebook.identifier(msg.envelope.receiver)
+    receiver = msg.receiver
     if receiver.is_group:
         # TODO: split it
         pass

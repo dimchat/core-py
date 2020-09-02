@@ -39,6 +39,8 @@
 
 from typing import Optional
 
+from mkm import ID
+
 from .history import HistoryCommand
 
 
@@ -88,9 +90,10 @@ class GroupCommand(HistoryCommand):
     #   member/members
     #
     @property
-    def member(self) -> Optional[str]:
-        # TODO: convert value to ID object
-        return self.get('member')
+    def member(self) -> Optional[ID]:
+        identifier = self.get('member')
+        if identifier is not None:
+            return self.delegate.identifier(string=identifier)
 
     @member.setter
     def member(self, value: str):

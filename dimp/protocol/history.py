@@ -28,10 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-import time as time_lib
+from dkd import ContentType
 
-from dkd import ContentType, Content
-
+from .content import Content
 from .command import Command
 
 import dimp  # dimp.GroupCommand
@@ -83,14 +82,14 @@ class HistoryCommand(Command):
         if cmd is None:
             return None
         elif cls is HistoryCommand:
-            if isinstance(cmd, HistoryCommand):
-                # return HistoryCommand object directly
-                return cmd
             # check group
             if 'group' in cmd:
                 # it's a group command
                 # noinspection PyTypeChecker
                 return dimp.GroupCommand.__new__(dimp.GroupCommand, cmd)
+            if isinstance(cmd, HistoryCommand):
+                # return HistoryCommand object directly
+                return cmd
             # get class by command name
             clazz = cls.command_class(command=cmd['command'])
             if clazz is not None:
@@ -104,18 +103,6 @@ class HistoryCommand(Command):
             # no need to init again
             return
         super().__init__(content)
-        # history time
-        self.__time: int = None
-
-    @property
-    def time(self) -> int:
-        if self.__time is None:
-            time = self.get('time')
-            if time is None:
-                self.__time = 0
-            else:
-                self.__time = int(time)
-        return self.__time
 
     #
     #   Factory
@@ -135,9 +122,6 @@ class HistoryCommand(Command):
         # set content type: 'History'
         if 'type' not in content:
             content['type'] = ContentType.History
-        # set current time
-        if 'time' not in content:
-            content['time'] = int(time_lib.time())
         # new HistoryCommand(dict)
         return super().new(content, command=command)
 

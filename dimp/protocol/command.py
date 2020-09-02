@@ -28,7 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import Content, ContentType
+from dkd import ContentType
+
+from .content import Content
 
 
 class Command(Content):

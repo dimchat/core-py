@@ -35,6 +35,8 @@
     Define universal message types as contents and commands
 """
 
+from .content import Content
+from .forward import ForwardContent
 from .text import TextContent
 from .file import FileContent, ImageContent, AudioContent, VideoContent
 
@@ -50,7 +52,7 @@ from .profile import ProfileCommand
 
 
 __all__ = [
-    'TextContent',
+    'Content', 'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
     'Command',

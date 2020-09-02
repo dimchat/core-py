@@ -32,7 +32,8 @@ from mkm import *
 
 from dkd import *
 
-from .protocol import TextContent, FileContent, ImageContent, AudioContent, VideoContent
+from .protocol import Content, ForwardContent, TextContent
+from .protocol import FileContent, ImageContent, AudioContent, VideoContent
 from .protocol import Command, HistoryCommand, GroupCommand
 from .protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
 from .protocol import QueryCommand, ResetCommand
@@ -79,11 +80,9 @@ __all__ = [
     #   DaoKeDao
     #
 
-    # message
-    'Envelope', 'Content', 'Message',
-
-    # content types
-    'ContentType', 'ForwardContent',
+    'ContentType',
+    'Envelope',
+    'Message',
 
     # transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
@@ -96,7 +95,8 @@ __all__ = [
     #
 
     # protocol
-    'TextContent', 'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'Content', 'ForwardContent', 'TextContent',
+    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'Command', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
