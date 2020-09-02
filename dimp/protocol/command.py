@@ -94,12 +94,13 @@ class Command(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, command: str=None):
+    def new(cls, content: dict=None, command: str=None, time: int=0):
         """
         Create command message content with 'command' as name
 
         :param content: command info
         :param command: command name
+        :param time: command time
         :return: Command object
         """
         if content is None:
@@ -112,7 +113,7 @@ class Command(Content):
         if command is not None:
             content['command'] = command
         # new Command(dict)
-        return super().new(content=content)
+        return super().new(content=content, time=time)
 
     #
     #   Runtime

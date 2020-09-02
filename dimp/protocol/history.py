@@ -108,12 +108,13 @@ class HistoryCommand(Command):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, command: str=None):
+    def new(cls, content: dict=None, command: str=None, time: int=0):
         """
         Create history command message content with 'command' as name
 
         :param content: command info
         :param command: command name
+        :param time: command time
         :return: HistoryCommand object
         """
         if content is None:
@@ -123,7 +124,7 @@ class HistoryCommand(Command):
         if 'type' not in content:
             content['type'] = ContentType.History
         # new HistoryCommand(dict)
-        return super().new(content, command=command)
+        return super().new(content, command=command, time=time)
 
 
 # register content class with type

@@ -92,12 +92,13 @@ class ForwardContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, message: ReliableMessage=None):
+    def new(cls, content: dict=None, message: ReliableMessage=None, time: int=0):
         """
         Create forward message content with 'forward' (top-secret) message
 
         :param content: content info
         :param message: top-secret message
+        :param time: message time
         :return: ForwardMessage object
         """
         if content is None:
@@ -107,7 +108,7 @@ class ForwardContent(Content):
         if message is not None:
             content['forward'] = message
         # new ForwardContent(dict)
-        return super().new(content=content, content_type=ContentType.Forward)
+        return super().new(content=content, content_type=ContentType.Forward, time=time)
 
 
 # register content class with type

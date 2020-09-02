@@ -40,7 +40,6 @@ from .protocol import QueryCommand, ResetCommand
 from .protocol import MetaCommand, ProfileCommand
 
 from .barrack import Barrack
-from .keycache import KeyCache
 from .transceiver import Transceiver
 
 from .delegate import EntityDelegate, CipherKeyDelegate
@@ -102,9 +101,9 @@ __all__ = [
     'QueryCommand', 'ResetCommand',
     'MetaCommand', 'ProfileCommand',
 
-    # core
-    'Barrack', 'KeyCache', 'Transceiver',
-
     # delegate
     'EntityDelegate', 'CipherKeyDelegate',
+
+    # core
+    'Barrack', 'Transceiver',
 ]

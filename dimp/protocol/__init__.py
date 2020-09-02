@@ -55,13 +55,9 @@ __all__ = [
     'Content', 'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
-    'Command',
-    'HistoryCommand',
-
-    'GroupCommand',
+    'Command', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
 
-    'MetaCommand',
-    'ProfileCommand',
+    'MetaCommand', 'ProfileCommand',
 ]

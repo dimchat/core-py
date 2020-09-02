@@ -80,7 +80,15 @@ class TextContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, text: str=None):
+    def new(cls, content: dict=None, text: str=None, time: int=0):
+        """
+        Create text message content
+
+        :param content: content info
+        :param text: message
+        :param time: message time
+        :return: TextContent object
+        """
         if content is None:
             # create empty content
             content = {}
@@ -88,7 +96,7 @@ class TextContent(Content):
         if text is not None:
             content['text'] = text
         # new
-        return super().new(content=content, content_type=ContentType.Text)
+        return super().new(content=content, content_type=ContentType.Text, time=time)
 
 
 # register content class with type
