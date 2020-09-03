@@ -259,7 +259,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #   InstantMessageDelegate
     #
     def content(self, content: dict) -> Optional[Content]:
-        body = Content(content=content)
+        body = Content(content)
         body.delegate = self
         return body
 
