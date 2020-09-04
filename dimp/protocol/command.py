@@ -104,10 +104,12 @@ class Command(Content):
         :return: Command object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'Command'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.Command
+            }
+        elif 'type' not in content:
+            # set content type: 'Command'
             content['type'] = ContentType.Command
         # set command name
         if command is not None:

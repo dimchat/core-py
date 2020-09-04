@@ -38,7 +38,7 @@
 
 from typing import Optional
 
-from mkm import ID, Meta, Profile
+from mkm import Profile
 
 from .command import Command
 from .meta import MetaCommand
@@ -127,7 +127,7 @@ class ProfileCommand(MetaCommand):
     #   Factories
     #
     @classmethod
-    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None, profile: Profile=None, signature: str=None):
+    def new(cls, content: dict=None, identifier: str=None, meta: dict=None, profile: dict=None, signature: str=None):
         """
         Create profile command for entity
 
@@ -139,14 +139,15 @@ class ProfileCommand(MetaCommand):
         :return: ProfileCommand object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set command name: 'profile'
-        if 'command' not in content:
+            # create empty content with command name
+            content = {
+                'command': Command.PROFILE
+            }
+        elif 'command' not in content:
+            # set command name: 'profile'
             content['command'] = Command.PROFILE
         # set profile info
         if profile is not None:
-            assert profile.identifier == identifier, 'profile ID error: %s, %s' % (profile, identifier)
             # TODO: upgrade to v1.1 later
             content['profile'] = profile.get('data')
             content['signature'] = profile.get('signature')
@@ -155,11 +156,11 @@ class ProfileCommand(MetaCommand):
         return super().new(content=content, identifier=identifier, meta=meta)
 
     @classmethod
-    def query(cls, identifier: ID, signature: str=None):
+    def query(cls, identifier: str, signature: str=None):
         return cls.new(identifier=identifier, signature=signature)
 
     @classmethod
-    def response(cls, identifier: ID, profile: Profile, meta: Meta=None):
+    def response(cls, identifier: str, profile: dict, meta: dict=None):
         return cls.new(identifier=identifier, meta=meta, profile=profile)
 
 

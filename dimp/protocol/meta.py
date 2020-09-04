@@ -102,7 +102,7 @@ class MetaCommand(Command):
     #   Factories
     #
     @classmethod
-    def new(cls, content: dict=None, identifier: ID=None, meta: Meta=None):
+    def new(cls, content: dict=None, identifier: str=None, meta: dict=None):
         """
         Create meta command for entity
 
@@ -113,9 +113,11 @@ class MetaCommand(Command):
         """
         if content is None:
             # create empty content
-            content = {}
-        # set command name: 'meta'
-        if 'command' not in content:
+            content = {
+                'command': Command.META
+            }
+        elif 'command' not in content:
+            # set command name: 'meta'
             content['command'] = Command.META
         # set entity ID
         if identifier is not None:
@@ -127,11 +129,11 @@ class MetaCommand(Command):
         return super().new(content=content)
 
     @classmethod
-    def query(cls, identifier: ID):
+    def query(cls, identifier: str):
         return cls.new(identifier=identifier)
 
     @classmethod
-    def response(cls, identifier: ID, meta: Meta):
+    def response(cls, identifier: str, meta: dict):
         return cls.new(identifier=identifier, meta=meta)
 
 

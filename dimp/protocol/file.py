@@ -139,10 +139,10 @@ class FileContent(Content):
     def password(self, key: dict):
         if key is None:
             self.pop('password', None)
-            self.__password = None
         else:
             self['password'] = key
-            self.__password = SymmetricKey(key)
+        # lazy load
+        self.__password = None
 
     #
     #   Factories
@@ -158,10 +158,12 @@ class FileContent(Content):
         :return: FileContent object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'File'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.File
+            }
+        elif 'type' not in content:
+            # set content type: 'File'
             content['type'] = ContentType.File
         # set file data
         if data is not None:
@@ -257,10 +259,12 @@ class ImageContent(FileContent):
         :return: ImageContent object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'Image'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.Image
+            }
+        elif 'type' not in content:
+            # set content type: 'Image'
             content['type'] = ContentType.Image
         # set thumbnail data
         if thumbnail is not None:
@@ -334,10 +338,12 @@ class AudioContent(FileContent):
         :return: AudioContent object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'Audio'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.Audio
+            }
+        elif 'type' not in content:
+            # set content type: 'Audio'
             content['type'] = ContentType.Audio
         # set ASR text
         if text is not None:
@@ -418,10 +424,12 @@ class VideoContent(FileContent):
         :return: VideoContent object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'Video'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.Video
+            }
+        elif 'type' not in content:
+            # set content type: 'Video'
             content['type'] = ContentType.Video
         # set snapshot data
         if snapshot is not None:

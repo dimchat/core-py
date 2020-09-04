@@ -71,7 +71,7 @@ class ForwardContent(Content):
             return
         super().__init__(content)
         # lazy
-        self.__forward: ReliableMessage[ID, SymmetricKey] = None
+        self.__forward = None
 
     #
     #   forward (top-secret message)
@@ -88,19 +88,20 @@ class ForwardContent(Content):
             self.pop('forward', None)
         else:
             self['forward'] = value
-        self.__forward = value
+        # lazy load
+        self.__forward = None
 
     #
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, message: ReliableMessage[ID, SymmetricKey]=None, time: int=0):
+    def new(cls, content: dict=None, message: dict=None, time: int=0):
         """
         Create forward message content with 'forward' (top-secret) message
 
         :param content: content info
-        :param message: top-secret message
-        :param time: message time
+        :param message: top-secret message (ReliableMessage)
+        :param time:    message time
         :return: ForwardMessage object
         """
         if content is None:

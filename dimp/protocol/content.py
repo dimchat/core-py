@@ -32,7 +32,7 @@ from typing import Union
 import time as time_lib
 import random
 
-from mkm import ID, SymmetricKey
+from mkm import ID
 
 from dkd import ContentType
 from dkd import Content as DKDContent
@@ -45,7 +45,7 @@ def random_positive_integer():
     return random.randint(1, 2**32-1)
 
 
-class Content(DKDContent[ID, SymmetricKey]):
+class Content(DKDContent[ID]):
     """This class is for creating message content
 
         Message Content
@@ -90,7 +90,7 @@ class Content(DKDContent[ID, SymmetricKey]):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, content_type: Union[ContentType, int, None]=0, time: int=0):
+    def new(cls, content: dict=None, content_type: Union[ContentType, int]=0, time: int=0):
         """
         Create message content with 'type' & 'sn' (serial number)
 

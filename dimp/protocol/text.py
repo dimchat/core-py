@@ -91,9 +91,11 @@ class TextContent(Content):
         """
         if content is None:
             # create empty content
-            content = {}
-        # set text
-        if text is not None:
+            content = {
+                'text': text
+            }
+        elif text is not None:
+            # set text
             content['text'] = text
         # new
         return super().new(content=content, content_type=ContentType.Text, time=time)

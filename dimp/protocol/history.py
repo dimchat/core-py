@@ -118,10 +118,12 @@ class HistoryCommand(Command):
         :return: HistoryCommand object
         """
         if content is None:
-            # create empty content
-            content = {}
-        # set content type: 'History'
-        if 'type' not in content:
+            # create empty content with type
+            content = {
+                'type': ContentType.History
+            }
+        elif 'type' not in content:
+            # set content type: 'History'
             content['type'] = ContentType.History
         # new HistoryCommand(dict)
         return super().new(content, command=command, time=time)
