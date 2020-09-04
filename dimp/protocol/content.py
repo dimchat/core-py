@@ -32,6 +32,8 @@ from typing import Union
 import time as time_lib
 import random
 
+from mkm import ID, SymmetricKey
+
 from dkd import ContentType
 from dkd import Content as DKDContent
 
@@ -43,7 +45,7 @@ def random_positive_integer():
     return random.randint(1, 2**32-1)
 
 
-class Content(DKDContent):
+class Content(DKDContent[ID, SymmetricKey]):
     """This class is for creating message content
 
         Message Content

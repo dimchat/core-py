@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm import ID, SymmetricKey
+
 from dkd import ContentType
 from dkd import ReliableMessage
 
@@ -69,15 +71,15 @@ class ForwardContent(Content):
             return
         super().__init__(content)
         # lazy
-        self.__forward: ReliableMessage = None
+        self.__forward: ReliableMessage[ID, SymmetricKey] = None
 
     #
     #   forward (top-secret message)
     #
     @property
-    def message(self) -> ReliableMessage:
+    def message(self) -> ReliableMessage[ID, SymmetricKey]:
         if self.__forward is None:
-            self.__forward = ReliableMessage(self.get('forward'))
+            self.__forward = ReliableMessage[ID, SymmetricKey](self.get('forward'))
         return self.__forward
 
     @message.setter
@@ -92,7 +94,7 @@ class ForwardContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, message: ReliableMessage=None, time: int=0):
+    def new(cls, content: dict=None, message: ReliableMessage[ID, SymmetricKey]=None, time: int=0):
         """
         Create forward message content with 'forward' (top-secret) message
 

@@ -32,6 +32,8 @@ from mkm import *
 
 from dkd import *
 
+from .protocol import Envelope, Message, InstantMessage, SecureMessage, ReliableMessage
+from .protocol import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 from .protocol import Content, ForwardContent, TextContent
 from .protocol import FileContent, ImageContent, AudioContent, VideoContent
 from .protocol import Command, HistoryCommand, GroupCommand

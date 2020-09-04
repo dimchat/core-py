@@ -42,9 +42,9 @@ from typing import Optional
 from mkm import Base64
 from mkm import SymmetricKey, ID
 
-from dkd import Message
-from dkd import InstantMessage, SecureMessage, ReliableMessage
-from dkd import InstantMessageDelegate, ReliableMessageDelegate
+from .protocol import Message
+from .protocol import InstantMessage, SecureMessage, ReliableMessage
+from .protocol import InstantMessageDelegate, ReliableMessageDelegate
 
 from .protocol import Content, Command
 from .delegate import EntityDelegate, CipherKeyDelegate
@@ -158,7 +158,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         else:
             # group message (excludes group command)
             password = self.__password(sender=sender, receiver=group)
-        assert isinstance(password, dict), 'password error: %s' % password
+        assert isinstance(password, SymmetricKey), 'password error: %s' % password
 
         assert msg.content is not None, 'message content empty: %s' % msg
         # 2. encrypt 'content' to 'data' for receiver/group members
@@ -252,12 +252,14 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
     #   MessageDelegate
     #
+
     def identifier(self, string: str) -> ID:
         return self.barrack.identifier(string=string)
 
     #
     #   InstantMessageDelegate
     #
+
     def content(self, content: dict) -> Optional[Content]:
         body = Content(content)
         body.delegate = self
@@ -269,6 +271,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         string = json.dumps(content)
         return string.encode('utf-8')
 
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
         return key.encrypt(data=data)
 
@@ -302,11 +305,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
     #   SecureMessageDelegate
     #
+
     def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decode from Base64
         return Base64.decode(key)
 
+    # noinspection PyUnusedLocal
     def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
         assert not self.__is_broadcast_message(msg=msg), 'broadcast message has no key'
         # decrypt key data with the receiver's private key
@@ -338,6 +343,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             return data.encode('utf-8')
         return Base64.decode(data)
 
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
         return key.decrypt(data)
 
@@ -365,20 +371,25 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         #         after deserialize content, this job should be do in subclass
         return content
 
+    # noinspection PyUnusedLocal
     def sign_data(self, data: bytes, sender: ID, msg: SecureMessage) -> bytes:
         user = self.barrack.user(identifier=sender)
         assert user is not None, 'failed to sign with sender: %s' % sender
         return user.sign(data)
 
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
         return Base64.encode(signature)
 
     #
     #   ReliableMessageDelegate
     #
+
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
         return Base64.decode(signature)
 
+    # noinspection PyUnusedLocal
     def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage) -> bool:
         contact = self.barrack.user(identifier=sender)
         assert contact is not None, 'failed to verify signature for sender: %s' % sender

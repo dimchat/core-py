@@ -35,6 +35,9 @@
     Define universal message types as contents and commands
 """
 
+from mkm import ID, SymmetricKey
+import dkd
+
 from .content import Content
 from .forward import ForwardContent
 from .text import TextContent
@@ -50,8 +53,24 @@ from .group import QueryCommand, ResetCommand
 from .meta import MetaCommand
 from .profile import ProfileCommand
 
+#
+#  Conveniences for Generic
+#
+Envelope = dkd.Envelope[ID]
+Message = dkd.Message[ID, SymmetricKey]
+InstantMessage = dkd.InstantMessage[ID, SymmetricKey]
+SecureMessage = dkd.SecureMessage[ID, SymmetricKey]
+ReliableMessage = dkd.ReliableMessage[ID, SymmetricKey]
+# Delegates
+InstantMessageDelegate = dkd.InstantMessageDelegate[ID, SymmetricKey]
+SecureMessageDelegate = dkd.SecureMessageDelegate[ID, SymmetricKey]
+ReliableMessageDelegate = dkd.ReliableMessageDelegate[ID, SymmetricKey]
+
 
 __all__ = [
+    'Envelope', 'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+
     'Content', 'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
