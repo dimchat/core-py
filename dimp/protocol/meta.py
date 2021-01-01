@@ -58,36 +58,26 @@ class MetaCommand(Command):
         }
     """
 
-    def __new__(cls, cmd: dict):
-        """
-        Create meta command
-
-        :param cmd: command info
-        :return: MetaCommand object
-        """
+    def __init__(self, cmd: Optional[dict]=None, command: Optional[str]=None,
+                 identifier: Optional[ID]=None, meta: Optional[Meta]=None):
         if cmd is None:
-            return None
-        elif cls is MetaCommand:
-            if isinstance(cmd, MetaCommand):
-                # return MetaCommand object directly
-                return cmd
-        # new MetaCommand(dict)
-        return super().__new__(cls, cmd)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # lazy
-        self.__meta: Meta = None
+            if command is None:
+                command = Command.META
+            super().__init__(command=command)
+        else:
+            super().__init__(cmd=cmd)
+        self.__meta = meta
+        if meta is not None:
+            self['meta'] = meta.dictionary
+        if identifier is not None:
+            self['ID'] = identifier
 
     #
     #   ID
     #
     @property
     def identifier(self) -> ID:
-        return self.delegate.identifier(string=self['ID'])
+        return ID.parse(identifier=self.get('ID'))
 
     #
     #   Meta
@@ -95,47 +85,13 @@ class MetaCommand(Command):
     @property
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            self.__meta = Meta(self.get('meta'))
+            self.__meta = Meta.parse(meta=self.get('meta'))
         return self.__meta
 
-    #
-    #   Factories
-    #
     @classmethod
-    def new(cls, content: dict=None, identifier: str=None, meta: dict=None):
-        """
-        Create meta command for entity
-
-        :param content:    command info
-        :param identifier: entity ID
-        :param meta:       meta info
-        :return: MetaCommand object
-        """
-        if content is None:
-            # create empty content
-            content = {
-                'command': Command.META
-            }
-        elif 'command' not in content:
-            # set command name: 'meta'
-            content['command'] = Command.META
-        # set entity ID
-        if identifier is not None:
-            content['ID'] = identifier
-        # set entity meta
-        if meta is not None:
-            content['meta'] = meta
-        # new MetaCommand(dict)
-        return super().new(content=content)
+    def query(cls, identifier: ID):
+        return cls(identifier=identifier)
 
     @classmethod
-    def query(cls, identifier: str):
-        return cls.new(identifier=identifier)
-
-    @classmethod
-    def response(cls, identifier: str, meta: dict):
-        return cls.new(identifier=identifier, meta=meta)
-
-
-# register command class
-Command.register(command=Command.META, command_class=MetaCommand)
+    def response(cls, identifier: ID, meta: Meta):
+        return cls(identifier=identifier, meta=meta)

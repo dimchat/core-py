@@ -28,12 +28,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import ContentType
+from typing import Optional
 
-from .content import Content
+from dkd import ContentType, BaseContent
 
 
-class TextContent(Content):
+class TextContent(BaseContent):
     """
         Text Message Content
         ~~~~~~~~~~~~~~~~~~~~
@@ -46,21 +46,13 @@ class TextContent(Content):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create text content
-
-        :param content: content info
-        :return: TextContent object
-        """
+    def __init__(self, content: Optional[dict]=None, text: Optional[str]=None):
         if content is None:
-            return None
-        elif cls is TextContent:
-            if isinstance(content, TextContent):
-                # return TextContent object directly
-                return content
-        # new TextContent(dict)
-        return super().__new__(cls, content)
+            super().__init__(content_type=ContentType.TEXT)
+        else:
+            super().__init__(content=content)
+        if text is not None:
+            self['text'] = text
 
     #
     #   text
@@ -75,31 +67,3 @@ class TextContent(Content):
             self.pop('text', None)
         else:
             self['text'] = value
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, text: str=None, time: int=0):
-        """
-        Create text message content
-
-        :param content: content info
-        :param text: message
-        :param time: message time
-        :return: TextContent object
-        """
-        if content is None:
-            # create empty content
-            content = {
-                'text': text
-            }
-        elif text is not None:
-            # set text
-            content['text'] = text
-        # new
-        return super().new(content=content, content_type=ContentType.Text, time=time)
-
-
-# register content class with type
-Content.register(content_type=ContentType.Text, content_class=TextContent)

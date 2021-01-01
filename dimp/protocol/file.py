@@ -28,25 +28,22 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Union
 
-from mkm import Base64, Hex
-from mkm import md5
+from mkm import base64_encode, base64_decode, hex_encode, md5
 from mkm import SymmetricKey
 
-from dkd import ContentType
-
-from .content import Content
+from dkd import ContentType, BaseContent
 
 
 def data_filename(data: bytes, ext: str=None) -> str:
-    filename = Hex.encode(md5(data))
+    filename = hex_encode(md5(data))
     if ext is None or len(ext) == 0:
         return filename
     return filename + '.' + ext
 
 
-class FileContent(Content):
+class FileContent(BaseContent):
     """
         File Message Content
         ~~~~~~~~~~~~~~~~~~~~
@@ -61,31 +58,21 @@ class FileContent(Content):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create file message content
-
-        :param content: content info
-        :return: FileContent object
-        """
+    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int]=0,
+                 filename: Optional[str] = None, data: Optional[bytes]=None):
         if content is None:
-            return None
-        elif cls is FileContent:
-            if isinstance(content, FileContent):
-                # return FileContent object directly
-                return content
-        # subclass or default FileContent(dict)
-        return super().__new__(cls, content)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # attachment (file data)
-        self.__attachment: bytes = None
-        # symmetric key for decryption
-        self.__password: SymmetricKey = None
+            if content_type is 0:
+                content_type = ContentType.FILE
+            super().__init__(content_type=content_type)
+        else:
+            super().__init__(content=content)
+        self.__attachment = data  # attachment (file data)
+        self.__password = None    # symmetric key for decryption
+        # set values to inner dictionary
+        if filename is not None:
+            self['filename'] = filename
+        if data is not None:
+            self['data'] = base64_encode(data=data)
 
     # URL
     @property
@@ -105,16 +92,16 @@ class FileContent(Content):
         if self.__attachment is None:
             base64 = self.get('data')
             if base64 is not None:
-                self.__attachment = Base64.decode(base64)
+                self.__attachment = base64_decode(base64)
         return self.__attachment
 
     @data.setter
     def data(self, attachment: bytes):
+        self.__attachment = attachment
         if attachment is None:
             self.pop('data', None)
         else:
-            self['data'] = Base64.encode(attachment)
-        self.__attachment = attachment
+            self['data'] = base64_encode(attachment)
 
     # filename
     @property
@@ -132,59 +119,16 @@ class FileContent(Content):
     @property
     def password(self) -> Optional[SymmetricKey]:
         if self.__password is None:
-            self.__password = SymmetricKey(self.get('password'))
+            self.__password = SymmetricKey.parse(key=self.get('password'))
         return self.__password
 
     @password.setter
-    def password(self, key: dict):
+    def password(self, key: SymmetricKey):
+        self.__password = key
         if key is None:
             self.pop('password', None)
         else:
-            self['password'] = key
-        # lazy load
-        self.__password = None
-
-    #
-    #   Factories
-    #
-    @classmethod
-    def new(cls, content: dict=None, data: bytes=None, filename: str=None):
-        """
-        Create file message content
-
-        :param content:  content info
-        :param data:     file data
-        :param filename: file name
-        :return: FileContent object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.File
-            }
-        elif 'type' not in content:
-            # set content type: 'File'
-            content['type'] = ContentType.File
-        # set file data
-        if data is not None:
-            content['data'] = Base64.encode(data)
-        # set filename
-        if filename is not None:
-            content['filename'] = filename
-        # new FileContent(dict)
-        return super().new(content=content)
-
-    @classmethod
-    def image(cls, data: bytes, thumbnail: bytes=None, filename: str=None):
-        return ImageContent.new(data=data, thumbnail=thumbnail, filename=filename)
-
-    @classmethod
-    def audio(cls, data: bytes, text: str=None, filename: str=None):
-        return AudioContent.new(data=data, text=text, filename=filename)
-
-    @classmethod
-    def video(cls, data: bytes, snapshot: bytes=None, filename: str=None):
-        return VideoContent.new(data=data, snapshot=snapshot, filename=filename)
+            self['password'] = key.dictionary
 
 
 class ImageContent(FileContent):
@@ -203,29 +147,12 @@ class ImageContent(FileContent):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create image message content
-
-        :param content: content info
-        :return: ImageContent object
-        """
-        if content is None:
-            return None
-        elif cls is ImageContent:
-            if isinstance(content, ImageContent):
-                # return ImageContent object directly
-                return content
-        # new ImageContent(dict)
-        return super().__new__(cls, content)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # thumbnail (lazy)
-        self.__thumbnail: bytes = None
+    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
+                 thumbnail: Optional[bytes]=None):
+        super().__init__(content, ContentType.IMAGE, filename=filename, data=data)
+        self.__thumbnail = thumbnail
+        if thumbnail is not None:
+            self['thumbnail'] = base64_encode(data=thumbnail)
 
     # thumbnail of image
     @property
@@ -233,44 +160,16 @@ class ImageContent(FileContent):
         if self.__thumbnail is None:
             base64 = self.get('thumbnail')
             if base64 is not None:
-                self.__thumbnail = Base64.decode(base64)
+                self.__thumbnail = base64_decode(base64)
         return self.__thumbnail
 
     @thumbnail.setter
     def thumbnail(self, small_image: bytes):
+        self.__thumbnail = small_image
         if small_image is None:
             self.pop('thumbnail', None)
         else:
-            self['thumbnail'] = Base64.encode(small_image)
-        self.__thumbnail = small_image
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, data: bytes=None, thumbnail: bytes=None, filename: str=None):
-        """
-        Create image message content
-
-        :param content:   content info
-        :param data:      image data
-        :param thumbnail: thumbnail data
-        :param filename:  image filename
-        :return: ImageContent object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.Image
-            }
-        elif 'type' not in content:
-            # set content type: 'Image'
-            content['type'] = ContentType.Image
-        # set thumbnail data
-        if thumbnail is not None:
-            content['thumbnail'] = Base64.encode(thumbnail)
-        # new ImageContent(dict)
-        return super().new(content=content, data=data, filename=filename)
+            self['thumbnail'] = base64_encode(small_image)
 
 
 class AudioContent(FileContent):
@@ -289,27 +188,11 @@ class AudioContent(FileContent):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create audio message content
-
-        :param content: content info
-        :return: AudioContent object
-        """
-        if content is None:
-            return None
-        elif cls is AudioContent:
-            if isinstance(content, AudioContent):
-                # return AudioContent object directly
-                return content
-        # new AudioContent(dict)
-        return super().__new__(cls, content)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
+    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
+                 text: Optional[str]=None):
+        super().__init__(content, ContentType.AUDIO, filename=filename, data=data)
+        if text is not None:
+            self['text'] = text
 
     # ASR text
     @property
@@ -322,34 +205,6 @@ class AudioContent(FileContent):
             self.pop('text', None)
         else:
             self['text'] = string
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, data: bytes=None, text: str=None, filename: str=None):
-        """
-        Create audio message content
-
-        :param content:  content info
-        :param data:     audio data
-        :param text:     Automatic Speech Recognition
-        :param filename: audio filename
-        :return: AudioContent object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.Audio
-            }
-        elif 'type' not in content:
-            # set content type: 'Audio'
-            content['type'] = ContentType.Audio
-        # set ASR text
-        if text is not None:
-            content['text'] = text
-        # new AudioContent(dict)
-        return super().new(content=content, data=data, filename=filename)
 
 
 class VideoContent(FileContent):
@@ -368,29 +223,12 @@ class VideoContent(FileContent):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create video message content
-
-        :param content: content info
-        :return: VideoContent object
-        """
-        if content is None:
-            return None
-        elif cls is VideoContent:
-            if isinstance(content, VideoContent):
-                # return VideoContent object directly
-                return content
-        # new VideoContent(dict)
-        return super().__new__(cls, content)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # snapshot (lazy)
-        self.__snapshot: bytes = None
+    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
+                 snapshot: Optional[bytes]=None):
+        super().__init__(content, ContentType.VIDEO, filename=filename, data=data)
+        self.__snapshot = snapshot
+        if snapshot is not None:
+            self['snapshot'] = base64_encode(data=snapshot)
 
     # snapshot of video
     @property
@@ -398,48 +236,13 @@ class VideoContent(FileContent):
         if self.__snapshot is None:
             base64 = self.get('snapshot')
             if base64 is not None:
-                self.__snapshot = Base64.decode(base64)
+                self.__snapshot = base64_decode(base64)
         return self.__snapshot
 
     @snapshot.setter
     def snapshot(self, small_image: bytes):
+        self.__snapshot = small_image
         if small_image is None:
             self.pop('snapshot', None)
         else:
-            self['snapshot'] = Base64.encode(small_image)
-        self.__snapshot = small_image
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, data: bytes=None, snapshot: bytes=None, filename: str=None):
-        """
-        Create video message content
-
-        :param content:  content info
-        :param data:     video data
-        :param snapshot: snapshot data
-        :param filename: video filename
-        :return: VideoContent object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.Video
-            }
-        elif 'type' not in content:
-            # set content type: 'Video'
-            content['type'] = ContentType.Video
-        # set snapshot data
-        if snapshot is not None:
-            content['snapshot'] = Base64.encode(snapshot)
-        # new VideoContent(dict)
-        return super().new(content=content, data=data, filename=filename)
-
-
-# register content class with type
-Content.register(content_type=ContentType.File, content_class=FileContent)
-Content.register(content_type=ContentType.Image, content_class=ImageContent)
-Content.register(content_type=ContentType.Audio, content_class=AudioContent)
-Content.register(content_type=ContentType.Video, content_class=VideoContent)
+            self['snapshot'] = base64_encode(small_image)

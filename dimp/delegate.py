@@ -38,20 +38,32 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from mkm import SymmetricKey, ID, User, Group
+from mkm import SymmetricKey, ID
+
+from .user import User
+from .group import Group
 
 
 class EntityDelegate(ABC):
 
     @abstractmethod
-    def identifier(self, string: str) -> Optional[ID]:
+    def local_users(self) -> Optional[list]:
         """
-        Create entity ID with String
+        Get all local users (for decrypting received message)
 
-        :param string: ID string
-        :return: ID object
+        :return: users with private key
         """
-        pass
+        raise NotImplemented
+
+    @abstractmethod
+    def select_user(self, receiver: ID) -> Optional[User]:
+        """
+        Select local user for receiver
+
+        :param receiver: user/group ID
+        :return: local user
+        """
+        raise NotImplemented
 
     @abstractmethod
     def user(self, identifier: ID) -> Optional[User]:
@@ -61,7 +73,7 @@ class EntityDelegate(ABC):
         :param identifier: ID object
         :return: User object
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def group(self, identifier: ID) -> Optional[Group]:
@@ -71,21 +83,22 @@ class EntityDelegate(ABC):
         :param identifier: ID object
         :return: Group object
         """
-        pass
+        raise NotImplemented
 
 
 class CipherKeyDelegate(ABC):
 
     @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID) -> Optional[SymmetricKey]:
+    def cipher_key(self, sender: ID, receiver: ID, generate: bool=False) -> Optional[SymmetricKey]:
         """
         Get cipher key for encrypt message from 'sender' to 'receiver'
 
         :param sender:   user or contact ID
         :param receiver: contact or user/group ID
+        :param generate: generate when key not exists
         :return:         cipher key
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
@@ -96,4 +109,4 @@ class CipherKeyDelegate(ABC):
         :param sender:   user or contact ID
         :param receiver: contact or user/group ID
         """
-        pass
+        raise NotImplemented

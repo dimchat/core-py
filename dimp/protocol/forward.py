@@ -28,15 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm import ID, SymmetricKey
+from typing import Optional
 
-from dkd import ContentType
+from dkd import ContentType, BaseContent
 from dkd import ReliableMessage
 
-from .content import Content
 
-
-class ForwardContent(Content):
+class ForwardContent(BaseContent):
     """
         Top-Secret Message Content
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,70 +47,30 @@ class ForwardContent(Content):
         }
     """
 
-    def __new__(cls, content: dict):
-        """
-        Create forward message content
-
-        :param content: content info
-        :return: ForwardContent object
-        """
+    def __init__(self, content: Optional[dict]=None, message: Optional[ReliableMessage]=None):
         if content is None:
-            return None
-        elif cls is ForwardContent:
-            if isinstance(content, ForwardContent):
-                # return ForwardContent object directly
-                return content
-        # new ForwardContent(dict)
-        return super().__new__(cls, content)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # lazy
-        self.__forward = None
+            super().__init__(content_type=ContentType.Forward)
+        else:
+            super().__init__(content=content)
+        self.__forward = message
+        if message is not None:
+            self['forward'] = message.dictionary
 
     #
     #   forward (top-secret message)
     #
     @property
-    def message(self) -> ReliableMessage[ID, SymmetricKey]:
+    def message(self) -> ReliableMessage:
         if self.__forward is None:
-            self.__forward = ReliableMessage[ID, SymmetricKey](self.get('forward'))
+            msg = self.get('forward')
+            if msg is not None:
+                self.__forward = ReliableMessage.parse(msg=msg)
         return self.__forward
 
     @message.setter
-    def message(self, value: dict):
+    def message(self, value: ReliableMessage):
+        self.__forward = value
         if value is None:
             self.pop('forward', None)
         else:
-            self['forward'] = value
-        # lazy load
-        self.__forward = None
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, message: dict=None, time: int=0):
-        """
-        Create forward message content with 'forward' (top-secret) message
-
-        :param content: content info
-        :param message: top-secret message (ReliableMessage)
-        :param time:    message time
-        :return: ForwardMessage object
-        """
-        if content is None:
-            # create empty content
-            content = {}
-        # set 'forward' message
-        if message is not None:
-            content['forward'] = message
-        # new ForwardContent(dict)
-        return super().new(content=content, content_type=ContentType.Forward, time=time)
-
-
-# register content class with type
-Content.register(content_type=ContentType.Forward, content_class=ForwardContent)
+            self['forward'] = value.dictionary

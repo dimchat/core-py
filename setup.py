@@ -12,7 +12,7 @@
 
 from setuptools import setup, find_packages
 
-__version__ = '0.9.8'
+__version__ = '0.10.3'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
@@ -36,7 +36,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=[
-        'dkd>=0.8.0',
-        'mkm>=0.9.3',
+        'dkd>=0.10.4',
+        'mkm>=0.10.3',
     ]
 )

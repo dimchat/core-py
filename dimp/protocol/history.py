@@ -28,12 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
+from typing import Optional
+
 from dkd import ContentType
 
-from .content import Content
 from .command import Command
-
-import dimp  # dimp.GroupCommand
 
 
 class HistoryCommand(Command):
@@ -72,62 +71,5 @@ class HistoryCommand(Command):
     RESIGN = "resign"
     # -------- command names end --------
 
-    def __new__(cls, cmd: dict):
-        """
-        Create history command
-
-        :param cmd: history info
-        :return: HistoryCommand object
-        """
-        if cmd is None:
-            return None
-        elif cls is HistoryCommand:
-            # check group
-            if 'group' in cmd:
-                # it's a group command
-                # noinspection PyTypeChecker
-                return dimp.GroupCommand.__new__(dimp.GroupCommand, cmd)
-            if isinstance(cmd, HistoryCommand):
-                # return HistoryCommand object directly
-                return cmd
-            # get class by command name
-            clazz = cls.command_class(command=cmd['command'])
-            if clazz is not None:
-                # noinspection PyTypeChecker
-                return clazz.__new__(clazz, cmd)
-        # subclass or default HistoryCommand(dict)
-        return super().__new__(cls, cmd)
-    
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, command: str=None, time: int=0):
-        """
-        Create history command message content with 'command' as name
-
-        :param content: command info
-        :param command: command name
-        :param time: command time
-        :return: HistoryCommand object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.History
-            }
-        elif 'type' not in content:
-            # set content type: 'History'
-            content['type'] = ContentType.History
-        # new HistoryCommand(dict)
-        return super().new(content, command=command, time=time)
-
-
-# register content class with type
-Content.register(content_type=ContentType.History, content_class=HistoryCommand)
+    def __init__(self, cmd: Optional[dict]=None, command: Optional[str]=None):
+        super().__init__(cmd=cmd, content_type=ContentType.HISTORY, command=command)

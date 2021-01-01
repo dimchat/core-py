@@ -38,10 +38,12 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import EncryptKey, SignKey, VerifyKey
-from mkm import ID
-from mkm import User, Group
-from mkm import UserDataSource, GroupDataSource
+from mkm import EncryptKey, VerifyKey
+from mkm import NetworkType, ID, ANYONE
+from mkm import Document, Visa, Bulletin
+
+from .user import User, UserDataSource
+from .group import Group, GroupDataSource
 
 from .delegate import EntityDelegate
 
@@ -61,7 +63,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     def __init__(self):
         super().__init__()
         # memory caches
-        self.__ids = {}
         self.__users = {}
         self.__groups = {}
 
@@ -73,131 +74,141 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         :return: number of survivors
         """
         finger = 0
-        finger = thanos(self.__ids, finger)
         finger = thanos(self.__users, finger)
         finger = thanos(self.__groups, finger)
         return finger >> 1
 
-    def cache_id(self, identifier: ID) -> bool:
-        assert identifier.valid, 'ID not valid: %s' % identifier
-        self.__ids[identifier] = identifier
-        return True
-
-    def cache_user(self, user: User) -> bool:
+    def cache_user(self, user: User):
         if user.delegate is None:
             user.delegate = self
         self.__users[user.identifier] = user
-        return True
 
-    def cache_group(self, group: Group) -> bool:
+    def cache_group(self, group: Group):
         if group.delegate is None:
             group.delegate = self
         self.__groups[group.identifier] = group
-        return True
 
-    def create_identifier(self, string: str) -> ID:
+    @abstractmethod
+    def create_user(self, identifier: ID) -> Optional[User]:
         raise NotImplemented
 
-    def create_user(self, identifier: ID) -> User:
+    @abstractmethod
+    def create_group(self, identifier: ID) -> Optional[Group]:
         raise NotImplemented
 
-    def create_group(self, identifier: ID) -> Group:
-        raise NotImplemented
+    # group membership
+
+    def is_founder(self, member: ID, group: ID) -> bool:
+        g_meta = self.meta(identifier=group)
+        assert g_meta is not None, 'failed to get meta for group: %s' % group
+        u_meta = self.meta(identifier=member)
+        assert u_meta is not None, 'failed to get meta for member: %s' % member
+        return g_meta.match_key(key=u_meta.key)
+
+    def is_owner(self, member: ID, group: ID) -> bool:
+        if group.type == NetworkType.POLYLOGUE.value:
+            return self.is_founder(member=member, group=group)
+        raise AssertionError('only Polylogue so far')
 
     #
     #   EntityDelegate
     #
-    def identifier(self, string: str) -> Optional[ID]:
-        if string is None:
-            return None
-        elif isinstance(string, ID):
-            return string
-        assert isinstance(string, str), 'ID string error: %s' % string
-        # 1. get from ID cache
-        identifier = self.__ids.get(string)
-        if identifier is not None:
-            return identifier
-        # 2. create and cache it
-        identifier = self.create_identifier(string=string)
-        if identifier is not None and self.cache_id(identifier=identifier):
-            return identifier
+    def select_user(self, receiver: ID) -> Optional[User]:
+        users = self.local_users()
+        assert users is not None and len(users) > 0, 'local users should not be empty'
+        if receiver.is_broadcast:
+            return users[0]
+        if receiver.is_group:
+            # group message (recipient not designated)
+            members = self.members(identifier=receiver)
+            if members is None or len(members) == 0:
+                # TODO: group not ready, waiting for group info
+                return None
+            for item in users:
+                assert isinstance(item, User), 'local user error: %s' % item
+                if item.identifier in members:
+                    # DISCUSS: set this item to be current user?
+                    return item
+        else:
+            # 1. personal message
+            # 2. split group message
+            for item in users:
+                assert isinstance(item, User), 'local user error: %s' % item
+                if item.identifier == receiver:
+                    # DISCUSS: set this item to be current user?
+                    return item
 
     def user(self, identifier: ID) -> Optional[User]:
         # 1. get from user cache
         usr = self.__users.get(identifier)
-        if usr is not None:
-            return usr
-        # 2. create and cache it
-        usr = self.create_user(identifier=identifier)
-        if usr is not None and self.cache_user(user=usr):
-            return usr
+        if usr is None:
+            # 2. create and cache it
+            usr = self.create_user(identifier=identifier)
+            if usr is not None:
+                self.cache_user(user=usr)
+        return usr
 
     def group(self, identifier: ID) -> Optional[Group]:
         # 1. get from group cache
         grp = self.__groups.get(identifier)
-        if grp is not None:
-            return grp
-        # 2. create and cache it
-        grp = self.create_group(identifier=identifier)
-        if grp is not None and self.cache_group(group=grp):
-            return grp
+        if grp is None:
+            # 2. create and cache it
+            grp = self.create_group(identifier=identifier)
+            if grp is not None:
+                self.cache_group(group=grp)
+        return grp
 
     #
     #   UserDataSource
     #
-    def public_key_for_encryption(self, identifier: ID) -> EncryptKey:
-        # get profile.key
-        profile = self.profile(identifier=identifier)
-        if profile is not None:
-            key = profile.key
-            if key is not None:
-                # if profile.key exists,
-                #     use it for encryption
-                return key
-        # get meta.key
+    def __visa_key(self, identifier: ID) -> Optional[EncryptKey]:
+        visa = self.document(identifier=identifier, doc_type=Document.VISA)
+        if isinstance(visa, Visa):
+            if visa.valid:
+                return visa.key
+
+    def __meta_key(self, identifier: ID) -> Optional[VerifyKey]:
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            key = meta.key
-            if isinstance(key, EncryptKey):
-                # if profile.key not exists and meta.key is encrypt key,
-                #     use it for encryption
-                return key
+            return meta.key
 
-    def public_keys_for_verification(self, identifier: ID) -> list:
+    def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
+        # 1. get key from visa
+        key = self.__visa_key(identifier=identifier)
+        if key is not None:
+            # if visa.key exists, use it for encryption
+            return key
+        # 2. get key from meta
+        key = self.__meta_key(identifier=identifier)
+        if isinstance(key, EncryptKey):
+            # if profile.key not exists and meta.key is encrypt key,
+            # use it for encryption
+            return key
+
+    def public_keys_for_verification(self, identifier: ID) -> Optional[list]:
         keys = []
-        # get profile.key
-        profile = self.profile(identifier=identifier)
-        if profile is not None:
-            key = profile.key
-            if isinstance(key, VerifyKey):
-                # the sender may use communication key to sign message.data,
-                # so try to verify it with profile.key here
-                keys.append(key)
-        # get meta.key
-        meta = self.meta(identifier=identifier)
-        if meta is not None:
-            key = meta.key
-            if key is not None:
-                # the sender may use identity key to sign message.data,
-                # try to verify it with meta.key
-                keys.append(key)
+        # 1. get key from visa
+        key = self.__visa_key(identifier=identifier)
+        if isinstance(key, VerifyKey):
+            # the sender may use communication key to sign message.data,
+            # so try to verify it with visa.key here
+            keys.append(key)
+        # 2. get key from meta
+        key = self.__meta_key(identifier=identifier)
+        if key is not None:
+            # the sender may use identity key to sign message.data,
+            # try to verify it with meta.key
+            keys.append(key)
+        assert len(keys) > 0, 'failed to get verify key for user: %s' % identifier
         return keys
-
-    @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
-        raise NotImplemented
-
-    @abstractmethod
-    def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
-        raise NotImplemented
 
     #
     #   GroupDataSource
     #
     def founder(self, identifier: ID) -> Optional[ID]:
-        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
+            # founder of broadcast group
             name = identifier.name
             if name is None:
                 length = 0
@@ -211,12 +222,31 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
                 # DISCUSS: who should be the founder of group 'xxx@everywhere'?
                 #          'anyone@anywhere', or 'xxx.founder@anywhere'
                 founder = name + '.founder@anywhere'
-            return self.identifier(string=founder)
+            return ID.parse(identifier=founder)
+        # check group meta
+        g_meta = self.meta(identifier=identifier)
+        if g_meta is None:
+            # FIXME: when group profile was arrived but the meta still on the way,
+            #        here will cause founder not found
+            return None
+        # check each member's public key with group meta
+        members = self.members(identifier=identifier)
+        if members is not None:
+            for item in members:
+                u_meta = self.meta(identifier=item)
+                if u_meta is None:
+                    # failed to get member's meta
+                    continue
+                if g_meta.match_key(key=u_meta.key):
+                    # if the member's public key matches with the group's meta,
+                    # it means this meta was generated by the member's private key
+                    return item
+        # TODO: load founder from database
 
     def owner(self, identifier: ID) -> Optional[ID]:
-        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
+            # owner of broadcast group
             name = identifier.name
             if name is None:
                 length = 0
@@ -225,17 +255,22 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             if length == 0 or (length == 8 and name == 'everyone'):
                 # Consensus: the owner of group 'everyone@everywhere'
                 #            'anyone@anywhere'
-                owner = 'anyone@anywhere'
+                owner = ANYONE
             else:
                 # DISCUSS: who should be the owner of group 'xxx@everywhere'?
                 #          'anyone@anywhere', or 'xxx.owner@anywhere'
                 owner = name + '.owner@anywhere'
-            return self.identifier(string=owner)
+            return ID.parse(identifier=owner)
+        # check group type
+        if identifier.type == NetworkType.POLYLOGUE.value:
+            # Polylogue's owner is its founder
+            return self.founder(identifier=identifier)
+        # TODO: load owner from database
 
     def members(self, identifier: ID) -> Optional[list]:
-        assert identifier.is_group, 'group ID error: %s' % identifier
         # check for broadcast
         if identifier.is_broadcast:
+            # members of broadcast group
             name = identifier.name
             if name is None:
                 length = 0
@@ -244,14 +279,23 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             if length == 0 or (length == 8 and name == 'everyone'):
                 # Consensus: the member of group 'everyone@everywhere'
                 #            'anyone@anywhere'
-                member = 'anyone@anywhere'
+                member = ANYONE
+                owner = ANYONE
             else:
                 # DISCUSS: who should be the member of group 'xxx@everywhere'?
                 #          'anyone@anywhere', or 'xxx.member@anywhere'
                 member = name + '.member@anywhere'
-            member = self.identifier(string=member)
-            owner = self.owner(identifier=identifier)
+                owner = name + '.owner@anywhere'
+            member = ID.parse(identifier=member)
+            owner = ID.parse(identifier=owner)
             if member == owner:
                 return [owner]
             else:
                 return [owner, member]
+
+    def assistants(self, identifier: ID) -> Optional[list]:
+        doc = self.document(identifier=identifier, doc_type=Document.BULLETIN)
+        if isinstance(doc, Bulletin):
+            if doc.valid:
+                return doc.assistants
+        # TODO: get group bots from SP configuration

@@ -28,12 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import ContentType
+from abc import abstractmethod
+from typing import Optional, Union
 
-from .content import Content
+from dkd import ContentType, BaseContent
 
 
-class Command(Content):
+class Command(BaseContent):
     """
         Command Message Content
         ~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,105 +51,60 @@ class Command(Content):
     # -------- command names begin --------
     META = 'meta'
     PROFILE = 'profile'
+    DOCUMENT = 'document'
     RECEIPT = 'receipt'
     HANDSHAKE = 'handshake'
     LOGIN = 'login'
     # -------- command names end --------
 
-    def __new__(cls, cmd: dict):
-        """
-        Create command
-
-        :param cmd: command info
-        :return: Command object
-        """
+    def __init__(self, cmd: Optional[dict]=None, content_type: Union[ContentType, int]=0, command: Optional[str]=None):
         if cmd is None:
-            return None
-        elif cls is Command:
-            if isinstance(cmd, Command):
-                # return Command object directly
-                return cmd
-            # get class by command name
-            clazz = cls.command_class(command=cmd['command'])
-            if clazz is not None:
-                # noinspection PyTypeChecker
-                return clazz.__new__(clazz, cmd)
-        # subclass or default Command(dict)
-        return super().__new__(cls, cmd)
-
-    def __init__(self, cmd: dict):
-        if self is cmd:
-            # no need to init again
-            return
-        super().__init__(cmd)
-        # command name
-        self.__command: str = None
+            if content_type is 0:
+                content_type = ContentType.COMMAND
+            super().__init__(content_type=content_type)
+        else:
+            super().__init__(content=cmd)
+        self.__command = command
+        if command is not None:
+            self['command'] = command
 
     @property
     def command(self) -> str:
         if self.__command is None:
-            self.__command = self['command']
+            self.__command = command_name(cmd=self.dictionary)
         return self.__command
 
     #
-    #   Factory
+    #  Factory
     #
     @classmethod
-    def new(cls, content: dict=None, command: str=None, time: int=0):
-        """
-        Create command message content with 'command' as name
-
-        :param content: command info
-        :param command: command name
-        :param time: command time
-        :return: Command object
-        """
-        if content is None:
-            # create empty content with type
-            content = {
-                'type': ContentType.Command
-            }
-        elif 'type' not in content:
-            # set content type: 'Command'
-            content['type'] = ContentType.Command
-        # set command name
-        if command is not None:
-            content['command'] = command
-        # new Command(dict)
-        return super().new(content=content, time=time)
-
-    #
-    #   Runtime
-    #
-    __command_classes = {}  # class map
+    def factory(cls, command: str):  # -> CommandFactory:
+        return s_factories.get(command)
 
     @classmethod
-    def register(cls, command: str, command_class=None) -> bool:
+    def register(cls, command: str, factory):
+        s_factories[command] = factory
+
+
+def command_name(cmd: dict) -> str:
+    return cmd.get('command')
+
+
+"""
+    Command Factory
+    ~~~~~~~~~~~~~~~
+"""
+s_factories = {}
+
+
+class CommandFactory:
+
+    @abstractmethod
+    def parse_command(self, cmd: dict) -> Optional[Command]:
         """
-        Register command class with command name
+        Parse map object to command
 
-        :param command:  command name
-        :param command_class: if command class is None, then remove with type
-        :return: False on error
+        :param cmd: command info
+        :return: Command
         """
-        if command_class is None:
-            cls.__command_classes.pop(command, None)
-        elif issubclass(command_class, Command):
-            cls.__command_classes[command] = command_class
-        else:
-            raise TypeError('%s must be subclass of Command' % command_class)
-        return True
-
-    @classmethod
-    def command_class(cls, command: str):
-        """
-        Get command class with command name
-
-        :param command: command name
-        :return: command class
-        """
-        return cls.__command_classes.get(command)
-
-
-# register content class with type
-Content.register(content_type=ContentType.Command, content_class=Command)
+        raise NotImplemented

@@ -38,13 +38,13 @@
 
 from typing import Optional
 
-from mkm import Profile
+from mkm import ID, Meta, Document
 
 from .command import Command
 from .meta import MetaCommand
 
 
-class ProfileCommand(MetaCommand):
+class DocumentCommand(MetaCommand):
     """
         Profile Command
         ~~~~~~~~~~~~~~~
@@ -62,36 +62,24 @@ class ProfileCommand(MetaCommand):
 
     """
 
-    def __new__(cls, cmd: dict):
-        """
-        Create profile command
-
-        :param cmd: command info
-        :return: ProfileCommand object
-        """
-        if cmd is None:
-            return None
-        elif cls is ProfileCommand:
-            if isinstance(cmd, ProfileCommand):
-                # return ProfileCommand object directly
-                return cmd
-        # new ProfileCommand(dict)
-        return super().__new__(cls, cmd)
-
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        # lazy
-        self.__profile: Profile = None
+    def __init__(self, cmd: Optional[dict]=None,
+                 identifier: Optional[ID]=None, meta: Optional[Meta]=None, document: Optional[Document]=None,
+                 signature: Optional[str]=None):
+        if identifier is None and document is not None:
+            identifier = document.identifier
+        super().__init__(cmd, Command.DOCUMENT, identifier=identifier, meta=meta)
+        self.__doc = document
+        if document is not None:
+            self['profile'] = document.dictionary
+        if signature is not None:
+            self['signature'] = signature
 
     #
-    #   profile
+    #   document
     #
     @property
-    def profile(self) -> Optional[Profile]:
-        if self.__profile is None:
+    def document(self) -> Optional[Document]:
+        if self.__doc is None:
             data = self.get('profile')
             if isinstance(data, str):
                 # compatible with v1.0
@@ -113,56 +101,22 @@ class ProfileCommand(MetaCommand):
                 #        "signature" : "{BASE64}"
                 #    }
                 assert data is None or isinstance(data, dict), 'profile data error: %s' % data
-            self.__profile = Profile(data)
-        return self.__profile
+            self.__doc = Document.parse_document(document=data)
+        return self.__doc
 
-    #
-    #   signature
-    #
     @property
     def signature(self) -> Optional[str]:
+        """
+        signature for checking new document
+
+        :return: part of signature in current document (base64)
+        """
         return self.get('signature')
 
-    #
-    #   Factories
-    #
     @classmethod
-    def new(cls, content: dict=None, identifier: str=None, meta: dict=None, profile: dict=None, signature: str=None):
-        """
-        Create profile command for entity
-
-        :param content:    command info
-        :param identifier: entity ID
-        :param meta:       entity meta
-        :param profile:    entity profile
-        :param signature:  old profile's signature for querying
-        :return: ProfileCommand object
-        """
-        if content is None:
-            # create empty content with command name
-            content = {
-                'command': Command.PROFILE
-            }
-        elif 'command' not in content:
-            # set command name: 'profile'
-            content['command'] = Command.PROFILE
-        # set profile info
-        if profile is not None:
-            # TODO: upgrade to v1.1 later
-            content['profile'] = profile.get('data')
-            content['signature'] = profile.get('signature')
-        elif signature is not None:
-            content['signature'] = signature
-        return super().new(content=content, identifier=identifier, meta=meta)
+    def query(cls, identifier: ID, signature: Optional[str]=None):
+        return cls(identifier=identifier, signature=signature)
 
     @classmethod
-    def query(cls, identifier: str, signature: str=None):
-        return cls.new(identifier=identifier, signature=signature)
-
-    @classmethod
-    def response(cls, identifier: str, profile: dict, meta: dict=None):
-        return cls.new(identifier=identifier, meta=meta, profile=profile)
-
-
-# register command class
-Command.register(command=Command.PROFILE, command_class=ProfileCommand)
+    def response(cls, document: Document, meta: Optional[Meta]=None, identifier: Optional[ID]=None):
+        return cls(identifier=identifier, meta=meta, document=document)
