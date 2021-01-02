@@ -29,10 +29,10 @@
 # ==============================================================================
 
 """
-    Profile Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+    Document Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    1. contains 'ID' only, means query profile for ID
+    1. contains 'ID' only, means query document for ID
     2. contains 'profile' and 'signature' (must match), means reply
 """
 
@@ -46,8 +46,8 @@ from .meta import MetaCommand
 
 class DocumentCommand(MetaCommand):
     """
-        Profile Command
-        ~~~~~~~~~~~~~~~
+        Document Command
+        ~~~~~~~~~~~~~~~~
 
         data format: {
             type : 0x88,
@@ -93,6 +93,8 @@ class DocumentCommand(MetaCommand):
                 }
                 data = dictionary
             else:
+                if data is None:
+                    data = self.get('document')
                 # (v1.1)
                 #    "ID"      : "{ID}",
                 #    "profile" : {

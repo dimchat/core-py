@@ -63,7 +63,7 @@ class ForwardContent(BaseContent):
     def message(self) -> ReliableMessage:
         if self.__forward is None:
             msg = self.get('forward')
-            if msg is not None:
+            if isinstance(msg, dict):
                 self.__forward = ReliableMessage.parse(msg=msg)
         return self.__forward
 

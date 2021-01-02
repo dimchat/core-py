@@ -91,8 +91,8 @@ class Entity:
         :param identifier: User/Group ID
         """
         super().__init__()
-        self.__identifier = identifier
-        self.__delegate = None
+        self.__identifier: ID = identifier
+        self.__delegate: weakref.ReferenceType = None
 
     def __str__(self):
         clazz = self.__class__.__name__
@@ -111,10 +111,7 @@ class Entity:
 
     @delegate.setter
     def delegate(self, value: EntityDataSource):
-        if value is None:
-            self.__delegate = None
-        else:
-            self.__delegate = weakref.ref(value)
+        self.__delegate = weakref.ref(value)
 
     @property
     def identifier(self) -> ID:

@@ -70,14 +70,16 @@ class MetaCommand(Command):
         if meta is not None:
             self['meta'] = meta.dictionary
         if identifier is not None:
-            self['ID'] = identifier
+            self['ID'] = str(identifier)
 
     #
     #   ID
     #
     @property
     def identifier(self) -> ID:
-        return ID.parse(identifier=self.get('ID'))
+        string = self.get('ID')
+        if isinstance(string, str):
+            return ID.parse(identifier=string)
 
     #
     #   Meta
@@ -85,7 +87,9 @@ class MetaCommand(Command):
     @property
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            self.__meta = Meta.parse(meta=self.get('meta'))
+            info = self.get('meta')
+            if isinstance(info, dict):
+                self.__meta = Meta.parse(meta=info)
         return self.__meta
 
     @classmethod

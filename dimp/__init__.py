@@ -62,7 +62,7 @@ __all__ = [
     'DataDigester', 'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
     'md5', 'sha1', 'sha256', 'keccak256', 'ripemd160',
 
-    'SOMap', 'Dictionary',
+    'SOMap', 'Dictionary', 'String',
 
     'CryptographyKey', 'EncryptKey', 'DecryptKey',
     'AsymmetricKey', 'SignKey', 'VerifyKey',

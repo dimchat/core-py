@@ -31,13 +31,13 @@ class Facebook(Barrack):
         # TODO: save meta to local/persistent storage
         pass
     
-    def save_profile(self, profile: Profile) -> bool:
-        if not self.verify_profile(profile):
+    def save_document(self, profile: Document) -> bool:
+        if not self.verify_document(profile):
             return False
         # TODO: save to local storage
         pass
     
-    def verify_profile(self, profile: Profile) -> bool:
+    def verify_document(self, profile: Document) -> bool:
         if profile is None:
             return False
         elif profile.valid:

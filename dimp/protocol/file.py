@@ -91,7 +91,7 @@ class FileContent(BaseContent):
     def data(self) -> Optional[bytes]:
         if self.__attachment is None:
             base64 = self.get('data')
-            if base64 is not None:
+            if isinstance(base64, str):
                 self.__attachment = base64_decode(base64)
         return self.__attachment
 
@@ -119,7 +119,9 @@ class FileContent(BaseContent):
     @property
     def password(self) -> Optional[SymmetricKey]:
         if self.__password is None:
-            self.__password = SymmetricKey.parse(key=self.get('password'))
+            pwd = self.get('password')
+            if isinstance(pwd, dict):
+                self.__password = SymmetricKey.parse(key=pwd)
         return self.__password
 
     @password.setter
@@ -159,7 +161,7 @@ class ImageContent(FileContent):
     def thumbnail(self) -> Optional[bytes]:
         if self.__thumbnail is None:
             base64 = self.get('thumbnail')
-            if base64 is not None:
+            if isinstance(base64, str):
                 self.__thumbnail = base64_decode(base64)
         return self.__thumbnail
 
@@ -235,7 +237,7 @@ class VideoContent(FileContent):
     def snapshot(self) -> Optional[bytes]:
         if self.__snapshot is None:
             base64 = self.get('snapshot')
-            if base64 is not None:
+            if isinstance(base64, str):
                 self.__snapshot = base64_decode(base64)
         return self.__snapshot
 

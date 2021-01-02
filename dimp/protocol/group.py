@@ -81,7 +81,7 @@ class GroupCommand(HistoryCommand):
     @property
     def member(self) -> Optional[ID]:
         identifier = self.get('member')
-        if identifier is not None:
+        if isinstance(identifier, str):
             return ID.parse(identifier=identifier)
 
     @member.setter
@@ -89,12 +89,12 @@ class GroupCommand(HistoryCommand):
         if value is None:
             self.pop('member', None)
         else:
-            self['member'] = value
+            self['member'] = str(value)
 
     @property
     def members(self) -> Optional[list]:
         array = self.get('members')
-        if array is not None:
+        if isinstance(array, list):
             # convert all items to ID objects
             return ID.convert(members=array)
 
@@ -103,7 +103,7 @@ class GroupCommand(HistoryCommand):
         if value is None:
             self.pop('members', None)
         else:
-            self['members'] = value
+            self['members'] = ID.revert(members=value)
 
     @classmethod
     def invite(cls, group: ID, member: Optional[ID]=None, members: Optional[list]=None):
