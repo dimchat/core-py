@@ -103,7 +103,7 @@ class DocumentCommand(MetaCommand):
                 #        "signature" : "{BASE64}"
                 #    }
                 assert data is None or isinstance(data, dict), 'profile data error: %s' % data
-            self.__doc = Document.parse_document(document=data)
+            self.__doc = Document.parse(document=data)
         return self.__doc
 
     @property
