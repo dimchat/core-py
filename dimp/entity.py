@@ -58,7 +58,7 @@ class EntityDataSource:
         raise NotImplemented
 
     @abstractmethod
-    def document(self, identifier: ID, doc_type: str) -> Optional[Document]:
+    def document(self, identifier: ID, doc_type: Optional[str]='*') -> Optional[Document]:
         """
         Get profile for entity ID
 
@@ -130,6 +130,6 @@ class Entity:
         assert isinstance(self.delegate, EntityDataSource), 'entity delegate error: %s' % self.delegate
         return self.delegate.meta(identifier=self.identifier)
 
-    def document(self, doc_type: str) -> Optional[Document]:
+    def document(self, doc_type: Optional[str]='*') -> Optional[Document]:
         assert isinstance(self.delegate, EntityDataSource), 'entity delegate error: %s' % self.delegate
         return self.delegate.document(identifier=self.identifier, doc_type=doc_type)

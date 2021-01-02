@@ -30,8 +30,8 @@
 
 from typing import Optional, Union
 
-from mkm import base64_encode, base64_decode, hex_encode, md5
-from mkm import SymmetricKey
+from mkm.crypto import base64_encode, base64_decode, hex_encode, md5
+from mkm.crypto import SymmetricKey
 
 from dkd import ContentType, BaseContent
 

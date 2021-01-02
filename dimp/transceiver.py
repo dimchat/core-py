@@ -38,8 +38,9 @@
 import weakref
 from typing import Optional
 
-from mkm import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
-from mkm import SymmetricKey, ID
+from mkm.crypto import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
+from mkm.crypto import SymmetricKey
+from mkm import ID
 
 from dkd import Message
 from dkd import InstantMessage, SecureMessage, ReliableMessage

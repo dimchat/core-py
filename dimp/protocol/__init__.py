@@ -35,18 +35,7 @@
     Define universal message types as contents and commands
 """
 
-from .forward import ForwardContent
-from .text import TextContent
-from .file import FileContent, ImageContent, AudioContent, VideoContent
-
-from .command import Command, CommandFactory
-from .history import HistoryCommand
-from .group import GroupCommand
-from .group import InviteCommand, ExpelCommand, JoinCommand, QuitCommand
-from .group import QueryCommand, ResetCommand
-
-from .meta import MetaCommand
-from .document import DocumentCommand
+from .factory import *
 
 
 __all__ = [

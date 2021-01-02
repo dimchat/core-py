@@ -38,7 +38,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import EncryptKey, VerifyKey
+from mkm.crypto import EncryptKey, VerifyKey
 from mkm import NetworkType, ID, ANYONE
 from mkm import Document, Visa, Bulletin
 

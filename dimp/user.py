@@ -31,7 +31,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import EncryptKey, DecryptKey, SignKey
+from mkm.crypto import EncryptKey, DecryptKey, SignKey
 from mkm import ID, Visa
 
 from .entity import Entity, EntityDataSource

@@ -38,7 +38,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from mkm import SymmetricKey, ID
+from mkm.crypto import SymmetricKey
+from mkm import ID
 
 from .user import User
 from .group import Group

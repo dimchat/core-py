@@ -31,7 +31,7 @@
 import weakref
 from typing import Optional
 
-from mkm import json_encode, json_decode
+from mkm.crypto import json_encode, json_decode
 
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import MessageDelegate
