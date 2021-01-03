@@ -114,7 +114,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     #   EntityDelegate
     #
     def select_user(self, receiver: ID) -> Optional[User]:
-        users = self.local_users()
+        users = self.local_users
         assert users is not None and len(users) > 0, 'local users should not be empty'
         if receiver.is_broadcast:
             return users[0]

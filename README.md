@@ -297,8 +297,8 @@ def send(content: Content, sender: ID, receiver: ID) -> bool:
 
 
 if __name__ == '__main__':
-    moki = facebook.identifier('moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
-    hulk = facebook.identifier('hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
+    moki = ID.parse('moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+    hulk = ID.parse('hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
     # Say Hi
     text='Hello world!'
     content = TextContent.new(text=text)

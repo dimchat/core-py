@@ -144,8 +144,7 @@ class Packer:
 
     # noinspection PyMethodMayBeStatic
     def serialize_message(self, msg: ReliableMessage) -> bytes:
-        assert isinstance(msg, dict), 'message error: %s' % msg
-        return json_encode(o=msg)
+        return json_encode(o=msg.dictionary)
 
     #
     #   Data -> ReliableMessage -> SecureMessage -> InstantMessage

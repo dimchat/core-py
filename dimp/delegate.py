@@ -47,6 +47,7 @@ from .group import Group
 
 class EntityDelegate(ABC):
 
+    @property
     @abstractmethod
     def local_users(self) -> Optional[List[User]]:
         """

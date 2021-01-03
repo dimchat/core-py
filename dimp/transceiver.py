@@ -120,8 +120,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         before serialize content, this job should be do in subclass
-        assert isinstance(content, dict), 'message content error: %s' % msg
-        return json_encode(o=content)
+        return json_encode(o=content.dictionary)
 
     def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
         return key.encrypt(data=data)
@@ -137,8 +136,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         if self.__is_broadcast(msg=msg):
             # broadcast message has no key
             return None
-        assert isinstance(key, dict), 'symmetric key error: %s' % key
-        return json_encode(o=key)
+        return json_encode(o=key.dictionary)
 
     def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
         assert not self.__is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
