@@ -52,9 +52,9 @@ class ForwardContent(BaseContent):
             super().__init__(content_type=ContentType.Forward)
         else:
             super().__init__(content=content)
-        self.__forward = message
+        self.__forward = None
         if message is not None:
-            self['forward'] = message.dictionary
+            self.message = message
 
     #
     #   forward (top-secret message)
@@ -68,9 +68,9 @@ class ForwardContent(BaseContent):
         return self.__forward
 
     @message.setter
-    def message(self, value: ReliableMessage):
-        self.__forward = value
-        if value is None:
+    def message(self, secret: ReliableMessage):
+        self.__forward = secret
+        if secret is None:
             self.pop('forward', None)
         else:
-            self['forward'] = value.dictionary
+            self['forward'] = secret.dictionary

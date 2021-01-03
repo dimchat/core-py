@@ -36,7 +36,7 @@
 """
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm import ID
 
@@ -74,7 +74,7 @@ class GroupDataSource(EntityDataSource):
         raise NotImplemented
 
     @abstractmethod
-    def members(self, identifier: ID) -> Optional[list]:
+    def members(self, identifier: ID) -> Optional[List[ID]]:
         """
         Get all members in the group
 
@@ -84,7 +84,7 @@ class GroupDataSource(EntityDataSource):
         raise NotImplemented
 
     @abstractmethod
-    def assistants(self, identifier: ID) -> Optional[list]:
+    def assistants(self, identifier: ID) -> Optional[List[ID]]:
         """
         Get assistants for this group
 
@@ -122,19 +122,19 @@ class Group(Entity):
     #     super(Group, Group).delegate.__set__(self, value)
 
     @property
-    def founder(self) -> Optional[ID]:
+    def founder(self) -> ID:
         if self.__founder is None:
             assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
             self.__founder = self.delegate.founder(identifier=self.identifier)
         return self.__founder
 
     @property
-    def owner(self) -> Optional[ID]:
+    def owner(self) -> ID:
         assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
         return self.delegate.owner(identifier=self.identifier)
 
     @property
-    def members(self) -> Optional[list]:
+    def members(self) -> List[ID]:
         """
         NOTICE: the owner must be a member
                 (usually the first one)
@@ -145,6 +145,6 @@ class Group(Entity):
         return self.delegate.members(identifier=self.identifier)
 
     @property
-    def assistants(self) -> Optional[list]:
+    def assistants(self) -> List[ID]:
         assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
         return self.delegate.assistants(identifier=self.identifier)

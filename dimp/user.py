@@ -29,9 +29,9 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
-from mkm.crypto import EncryptKey, DecryptKey, SignKey
+from mkm.crypto import EncryptKey, DecryptKey, SignKey, VerifyKey
 from mkm import ID, Visa
 
 from .entity import Entity, EntityDataSource
@@ -63,7 +63,7 @@ class UserDataSource(EntityDataSource):
     """
 
     @abstractmethod
-    def contacts(self, identifier: ID) -> Optional[list]:
+    def contacts(self, identifier: ID) -> Optional[List[ID]]:
         """
         Get user's contacts list
 
@@ -84,7 +84,7 @@ class UserDataSource(EntityDataSource):
         pass
 
     @abstractmethod
-    def public_keys_for_verification(self, identifier: ID) -> Optional[list]:
+    def public_keys_for_verification(self, identifier: ID) -> Optional[List[VerifyKey]]:
         """
         Get user's public keys for verification
         [profile.key, meta.key]
@@ -95,7 +95,7 @@ class UserDataSource(EntityDataSource):
         pass
 
     @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> Optional[list]:
+    def private_keys_for_decryption(self, identifier: ID) -> Optional[List[DecryptKey]]:
         """
         Get user's private keys for decryption
         (which paired with [profile.key, meta.key])
@@ -151,7 +151,7 @@ class User(Entity):
     #     super(User, User).delegate.__set__(self, value)
 
     @property
-    def contacts(self) -> Optional[list]:
+    def contacts(self) -> List[ID]:
         """
         Get all contacts of the user
 
@@ -220,7 +220,6 @@ class User(Entity):
         keys = self.delegate.private_keys_for_decryption(identifier=self.identifier)
         assert keys is not None and len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
-            assert isinstance(key, DecryptKey), 'decrypt key error: %s' % key
             try:
                 # try decrypting it with each private key
                 plaintext = key.decrypt(data=data)

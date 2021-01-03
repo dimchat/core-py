@@ -52,7 +52,7 @@ class TextContent(BaseContent):
         else:
             super().__init__(content=content)
         if text is not None:
-            self['text'] = text
+            self.text = text
 
     #
     #   text

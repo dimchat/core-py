@@ -75,36 +75,36 @@ class Command(BaseContent):
         return self.__command
 
     #
-    #  Factory
+    #  Factory for creating Command
     #
-    @classmethod
-    def factory(cls, command: str):  # -> CommandFactory:
-        return s_factories.get(command)
+    class Factory:
+
+        @abstractmethod
+        def parse_command(self, cmd: dict):  # -> Optional[Command]:
+            """
+            Parse map object to command
+
+            :param cmd: command info
+            :return: Command
+            """
+            raise NotImplemented
+
+    __factories = {}  # name -> factory
 
     @classmethod
-    def register(cls, command: str, factory):
-        s_factories[command] = factory
+    def register(cls, command: str, factory: Factory):
+        cls.__factories[command] = factory
+
+    @classmethod
+    def factory(cls, command: str) -> Factory:
+        return cls.__factories.get(command)
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
 
 
 def command_name(cmd: dict) -> str:
     return cmd.get('command')
-
-
-"""
-    Command Factory
-    ~~~~~~~~~~~~~~~
-"""
-s_factories = {}
-
-
-class CommandFactory:
-
-    @abstractmethod
-    def parse_command(self, cmd: dict) -> Optional[Command]:
-        """
-        Parse map object to command
-
-        :param cmd: command info
-        :return: Command
-        """
-        raise NotImplemented

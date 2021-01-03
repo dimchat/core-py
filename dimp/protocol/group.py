@@ -37,7 +37,7 @@
     3. member quit
 """
 
-from typing import Optional
+from typing import Optional, List
 
 from mkm import ID
 
@@ -62,7 +62,7 @@ class GroupCommand(HistoryCommand):
     """
 
     def __init__(self, cmd: Optional[dict]=None, command: Optional[str]=None, group: Optional[ID]=None,
-                 member: Optional[ID]=None, members: Optional[list]=None):
+                 member: Optional[ID]=None, members: Optional[List[ID]]=None):
         super().__init__(cmd=cmd, command=command)
         if group is not None:
             self.group = group
@@ -92,25 +92,25 @@ class GroupCommand(HistoryCommand):
             self['member'] = str(value)
 
     @property
-    def members(self) -> Optional[list]:
+    def members(self) -> Optional[List[ID]]:
         array = self.get('members')
-        if isinstance(array, list):
+        if array is not None:
             # convert all items to ID objects
             return ID.convert(members=array)
 
     @members.setter
-    def members(self, value: list):
+    def members(self, value: List[ID]):
         if value is None:
             self.pop('members', None)
         else:
             self['members'] = ID.revert(members=value)
 
     @classmethod
-    def invite(cls, group: ID, member: Optional[ID]=None, members: Optional[list]=None):
+    def invite(cls, group: ID, member: Optional[ID]=None, members: Optional[List[ID]]=None):
         return InviteCommand(group=group, member=member, members=members)
 
     @classmethod
-    def expel(cls, group: ID, member: Optional[ID]=None, members: Optional[list]=None):
+    def expel(cls, group: ID, member: Optional[ID]=None, members: Optional[List[ID]]=None):
         return ExpelCommand(group=group, member=member, members=members)
 
     @classmethod
@@ -126,14 +126,14 @@ class GroupCommand(HistoryCommand):
         return QueryCommand(group=group)
 
     @classmethod
-    def reset(cls, group: ID, members: Optional[list]=None):
+    def reset(cls, group: ID, members: Optional[List[ID]]=None):
         return ResetCommand(group=group, members=members)
 
 
 class InviteCommand(GroupCommand):
 
     def __init__(self, cmd: Optional[dict]=None, group: Optional[ID]=None,
-                 member: Optional[ID]=None, members: Optional[list]=None):
+                 member: Optional[ID]=None, members: Optional[List[ID]]=None):
         """
         Create invite group member command
 
@@ -149,7 +149,7 @@ class InviteCommand(GroupCommand):
 class ExpelCommand(GroupCommand):
 
     def __init__(self, cmd: Optional[dict]=None, group: Optional[ID]=None,
-                 member: Optional[ID]=None, members: Optional[list]=None):
+                 member: Optional[ID]=None, members: Optional[List[ID]]=None):
         """
         Create expel group member command
 
@@ -203,7 +203,7 @@ class QueryCommand(GroupCommand):
 
 class ResetCommand(GroupCommand):
 
-    def __init__(self, cmd: Optional[dict]=None, group: Optional[ID]=None, members: Optional[list]=None):
+    def __init__(self, cmd: Optional[dict]=None, group: Optional[ID]=None, members: Optional[List[ID]]=None):
         """
         Create reset group members command
 

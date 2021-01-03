@@ -36,7 +36,7 @@
 """
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
 from mkm import NetworkType, ID, ANYONE
@@ -63,8 +63,8 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     def __init__(self):
         super().__init__()
         # memory caches
-        self.__users = {}
-        self.__groups = {}
+        self.__users = {}   # ID -> User
+        self.__groups = {}  # ID -> Group
 
     def reduce_memory(self) -> int:
         """
@@ -185,7 +185,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             # use it for encryption
             return key
 
-    def public_keys_for_verification(self, identifier: ID) -> Optional[list]:
+    def public_keys_for_verification(self, identifier: ID) -> Optional[List[VerifyKey]]:
         keys = []
         # 1. get key from visa
         key = self.__visa_key(identifier=identifier)
@@ -267,7 +267,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             return self.founder(identifier=identifier)
         # TODO: load owner from database
 
-    def members(self, identifier: ID) -> Optional[list]:
+    def members(self, identifier: ID) -> Optional[List[ID]]:
         # check for broadcast
         if identifier.is_broadcast:
             # members of broadcast group
@@ -293,7 +293,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             else:
                 return [owner, member]
 
-    def assistants(self, identifier: ID) -> Optional[list]:
+    def assistants(self, identifier: ID) -> Optional[List[ID]]:
         doc = self.document(identifier=identifier, doc_type=Document.BULLETIN)
         if isinstance(doc, Bulletin):
             if doc.valid:
