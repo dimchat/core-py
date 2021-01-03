@@ -59,9 +59,7 @@ class TextContent(BaseContent):
     #
     @property
     def text(self) -> str:
-        string = self.get('text')
-        if isinstance(string, str):
-            return string
+        return self.get('text')
 
     @text.setter
     def text(self, value: str):

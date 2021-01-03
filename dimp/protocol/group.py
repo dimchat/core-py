@@ -80,9 +80,7 @@ class GroupCommand(HistoryCommand):
     #
     @property
     def member(self) -> Optional[ID]:
-        identifier = self.get('member')
-        if isinstance(identifier, str):
-            return ID.parse(identifier=identifier)
+        return ID.parse(identifier=self.get('member'))
 
     @member.setter
     def member(self, value: ID):

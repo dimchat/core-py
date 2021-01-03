@@ -153,6 +153,7 @@ def register_core_factories():
 
 
 __all__ = [
+
     'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
@@ -162,5 +163,6 @@ __all__ = [
 
     'MetaCommand', 'DocumentCommand',
 
+    'ContentFactoryBuilder', 'CommandFactoryBuilder',
     'register_core_factories',
 ]

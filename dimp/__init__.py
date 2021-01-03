@@ -66,9 +66,9 @@ __all__ = [
 
     'CryptographyKey', 'EncryptKey', 'DecryptKey',
     'AsymmetricKey', 'SignKey', 'VerifyKey',
-    'PublicKey', 'PublicKeyFactory',
-    'PrivateKey', 'PrivateKeyFactory',
-    'SymmetricKey', 'SymmetricKeyFactory',
+    'PublicKey',
+    'PrivateKey',
+    'SymmetricKey',
 
     #
     #   MingKeMing
@@ -76,8 +76,8 @@ __all__ = [
     'NetworkType', 'MetaType',
     'Address', 'AddressFactory',
     'ID', 'ANYONE', 'EVERYONE', 'ANYWHERE', 'EVERYWHERE',
-    'Meta', 'BaseMeta', 'MetaFactory',
-    'Document', 'BaseDocument', 'DocumentFactory',
+    'Meta', 'BaseMeta',
+    'Document', 'BaseDocument',
     'Visa', 'BaseVisa', 'Bulletin', 'BaseBulletin',
 
     #
@@ -102,6 +102,9 @@ __all__ = [
     'QueryCommand', 'ResetCommand',
 
     'MetaCommand', 'DocumentCommand',
+
+    'ContentFactoryBuilder', 'CommandFactoryBuilder',
+    'register_core_factories',
 
     #
     #   Core

@@ -77,9 +77,7 @@ class MetaCommand(Command):
     #
     @property
     def identifier(self) -> ID:
-        string = self.get('ID')
-        if isinstance(string, str):
-            return ID.parse(identifier=string)
+        return ID.parse(identifier=self.get('ID'))
 
     #
     #   Meta
@@ -87,9 +85,7 @@ class MetaCommand(Command):
     @property
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            info = self.get('meta')
-            if isinstance(info, dict):
-                self.__meta = Meta.parse(meta=info)
+            self.__meta = Meta.parse(meta=self.get('meta'))
         return self.__meta
 
     @classmethod
