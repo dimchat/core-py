@@ -33,31 +33,45 @@ from typing import Optional
 
 from mkm.crypto import json_encode, json_decode
 
+from mkm import ID
+from dkd import Content
 from dkd import InstantMessage, SecureMessage, ReliableMessage
-from dkd import MessageDelegate
 
-from .delegate import EntityDelegate, CipherKeyDelegate
+from .protocol import Command
+
+from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker
+from .transceiver import Transceiver
 
 
-class Packer:
+class Packer(MessagePacker):
 
-    def __init__(self, barrack: EntityDelegate, transceiver: MessageDelegate, key_cache: CipherKeyDelegate):
+    def __init__(self, transceiver: Transceiver):
         super().__init__()
-        self.__barrack = weakref.ref(barrack)
         self.__transceiver = weakref.ref(transceiver)
-        self.__key_cache = weakref.ref(key_cache)
 
     @property
-    def barrack(self) -> EntityDelegate:
-        return self.__barrack()
-
-    @property
-    def transceiver(self) -> MessageDelegate:
+    def transceiver(self) -> Transceiver:
         return self.__transceiver()
 
     @property
+    def barrack(self) -> EntityDelegate:
+        return self.transceiver.barrack
+
+    @property
     def key_cache(self) -> CipherKeyDelegate:
-        return self.__key_cache()
+        return self.transceiver.key_cache
+
+    def overt_group(self, content: Content) -> Optional[ID]:
+        group = content.group
+        if group is not None:
+            if group.is_broadcast:
+                # broadcast message is always overt
+                return group
+            if isinstance(content, Command):
+                # group command should be sent to each member directly, so
+                # don't expose group ID
+                return None
+            return group
 
     #
     #   InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -87,7 +101,7 @@ class Packer:
         #         share the symmetric key (group msg key) with other members.
 
         # 1. get symmetric key
-        group = self.transceiver.overt_group(content=msg.content)
+        group = self.overt_group(content=msg.content)
         if group is None:
             # personal message or (group) command
             password = self.key_cache.cipher_key(sender=sender, receiver=receiver, generate=True)
@@ -142,7 +156,6 @@ class Packer:
         # sign 'data' by sender
         return msg.sign()
 
-    # noinspection PyMethodMayBeStatic
     def serialize_message(self, msg: ReliableMessage) -> bytes:
         return json_encode(o=msg.dictionary)
 
@@ -150,7 +163,6 @@ class Packer:
     #   Data -> ReliableMessage -> SecureMessage -> InstantMessage
     #
 
-    # noinspection PyMethodMayBeStatic
     def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
         dictionary = json_decode(data=data)
         # TODO: translate short keys

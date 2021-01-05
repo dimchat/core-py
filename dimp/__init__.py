@@ -38,12 +38,12 @@ from .entity import Entity, EntityDataSource
 from .user import User, UserDataSource
 from .group import Group, GroupDataSource
 
-from .delegate import EntityDelegate, CipherKeyDelegate
+from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker, MessageProcessor
 
 from .barrack import Barrack
+from .transceiver import Transceiver
 from .packer import Packer
 from .processor import Processor
-from .transceiver import Transceiver
 
 name = "DIMP"
 
@@ -62,13 +62,12 @@ __all__ = [
     'DataDigester', 'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
     'md5', 'sha1', 'sha256', 'keccak256', 'ripemd160',
 
-    'Map', 'Dictionary', 'String',
+    'Wrapper', 'Array', 'Map', 'Dictionary', 'String',
 
-    'CryptographyKey', 'EncryptKey', 'DecryptKey',
+    'CryptographyKey',
+    'SymmetricKey', 'EncryptKey', 'DecryptKey',
     'AsymmetricKey', 'SignKey', 'VerifyKey',
-    'PublicKey',
-    'PrivateKey',
-    'SymmetricKey',
+    'PublicKey', 'PrivateKey',
 
     #
     #   MingKeMing
@@ -103,17 +102,12 @@ __all__ = [
 
     'MetaCommand', 'DocumentCommand',
 
-    'ContentFactoryBuilder', 'CommandFactoryBuilder',
-    'register_core_factories',
-
     #
     #   Core
     #
-    'Entity', 'EntityDataSource',
-    'User', 'UserDataSource',
-    'Group', 'GroupDataSource',
+    'Entity', 'User', 'Group',
+    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
 
-    'EntityDelegate', 'CipherKeyDelegate',
-
-    'Barrack', 'Packer', 'Processor', 'Transceiver',
+    'EntityDelegate', 'CipherKeyDelegate', 'MessagePacker', 'MessageProcessor',
+    'Barrack', 'Transceiver', 'Packer', 'Processor',
 ]

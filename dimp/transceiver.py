@@ -47,9 +47,7 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import InstantMessageDelegate, ReliableMessageDelegate
 from dkd import Content
 
-from .protocol import Command
-
-from .delegate import EntityDelegate, CipherKeyDelegate
+from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker, MessageProcessor
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
@@ -58,60 +56,87 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         super().__init__()
         self.__barrack: weakref.ReferenceType = None
         self.__key_cache: weakref.ReferenceType = None
+        self.__packer: weakref.ReferenceType = None
+        self.__processor: weakref.ReferenceType = None
 
-    #
-    #   Barrack (EntityDelegate)
-    #
     @property
     def barrack(self) -> EntityDelegate:
+        """ Barrack (EntityDelegate) """
         if self.__barrack is not None:
             return self.__barrack()
 
     @barrack.setter
-    def barrack(self, value: EntityDelegate):
-        if value is None:
-            self.__barrack = None
-        else:
-            self.__barrack = weakref.ref(value)
+    def barrack(self, delegate: EntityDelegate):
+        self.__barrack = weakref.ref(delegate)
 
-    #
-    #   KeyCache (CipherKeyDelegate)
-    #
     @property
     def key_cache(self) -> CipherKeyDelegate:
+        """ KeyCache (CipherKeyDelegate) """
         if self.__key_cache is not None:
             return self.__key_cache()
 
     @key_cache.setter
-    def key_cache(self, value: CipherKeyDelegate):
-        if value is None:
-            self.__key_cache = None
-        else:
-            self.__key_cache = weakref.ref(value)
+    def key_cache(self, delegate: CipherKeyDelegate):
+        self.__key_cache = weakref.ref(delegate)
 
-    def __is_broadcast(self, msg: Message) -> bool:
-        if msg.delegate is None:
-            msg.delegate = self
-        receiver = msg.group
-        if receiver is None:
-            receiver = msg.receiver
-        return receiver.is_broadcast
+    @property
+    def message_packer(self) -> MessagePacker:
+        """ Message Packer """
+        if self.__packer is not None:
+            return self.__packer()
+
+    @message_packer.setter
+    def message_packer(self, packer: MessagePacker):
+        self.__packer = weakref.ref(packer)
+
+    @property
+    def message_processor(self) -> MessageProcessor:
+        """ Message Processor """
+        if self.__processor is not None:
+            return self.__processor()
+
+    @message_processor.setter
+    def message_processor(self, processor: MessageProcessor):
+        self.__processor = weakref.ref(processor)
 
     #
-    #   MessageDelegate
+    #   Interfaces for Packing Message
     #
+    def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
+        return self.message_packer.encrypt_message(msg=msg)
 
-    def overt_group(self, content: Content) -> Optional[ID]:
-        group = content.group
-        if group is not None:
-            if group.is_broadcast:
-                # broadcast message is always overt
-                return group
-            if isinstance(content, Command):
-                # group command should be sent to each member directly, so
-                # don't expose group ID
-                return None
-            return group
+    def sign_message(self, msg: SecureMessage) -> ReliableMessage:
+        return self.message_packer.sign_message(msg=msg)
+
+    def serialize_message(self, msg: ReliableMessage) -> bytes:
+        return self.message_packer.serialize_message(msg=msg)
+
+    def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
+        return self.message_packer.deserialize_message(data=data)
+
+    def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
+        return self.message_packer.verify_message(msg=msg)
+
+    def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
+        return self.message_packer.decrypt_message(msg=msg)
+
+    #
+    #   Interfaces for Processing Message
+    #
+    def process_package(self, data: bytes) -> Optional[bytes]:
+        return self.message_processor.process_package(data=data)
+
+    def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+        return self.message_processor.process_reliable_message(msg=msg)
+
+    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+        return self.message_processor.process_secure_message(msg=msg, r_msg=r_msg)
+
+    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+        return self.message_processor.process_instant_message(msg=msg, r_msg=r_msg)
+
+    def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
+        return self.message_processor.process_content(content=content, r_msg=r_msg)
 
     #
     #   InstantMessageDelegate
@@ -126,20 +151,20 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return key.encrypt(data=data)
 
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
-        if self.__is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
             return utf8_decode(data=data)
         return base64_encode(data=data)
 
     def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
-        if self.__is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message has no key
             return None
         return json_encode(o=key.dictionary)
 
     def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
-        assert not self.__is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         # TODO: make sure the receiver's public key exists
         contact = self.barrack.user(identifier=receiver)
         assert contact is not None, 'failed to encrypt for receiver: %s' % receiver
@@ -147,7 +172,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return contact.encrypt(data=data)
 
     def encode_key(self, data: bytes, msg: InstantMessage) -> str:
-        assert not self.__is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         return base64_encode(data=data)
 
     #
@@ -155,12 +180,12 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
 
     def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.__is_broadcast(msg=msg), 'broadcast message has no key'
+        assert not is_broadcast(msg=msg), 'broadcast message has no key'
         return base64_decode(string=key)
 
     # noinspection PyUnusedLocal
     def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
-        assert not self.__is_broadcast(msg=msg), 'broadcast message has no key'
+        assert not is_broadcast(msg=msg), 'broadcast message has no key'
         # decrypt key data with the receiver's private key
         user = self.barrack.user(identifier=msg.receiver)
         assert user is not None, 'failed to create local user: %s' % msg.receiver
@@ -172,7 +197,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             # get key from cache
             return self.key_cache.cipher_key(sender=sender, receiver=receiver)
         else:
-            assert not self.__is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+            assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
             dictionary = json_decode(data=data)
             # TODO: translate short keys
             #       'A' -> 'algorithm'
@@ -183,7 +208,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             return SymmetricKey.parse(key=dictionary)
 
     def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
-        if self.__is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
             return utf8_encode(string=data)
@@ -201,9 +226,9 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         content = Content.parse(content=dictionary)
         assert content is not None, 'content error: %d' % len(data)
 
-        if not self.__is_broadcast(msg=msg):
+        if not is_broadcast(msg=msg):
             # check and cache key for reuse
-            group = self.overt_group(content=content)
+            group = self.message_packer.overt_group(content=content)
             if group is None:
                 # personal message or (group) command
                 # cache key with direction (sender -> receiver)
@@ -236,3 +261,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         contact = self.barrack.user(identifier=sender)
         assert contact is not None, 'failed to verify signature for sender: %s' % sender
         return contact.verify(data=data, signature=signature)
+
+
+def is_broadcast(msg: Message) -> bool:
+    receiver = msg.group
+    if receiver is None:
+        receiver = msg.receiver
+    return receiver.is_broadcast

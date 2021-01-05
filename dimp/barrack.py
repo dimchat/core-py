@@ -106,7 +106,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         return g_meta.match_key(key=u_meta.key)
 
     def is_owner(self, member: ID, group: ID) -> bool:
-        if group.type == NetworkType.POLYLOGUE.value:
+        if group.type == NetworkType.POLYLOGUE:
             return self.is_founder(member=member, group=group)
         raise AssertionError('only Polylogue so far')
 
@@ -262,7 +262,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
                 owner = name + '.owner@anywhere'
             return ID.parse(identifier=owner)
         # check group type
-        if identifier.type == NetworkType.POLYLOGUE.value:
+        if identifier.type == NetworkType.POLYLOGUE:
             # Polylogue's owner is its founder
             return self.founder(identifier=identifier)
         # TODO: load owner from database

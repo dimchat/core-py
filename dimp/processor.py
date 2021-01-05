@@ -29,36 +29,33 @@
 # ==============================================================================
 
 import weakref
-from abc import abstractmethod
+from abc import ABC
 from typing import Optional
 
-from dkd import Content, Envelope
-from dkd import InstantMessage, SecureMessage, ReliableMessage
-from dkd import MessageDelegate
+from dkd import Envelope, InstantMessage, SecureMessage, ReliableMessage
 
-from .delegate import EntityDelegate
-from .packer import Packer
+from .delegate import EntityDelegate, MessageProcessor
+from .packer import MessagePacker
+from .transceiver import Transceiver
 
 
-class Processor:
+class Processor(MessageProcessor, ABC):
 
-    def __init__(self, barrack: EntityDelegate, transceiver: MessageDelegate, packer: Packer):
+    def __init__(self, transceiver: Transceiver):
         super().__init__()
-        self.__barrack = weakref.ref(barrack)
         self.__transceiver = weakref.ref(transceiver)
-        self.__packer = weakref.ref(packer)
 
     @property
-    def barrack(self) -> EntityDelegate:
-        return self.__barrack()
-
-    @property
-    def transceiver(self) -> MessageDelegate:
+    def transceiver(self) -> Transceiver:
         return self.__transceiver()
 
     @property
-    def packer(self) -> Packer:
-        return self.__packer()
+    def barrack(self) -> EntityDelegate:
+        return self.transceiver.barrack
+
+    @property
+    def message_packer(self) -> MessagePacker:
+        return self.transceiver.message_packer
 
     #
     #  Processing Message
@@ -66,62 +63,58 @@ class Processor:
 
     def process_package(self, data: bytes) -> Optional[bytes]:
         # 1. deserialize message
-        r_msg = self.packer.deserialize_message(data=data)
-        if r_msg is None:
+        msg = self.message_packer.deserialize_message(data=data)
+        if msg is None:
             # no valid message received
             return None
         # 2. process message
-        r_msg = self.process_reliable_message(r_msg=r_msg)
-        if r_msg is None:
+        msg = self.transceiver.process_reliable_message(msg=msg)
+        if msg is None:
             # nothing to respond
             return None
         # 3. serialize message
-        return self.packer.serialize_message(msg=r_msg)
+        return self.message_packer.serialize_message(msg=msg)
 
-    # TODO: override to check broadcast message before calling it
-    # TODO: override to deliver to the receiver when catch exception "receiver error ..."
-    def process_reliable_message(self, r_msg: ReliableMessage) -> Optional[ReliableMessage]:
+    def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+        # TODO: override to check broadcast message before calling it
         # 1. verify message
-        s_msg = self.packer.verify_message(msg=r_msg)
+        s_msg = self.message_packer.verify_message(msg=msg)
         if s_msg is None:
             # waiting for sender's meta if not exists
             return None
         # 2. process message
-        s_msg = self.process_secure_message(s_msg=s_msg, r_msg=r_msg)
+        s_msg = self.transceiver.process_secure_message(msg=s_msg, r_msg=msg)
         if s_msg is None:
             # nothing to respond
             return None
         # 3. sign message
-        return self.packer.sign_message(msg=s_msg)
+        return self.message_packer.sign_message(msg=s_msg)
+        # TODO: override to deliver to the receiver when catch exception "receiver error ..."
 
-    def process_secure_message(self, s_msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
         # 1. decrypt message
-        i_msg = self.packer.decrypt_message(msg=s_msg)
+        i_msg = self.message_packer.decrypt_message(msg=msg)
         if i_msg is None:
             # cannot decrypt this message, not for you?
             # delivering message to other receiver?
             return None
         # 2. process message
-        i_msg = self.process_instant_message(i_msg=i_msg, r_msg=r_msg)
+        i_msg = self.transceiver.process_instant_message(msg=i_msg, r_msg=r_msg)
         if i_msg is None:
             # nothing to respond
             return None
         # 3. encrypt message
-        return self.packer.encrypt_message(msg=i_msg)
+        return self.message_packer.encrypt_message(msg=i_msg)
 
-    def process_instant_message(self, i_msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
         # process content from sender
-        res = self.process_content(content=i_msg.content, r_msg=r_msg)
+        res = self.transceiver.process_content(content=msg.content, r_msg=r_msg)
         if res is None:
             # nothing to respond
             return None
-        user = self.barrack.select_user(receiver=i_msg.receiver)
+        user = self.barrack.select_user(receiver=msg.receiver)
         if user is None:
-            raise AssertionError('receiver error: %s' % i_msg.receiver)
+            raise AssertionError('receiver error: %s' % msg.receiver)
         # pack message
-        env = Envelope.create(sender=user.identifier, receiver=i_msg.sender)
+        env = Envelope.create(sender=user.identifier, receiver=msg.sender)
         return InstantMessage.create(head=env, body=res)
-
-    @abstractmethod
-    def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
-        raise NotImplemented
