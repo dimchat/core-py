@@ -38,7 +38,7 @@ from .entity import Entity, EntityDataSource
 from .user import User, UserDataSource
 from .group import Group, GroupDataSource
 
-from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker, MessageProcessor
+from .delegate import EntityDelegate, CipherKeyDelegate
 
 from .barrack import Barrack
 from .transceiver import Transceiver
@@ -108,6 +108,6 @@ __all__ = [
     'Entity', 'User', 'Group',
     'EntityDataSource', 'UserDataSource', 'GroupDataSource',
 
-    'EntityDelegate', 'CipherKeyDelegate', 'MessagePacker', 'MessageProcessor',
+    'EntityDelegate', 'CipherKeyDelegate',
     'Barrack', 'Transceiver', 'Packer', 'Processor',
 ]

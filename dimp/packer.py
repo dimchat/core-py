@@ -39,11 +39,11 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 from .protocol import Command
 
-from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker
+from .delegate import EntityDelegate, CipherKeyDelegate
 from .transceiver import Transceiver
 
 
-class Packer(MessagePacker):
+class Packer(Transceiver.Packer):
 
     def __init__(self, transceiver: Transceiver):
         super().__init__()

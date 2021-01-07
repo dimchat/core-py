@@ -36,6 +36,7 @@
 """
 
 import weakref
+from abc import abstractmethod
 from typing import Optional
 
 from mkm.crypto import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
@@ -47,7 +48,7 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import InstantMessageDelegate, ReliableMessageDelegate
 from dkd import Content
 
-from .delegate import EntityDelegate, CipherKeyDelegate, MessagePacker, MessageProcessor
+from .delegate import EntityDelegate, CipherKeyDelegate
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
@@ -79,64 +80,200 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def key_cache(self, delegate: CipherKeyDelegate):
         self.__key_cache = weakref.ref(delegate)
 
+    #
+    #   Message Packer
+    #
+    class Packer:
+
+        @abstractmethod
+        def overt_group(self, content: Content) -> Optional[ID]:
+            """
+            Get group ID which should be exposed to public network
+
+            :param content: message content
+            :return: exposed group ID
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
+            """
+            Encrypt message content
+
+            :param msg: plain message
+            :return: encrypted message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def sign_message(self, msg: SecureMessage) -> ReliableMessage:
+            """
+            Sign content data
+
+            :param msg: encrypted message
+            :return: network message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def serialize_message(self, msg: ReliableMessage) -> bytes:
+            """
+            Serialize network message
+
+            :param msg: network message
+            :return: data package
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
+            """
+            Deserialize network message
+
+            :param data: data package
+            :return: network message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
+            """
+            Verify encrypted content data
+
+            :param msg: network message
+            :return: encrypted message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
+            """
+            Decrypt message content
+
+            :param msg: encrypted message
+            :return: plain message
+            """
+            raise NotImplemented
+
     @property
-    def message_packer(self) -> MessagePacker:
+    def packer(self) -> Packer:
         """ Message Packer """
         if self.__packer is not None:
             return self.__packer()
 
-    @message_packer.setter
-    def message_packer(self, packer: MessagePacker):
-        self.__packer = weakref.ref(packer)
-
-    @property
-    def message_processor(self) -> MessageProcessor:
-        """ Message Processor """
-        if self.__processor is not None:
-            return self.__processor()
-
-    @message_processor.setter
-    def message_processor(self, processor: MessageProcessor):
-        self.__processor = weakref.ref(processor)
+    @packer.setter
+    def packer(self, delegate: Packer):
+        self.__packer = weakref.ref(delegate)
 
     #
     #   Interfaces for Packing Message
     #
+    def overt_group(self, content: Content) -> Optional[ID]:
+        return self.packer.overt_group(content=content)
+
     def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
-        return self.message_packer.encrypt_message(msg=msg)
+        return self.packer.encrypt_message(msg=msg)
 
     def sign_message(self, msg: SecureMessage) -> ReliableMessage:
-        return self.message_packer.sign_message(msg=msg)
+        return self.packer.sign_message(msg=msg)
 
     def serialize_message(self, msg: ReliableMessage) -> bytes:
-        return self.message_packer.serialize_message(msg=msg)
+        return self.packer.serialize_message(msg=msg)
 
     def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
-        return self.message_packer.deserialize_message(data=data)
+        return self.packer.deserialize_message(data=data)
 
     def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
-        return self.message_packer.verify_message(msg=msg)
+        return self.packer.verify_message(msg=msg)
 
     def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
-        return self.message_packer.decrypt_message(msg=msg)
+        return self.packer.decrypt_message(msg=msg)
+
+    #
+    #   Message Processor
+    #
+    class Processor:
+
+        @abstractmethod
+        def process_package(self, data: bytes) -> Optional[bytes]:
+            """
+            Process data package
+
+            :param data: data to be processed
+            :return: response data
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+            """
+            Process network message
+
+            :param msg: message to be processed
+            :return: response message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+            """
+            Process encrypted message
+
+            :param msg:   message to be processed
+            :param r_msg: message received
+            :return: response message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+            """
+            Process plain message
+
+            :param msg:   message to be processed
+            :param r_msg: message received
+            :return: response message
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
+            """
+            Process message content
+
+            :param content: content to be processed
+            :param r_msg: message received
+            :return: response content
+            """
+            raise NotImplemented
+
+    @property
+    def processor(self) -> Processor:
+        """ Message Processor """
+        if self.__processor is not None:
+            return self.__processor()
+
+    @processor.setter
+    def processor(self, delegate: Processor):
+        self.__processor = weakref.ref(delegate)
 
     #
     #   Interfaces for Processing Message
     #
     def process_package(self, data: bytes) -> Optional[bytes]:
-        return self.message_processor.process_package(data=data)
+        return self.processor.process_package(data=data)
 
     def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
-        return self.message_processor.process_reliable_message(msg=msg)
+        return self.processor.process_reliable_message(msg=msg)
 
     def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
-        return self.message_processor.process_secure_message(msg=msg, r_msg=r_msg)
+        return self.processor.process_secure_message(msg=msg, r_msg=r_msg)
 
     def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
-        return self.message_processor.process_instant_message(msg=msg, r_msg=r_msg)
+        return self.processor.process_instant_message(msg=msg, r_msg=r_msg)
 
     def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
-        return self.message_processor.process_content(content=content, r_msg=r_msg)
+        return self.processor.process_content(content=content, r_msg=r_msg)
 
     #
     #   InstantMessageDelegate
@@ -228,7 +365,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
         if not is_broadcast(msg=msg):
             # check and cache key for reuse
-            group = self.message_packer.overt_group(content=content)
+            group = self.overt_group(content=content)
             if group is None:
                 # personal message or (group) command
                 # cache key with direction (sender -> receiver)
