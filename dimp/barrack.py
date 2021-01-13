@@ -96,20 +96,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     def create_group(self, identifier: ID) -> Optional[Group]:
         raise NotImplemented
 
-    # group membership
-
-    def is_founder(self, member: ID, group: ID) -> bool:
-        g_meta = self.meta(identifier=group)
-        assert g_meta is not None, 'failed to get meta for group: %s' % group
-        u_meta = self.meta(identifier=member)
-        assert u_meta is not None, 'failed to get meta for member: %s' % member
-        return g_meta.match_key(key=u_meta.key)
-
-    def is_owner(self, member: ID, group: ID) -> bool:
-        if group.type == NetworkType.POLYLOGUE:
-            return self.is_founder(member=member, group=group)
-        raise AssertionError('only Polylogue so far')
-
     #
     #   EntityDelegate
     #

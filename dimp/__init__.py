@@ -73,8 +73,8 @@ __all__ = [
     #   MingKeMing
     #
     'NetworkType', 'MetaType',
-    'Address', 'AddressFactory',
-    'ID', 'ANYONE', 'EVERYONE', 'ANYWHERE', 'EVERYWHERE',
+    'Address', 'AddressFactory', 'ANYWHERE', 'EVERYWHERE',
+    'ID', 'ANYONE', 'EVERYONE', 'FOUNDER',
     'Meta', 'BaseMeta',
     'Document', 'BaseDocument',
     'Visa', 'BaseVisa', 'Bulletin', 'BaseBulletin',

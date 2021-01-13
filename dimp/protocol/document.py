@@ -87,7 +87,7 @@ class DocumentCommand(MetaCommand):
                 #    "profile"   : "{JsON}",
                 #    "signature" : "{BASE64}"
                 dictionary = {
-                    'ID': self.identifier,
+                    'ID': str(self.identifier),
                     'data': data,
                     'signature': self.get("signature")
                 }
