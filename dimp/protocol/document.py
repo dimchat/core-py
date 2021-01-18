@@ -33,7 +33,7 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     1. contains 'ID' only, means query document for ID
-    2. contains 'profile' and 'signature' (must match), means reply
+    2. contains 'document' and 'signature' (must match), means reply
 """
 
 from typing import Optional
@@ -53,11 +53,11 @@ class DocumentCommand(MetaCommand):
             type : 0x88,
             sn   : 123,
 
-            command   : "profile", // command name
-            ID        : "{ID}",    // entity ID
-            meta      : {...},     // only for handshaking with new friend
-            profile   : {...},     // when profile is empty, means query for ID
-            signature : "..."      // old profile's signature for querying
+            command   : "document", // command name
+            ID        : "{ID}",     // entity ID
+            meta      : {...},      // only for handshaking with new friend
+            document  : {...},      // when document is empty, means query for ID
+            signature : "..."       // old document's signature for querying
         }
 
     """
@@ -70,7 +70,7 @@ class DocumentCommand(MetaCommand):
         super().__init__(cmd, Command.DOCUMENT, identifier=identifier, meta=meta)
         self.__doc = document
         if document is not None:
-            self['profile'] = document.dictionary
+            self['document'] = document.dictionary
         if signature is not None:
             self['signature'] = signature
 
@@ -102,7 +102,7 @@ class DocumentCommand(MetaCommand):
                 #        "data"      : "{JsON}",
                 #        "signature" : "{BASE64}"
                 #    }
-                assert data is None or isinstance(data, dict), 'profile data error: %s' % data
+                assert data is None or isinstance(data, dict), 'document data error: %s' % data
             self.__doc = Document.parse(document=data)
         return self.__doc
 

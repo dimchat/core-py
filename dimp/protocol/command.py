@@ -50,8 +50,8 @@ class Command(BaseContent):
 
     # -------- command names begin --------
     META = 'meta'
-    PROFILE = 'profile'
     DOCUMENT = 'document'
+
     RECEIPT = 'receipt'
     HANDSHAKE = 'handshake'
     LOGIN = 'login'

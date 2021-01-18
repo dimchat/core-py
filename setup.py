@@ -36,7 +36,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=[
-        'dkd>=0.10.11',
+        'dkd>=0.10.12',
         'mkm>=0.10.12',
     ]
 )

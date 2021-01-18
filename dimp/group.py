@@ -38,7 +38,7 @@
 from abc import abstractmethod
 from typing import Optional, List
 
-from mkm import ID
+from mkm import ID, Bulletin, Document
 
 from .entity import Entity, EntityDataSource
 
@@ -120,6 +120,12 @@ class Group(Entity):
     # @delegate.setter
     # def delegate(self, value: GroupDataSource):
     #     super(Group, Group).delegate.__set__(self, value)
+
+    @property
+    def bulletin(self) -> Optional[Bulletin]:
+        doc = self.document(doc_type=Document.BULLETIN)
+        if isinstance(doc, Bulletin):
+            return doc
 
     @property
     def founder(self) -> ID:

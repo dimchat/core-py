@@ -31,19 +31,19 @@ class Facebook(Barrack):
         # TODO: save meta to local/persistent storage
         pass
     
-    def save_document(self, profile: Document) -> bool:
-        if not self.verify_document(profile):
+    def save_document(self, document: Document) -> bool:
+        if not self.verify_document(document):
             return False
         # TODO: save to local storage
         pass
     
-    def verify_document(self, profile: Document) -> bool:
-        if profile is None:
+    def verify_document(self, document: Document) -> bool:
+        if document is None:
             return False
-        elif profile.valid:
+        elif document.valid:
             # already verified
             return True
-        identifier = profile.identifier
+        identifier = document.identifier
         meta = None
         if identifier.is_user:
             # verify with user's meta.key
@@ -54,7 +54,7 @@ class Facebook(Barrack):
             if group is not None:
                 meta = self.meta(identifier=group.owner)
         if meta is not None:
-            return profile.verify(public_key=meta.key)
+            return document.verify(public_key=meta.key)
     
     #
     #   Barrack

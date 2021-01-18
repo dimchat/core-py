@@ -32,7 +32,7 @@ from abc import abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, DecryptKey, SignKey, VerifyKey
-from mkm import ID, Visa
+from mkm import ID, Visa, Document
 
 from .entity import Entity, EntityDataSource
 
@@ -76,7 +76,7 @@ class UserDataSource(EntityDataSource):
     def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
         """
         Get user's public key for encryption
-        (profile.key or meta.key)
+        (visa.key or meta.key)
 
         :param identifier: user ID
         :return: public key
@@ -87,7 +87,7 @@ class UserDataSource(EntityDataSource):
     def public_keys_for_verification(self, identifier: ID) -> Optional[List[VerifyKey]]:
         """
         Get user's public keys for verification
-        [profile.key, meta.key]
+        [visa.key, meta.key]
 
         :param identifier: user ID
         :return: public keys
@@ -98,7 +98,7 @@ class UserDataSource(EntityDataSource):
     def private_keys_for_decryption(self, identifier: ID) -> Optional[List[DecryptKey]]:
         """
         Get user's private keys for decryption
-        (which paired with [profile.key, meta.key])
+        (which paired with [visa.key, meta.key])
 
         :param identifier: user ID
         :return: private keys
@@ -109,7 +109,7 @@ class UserDataSource(EntityDataSource):
     def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
         """
         Get user's private key for signature
-        (which paired with profile.key or meta.key)
+        (which paired with visa.key or meta.key)
 
         :param identifier: user ID
         :return: private key
@@ -151,6 +151,12 @@ class User(Entity):
     #     super(User, User).delegate.__set__(self, value)
 
     @property
+    def visa(self) -> Optional[Visa]:
+        doc = self.document(doc_type=Document.VISA)
+        if isinstance(doc, Visa):
+            return doc
+
+    @property
     def contacts(self) -> List[ID]:
         """
         Get all contacts of the user
@@ -178,7 +184,7 @@ class User(Entity):
                 return True
 
     def encrypt(self, data: bytes) -> bytes:
-        """Encrypt data, try profile.key first, if not found, use meta.key
+        """Encrypt data, try visa.key first, if not found, use meta.key
 
         :param data: plaintext
         :return: encrypted data

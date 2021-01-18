@@ -167,7 +167,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         # 2. get key from meta
         key = self.__meta_key(identifier=identifier)
         if isinstance(key, EncryptKey):
-            # if profile.key not exists and meta.key is encrypt key,
+            # if visa.key not exists and meta.key is encrypt key,
             # use it for encryption
             return key
 
