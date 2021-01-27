@@ -36,7 +36,7 @@ from mkm.crypto import SymmetricKey
 from dkd import ContentType, BaseContent
 
 
-def data_filename(data: bytes, ext: str=None) -> str:
+def data_filename(data: bytes, ext: str = None) -> str:
     filename = hex_encode(md5(data))
     if ext is None or len(ext) == 0:
         return filename
@@ -58,8 +58,8 @@ class FileContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int]=0,
-                 filename: Optional[str] = None, data: Optional[bytes]=None):
+    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+                 filename: Optional[str] = None, data: Optional[bytes] = None):
         if content is None:
             if content_type is 0:
                 content_type = ContentType.FILE
@@ -147,8 +147,8 @@ class ImageContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
-                 thumbnail: Optional[bytes]=None):
+    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+                 thumbnail: Optional[bytes] = None):
         super().__init__(content, ContentType.IMAGE, filename=filename, data=data)
         self.__thumbnail = thumbnail
         if thumbnail is not None:
@@ -188,8 +188,8 @@ class AudioContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
-                 text: Optional[str]=None):
+    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+                 text: Optional[str] = None):
         super().__init__(content, ContentType.AUDIO, filename=filename, data=data)
         if text is not None:
             self['text'] = text
@@ -223,8 +223,8 @@ class VideoContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, filename: Optional[str] = None, data: Optional[bytes]=None,
-                 snapshot: Optional[bytes]=None):
+    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+                 snapshot: Optional[bytes] = None):
         super().__init__(content, ContentType.VIDEO, filename=filename, data=data)
         self.__snapshot = snapshot
         if snapshot is not None:

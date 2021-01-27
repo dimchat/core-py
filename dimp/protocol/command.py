@@ -57,7 +57,8 @@ class Command(BaseContent):
     LOGIN = 'login'
     # -------- command names end --------
 
-    def __init__(self, cmd: Optional[dict]=None, content_type: Union[ContentType, int]=0, command: Optional[str]=None):
+    def __init__(self, cmd: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+                 command: Optional[str] = None):
         if cmd is None:
             if content_type is 0:
                 content_type = ContentType.COMMAND

@@ -74,7 +74,7 @@ class GroupDataSource(EntityDataSource):
         raise NotImplemented
 
     @abstractmethod
-    def members(self, identifier: ID) -> Optional[List[ID]]:
+    def members(self, identifier: ID) -> List[ID]:
         """
         Get all members in the group
 
@@ -84,7 +84,7 @@ class GroupDataSource(EntityDataSource):
         raise NotImplemented
 
     @abstractmethod
-    def assistants(self, identifier: ID) -> Optional[List[ID]]:
+    def assistants(self, identifier: ID) -> List[ID]:
         """
         Get assistants for this group
 
@@ -111,7 +111,7 @@ class Group(Entity):
     def __init__(self, identifier: ID):
         super().__init__(identifier=identifier)
         # once the group founder is set, it will never change
-        self.__founder: ID = None
+        self.__founder: Optional[ID] = None
 
     @Entity.delegate.getter
     def delegate(self) -> Optional[GroupDataSource]:

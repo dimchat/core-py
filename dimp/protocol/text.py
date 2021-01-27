@@ -46,7 +46,7 @@ class TextContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, text: Optional[str]=None):
+    def __init__(self, content: Optional[dict] = None, text: Optional[str] = None):
         if content is None:
             super().__init__(content_type=ContentType.TEXT)
         else:

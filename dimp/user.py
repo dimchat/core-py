@@ -63,7 +63,7 @@ class UserDataSource(EntityDataSource):
     """
 
     @abstractmethod
-    def contacts(self, identifier: ID) -> Optional[List[ID]]:
+    def contacts(self, identifier: ID) -> List[ID]:
         """
         Get user's contacts list
 
@@ -84,7 +84,7 @@ class UserDataSource(EntityDataSource):
         pass
 
     @abstractmethod
-    def public_keys_for_verification(self, identifier: ID) -> Optional[List[VerifyKey]]:
+    def public_keys_for_verification(self, identifier: ID) -> List[VerifyKey]:
         """
         Get user's public keys for verification
         [visa.key, meta.key]
@@ -95,7 +95,7 @@ class UserDataSource(EntityDataSource):
         pass
 
     @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> Optional[List[DecryptKey]]:
+    def private_keys_for_decryption(self, identifier: ID) -> List[DecryptKey]:
         """
         Get user's private keys for decryption
         (which paired with [visa.key, meta.key])
@@ -178,6 +178,7 @@ class User(Entity):
         # NOTICE: I suggest using the private key paired with meta.key to sign message,
         #         so here should return the meta.key
         keys = self.delegate.public_keys_for_verification(identifier=self.identifier)
+        assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
         for key in keys:
             if key.verify(data=data, signature=signature):
                 # matched!
@@ -224,7 +225,7 @@ class User(Entity):
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
         keys = self.delegate.private_keys_for_decryption(identifier=self.identifier)
-        assert keys is not None and len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
+        assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
             try:
                 # try decrypting it with each private key
@@ -239,17 +240,20 @@ class User(Entity):
     #
     #   Interfaces for Visa
     #
-    def sign_visa(self, visa: Visa) -> Optional[Visa]:
-        if self.identifier == visa.identifier:
-            assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
-            # NOTICE: only sign visa with the private key paired with your meta.key
-            key = self.delegate.private_key_for_visa_signature(identifier=self.identifier)
-            assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
-            visa.sign(private_key=key)
-            return visa
+    def sign_visa(self, visa: Visa) -> Visa:
+        assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
+        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        # NOTICE: only sign visa with the private key paired with your meta.key
+        key = self.delegate.private_key_for_visa_signature(identifier=self.identifier)
+        assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
+        visa.sign(private_key=key)
+        return visa
 
     def verify_visa(self, visa: Visa) -> bool:
-        if self.identifier == visa.identifier:
-            # NOTICE: only verify visa with meta.key
-            #         (if meta not exists, user won't be created)
-            return visa.verify(public_key=self.meta.key)
+        if self.identifier != visa.identifier:
+            return False
+        # NOTICE: only verify visa with meta.key
+        #         (if meta not exists, user won't be created)
+        key = self.meta.key
+        assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
+        return visa.verify(public_key=key)

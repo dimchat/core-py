@@ -58,8 +58,8 @@ class MetaCommand(Command):
         }
     """
 
-    def __init__(self, cmd: Optional[dict]=None, command: Optional[str]=None,
-                 identifier: Optional[ID]=None, meta: Optional[Meta]=None):
+    def __init__(self, cmd: Optional[dict] = None, command: Optional[str] = None,
+                 identifier: Optional[ID] = None, meta: Optional[Meta] = None):
         if cmd is None:
             if command is None:
                 command = Command.META

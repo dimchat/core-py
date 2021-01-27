@@ -55,10 +55,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def __init__(self):
         super().__init__()
-        self.__barrack: weakref.ReferenceType = None
-        self.__key_cache: weakref.ReferenceType = None
-        self.__packer: weakref.ReferenceType = None
-        self.__processor: weakref.ReferenceType = None
+        self.__barrack: Optional[weakref.ReferenceType] = None
+        self.__key_cache: Optional[weakref.ReferenceType] = None
+        self.__packer: Optional[weakref.ReferenceType] = None
+        self.__processor: Optional[weakref.ReferenceType] = None
 
     @property
     def barrack(self) -> EntityDelegate:

@@ -71,5 +71,5 @@ class HistoryCommand(Command):
     RESIGN = "resign"
     # -------- command names end --------
 
-    def __init__(self, cmd: Optional[dict]=None, command: Optional[str]=None):
+    def __init__(self, cmd: Optional[dict] = None, command: Optional[str] = None):
         super().__init__(cmd=cmd, content_type=ContentType.HISTORY, command=command)

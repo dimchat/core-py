@@ -62,9 +62,9 @@ class DocumentCommand(MetaCommand):
 
     """
 
-    def __init__(self, cmd: Optional[dict]=None,
-                 identifier: Optional[ID]=None, meta: Optional[Meta]=None, document: Optional[Document]=None,
-                 signature: Optional[str]=None):
+    def __init__(self, cmd: Optional[dict] = None,
+                 identifier: Optional[ID] = None, meta: Optional[Meta] = None, document: Optional[Document] = None,
+                 signature: Optional[str] = None):
         if identifier is None and document is not None:
             identifier = document.identifier
         super().__init__(cmd, Command.DOCUMENT, identifier=identifier, meta=meta)
@@ -116,9 +116,9 @@ class DocumentCommand(MetaCommand):
         return self.get('signature')
 
     @classmethod
-    def query(cls, identifier: ID, signature: Optional[str]=None):
+    def query(cls, identifier: ID, signature: Optional[str] = None):
         return cls(identifier=identifier, signature=signature)
 
     @classmethod
-    def response(cls, document: Document, meta: Optional[Meta]=None, identifier: Optional[ID]=None):
+    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: Optional[ID] = None):
         return cls(identifier=identifier, meta=meta, document=document)

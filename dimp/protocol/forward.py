@@ -47,7 +47,7 @@ class ForwardContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict]=None, message: Optional[ReliableMessage]=None):
+    def __init__(self, content: Optional[dict] = None, message: Optional[ReliableMessage] = None):
         if content is None:
             super().__init__(content_type=ContentType.FORWARD)
         else:

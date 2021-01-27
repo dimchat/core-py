@@ -49,7 +49,7 @@ class EntityDelegate(ABC):
 
     @property
     @abstractmethod
-    def local_users(self) -> Optional[List[User]]:
+    def local_users(self) -> List[User]:
         """
         Get all local users (for decrypting received message)
 
@@ -91,7 +91,7 @@ class EntityDelegate(ABC):
 class CipherKeyDelegate(ABC):
 
     @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID, generate: bool=False) -> Optional[SymmetricKey]:
+    def cipher_key(self, sender: ID, receiver: ID, generate: bool = False) -> Optional[SymmetricKey]:
         """
         Get cipher key for encrypt message from 'sender' to 'receiver'
 
