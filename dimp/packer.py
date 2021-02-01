@@ -39,7 +39,6 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 from .protocol import Command
 
-from .delegate import EntityDelegate, CipherKeyDelegate
 from .transceiver import Transceiver
 
 
@@ -52,14 +51,6 @@ class Packer(Transceiver.Packer):
     @property
     def transceiver(self) -> Transceiver:
         return self.__transceiver()
-
-    @property
-    def barrack(self) -> EntityDelegate:
-        return self.transceiver.barrack
-
-    @property
-    def key_cache(self) -> CipherKeyDelegate:
-        return self.transceiver.key_cache
 
     def overt_group(self, content: Content) -> Optional[ID]:
         group = content.group
@@ -104,17 +95,17 @@ class Packer(Transceiver.Packer):
         group = self.overt_group(content=msg.content)
         if group is None:
             # personal message or (group) command
-            password = self.key_cache.cipher_key(sender=sender, receiver=receiver, generate=True)
+            password = self.transceiver.cipher_key(sender=sender, receiver=receiver, generate=True)
             assert password is not None, 'failed to get msg key: %s -> %s' % (sender, receiver)
         else:
             # group message (excludes group command)
-            password = self.key_cache.cipher_key(sender=sender, receiver=group, generate=True)
+            password = self.transceiver.cipher_key(sender=sender, receiver=group, generate=True)
             assert password is not None, 'failed to get group msg key: %s -> %s' % (sender, group)
 
         # 2. encrypt 'content' to 'data' for receiver/group members
         if receiver.is_group:
             # group message
-            grp = self.barrack.group(identifier=receiver)
+            grp = self.transceiver.group(identifier=receiver)
             if grp is None:
                 # group not ready
                 # TODO: suspend this message for waiting group's meta

@@ -60,7 +60,7 @@ class Command(BaseContent):
     def __init__(self, cmd: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
                  command: Optional[str] = None):
         if cmd is None:
-            if content_type is 0:
+            if content_type == 0:
                 content_type = ContentType.COMMAND
             super().__init__(content_type=content_type)
         else:

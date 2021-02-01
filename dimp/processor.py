@@ -34,7 +34,6 @@ from typing import Optional
 
 from dkd import Envelope, InstantMessage, SecureMessage, ReliableMessage
 
-from .delegate import EntityDelegate
 from .transceiver import Transceiver
 
 
@@ -48,21 +47,13 @@ class Processor(Transceiver.Processor, ABC):
     def transceiver(self) -> Transceiver:
         return self.__transceiver()
 
-    @property
-    def barrack(self) -> EntityDelegate:
-        return self.transceiver.barrack
-
-    @property
-    def packer(self) -> Transceiver.Packer:
-        return self.transceiver.packer
-
     #
     #  Processing Message
     #
 
     def process_package(self, data: bytes) -> Optional[bytes]:
         # 1. deserialize message
-        msg = self.packer.deserialize_message(data=data)
+        msg = self.transceiver.deserialize_message(data=data)
         if msg is None:
             # no valid message received
             return None
@@ -72,12 +63,12 @@ class Processor(Transceiver.Processor, ABC):
             # nothing to respond
             return None
         # 3. serialize message
-        return self.packer.serialize_message(msg=msg)
+        return self.transceiver.serialize_message(msg=msg)
 
     def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
         # TODO: override to check broadcast message before calling it
         # 1. verify message
-        s_msg = self.packer.verify_message(msg=msg)
+        s_msg = self.transceiver.verify_message(msg=msg)
         if s_msg is None:
             # waiting for sender's meta if not exists
             return None
@@ -87,12 +78,12 @@ class Processor(Transceiver.Processor, ABC):
             # nothing to respond
             return None
         # 3. sign message
-        return self.packer.sign_message(msg=s_msg)
+        return self.transceiver.sign_message(msg=s_msg)
         # TODO: override to deliver to the receiver when catch exception "receiver error ..."
 
     def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
         # 1. decrypt message
-        i_msg = self.packer.decrypt_message(msg=msg)
+        i_msg = self.transceiver.decrypt_message(msg=msg)
         if i_msg is None:
             # cannot decrypt this message, not for you?
             # delivering message to other receiver?
@@ -103,7 +94,7 @@ class Processor(Transceiver.Processor, ABC):
             # nothing to respond
             return None
         # 3. encrypt message
-        return self.packer.encrypt_message(msg=i_msg)
+        return self.transceiver.encrypt_message(msg=i_msg)
 
     def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
         # process content from sender
@@ -111,7 +102,7 @@ class Processor(Transceiver.Processor, ABC):
         if res is None:
             # nothing to respond
             return None
-        user = self.barrack.select_user(receiver=msg.receiver)
+        user = self.transceiver.select_user(receiver=msg.receiver)
         if user is None:
             raise AssertionError('receiver error: %s' % msg.receiver)
         # pack message

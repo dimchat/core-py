@@ -96,6 +96,16 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     def create_group(self, identifier: ID) -> Optional[Group]:
         raise NotImplemented
 
+    @property
+    @abstractmethod
+    def local_users(self) -> List[User]:
+        """
+        Get all local users (for decrypting received message)
+
+        :return: users with private key
+        """
+        raise NotImplemented
+
     #
     #   EntityDelegate
     #

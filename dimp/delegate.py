@@ -36,7 +36,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional
 
 from mkm.crypto import SymmetricKey
 from mkm import ID
@@ -46,16 +46,6 @@ from .group import Group
 
 
 class EntityDelegate(ABC):
-
-    @property
-    @abstractmethod
-    def local_users(self) -> List[User]:
-        """
-        Get all local users (for decrypting received message)
-
-        :return: users with private key
-        """
-        raise NotImplemented
 
     @abstractmethod
     def select_user(self, receiver: ID) -> Optional[User]:

@@ -61,7 +61,7 @@ class FileContent(BaseContent):
     def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
                  filename: Optional[str] = None, data: Optional[bytes] = None):
         if content is None:
-            if content_type is 0:
+            if content_type == 0:
                 content_type = ContentType.FILE
             super().__init__(content_type=content_type)
         else:

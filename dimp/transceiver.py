@@ -49,6 +49,8 @@ from dkd import InstantMessageDelegate, ReliableMessageDelegate
 from dkd import Content
 
 from .delegate import EntityDelegate, CipherKeyDelegate
+from .user import User
+from .group import Group
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
@@ -79,6 +81,27 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     @key_cache.setter
     def key_cache(self, delegate: CipherKeyDelegate):
         self.__key_cache = weakref.ref(delegate)
+
+    #
+    #   Interfaces for User/Group
+    #
+    def select_user(self, receiver: ID) -> Optional[User]:
+        return self.barrack.select_user(receiver=receiver)
+
+    def user(self, identifier: ID) -> Optional[User]:
+        return self.barrack.user(identifier=identifier)
+
+    def group(self, identifier: ID) -> Optional[Group]:
+        return self.barrack.group(identifier=identifier)
+
+    #
+    #   Interfaces for Cipher Key
+    #
+    def cipher_key(self, sender: ID, receiver: ID, generate: bool = False) -> Optional[SymmetricKey]:
+        return self.key_cache.cipher_key(sender=sender, receiver=receiver, generate=generate)
+
+    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
+        return self.key_cache.cache_cipher_key(key=key, sender=sender, receiver=receiver)
 
     #
     #   Message Packer
@@ -303,7 +326,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
         assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         # TODO: make sure the receiver's public key exists
-        contact = self.barrack.user(identifier=receiver)
+        contact = self.user(identifier=receiver)
         assert contact is not None, 'failed to encrypt for receiver: %s' % receiver
         # encrypt with receiver's public key
         return contact.encrypt(data=data)
@@ -324,7 +347,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
         assert not is_broadcast(msg=msg), 'broadcast message has no key'
         # decrypt key data with the receiver's private key
-        user = self.barrack.user(identifier=msg.receiver)
+        user = self.user(identifier=msg.receiver)
         assert user is not None, 'failed to create local user: %s' % msg.receiver
         return user.decrypt(data=data)
 
@@ -332,7 +355,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
                         msg: SecureMessage) -> Optional[SymmetricKey]:
         if data is None:
             # get key from cache
-            return self.key_cache.cipher_key(sender=sender, receiver=receiver)
+            return self.cipher_key(sender=sender, receiver=receiver)
         else:
             assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
             dictionary = json_decode(data=data)
@@ -369,18 +392,18 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
             if group is None:
                 # personal message or (group) command
                 # cache key with direction (sender -> receiver)
-                self.key_cache.cache_cipher_key(key=key, sender=msg.sender, receiver=msg.receiver)
+                self.cache_cipher_key(key=key, sender=msg.sender, receiver=msg.receiver)
             else:
                 # group message (excludes group command)
                 # cache the key with direction (sender -> group)
-                self.key_cache.cache_cipher_key(key=key, sender=msg.sender, receiver=group)
+                self.cache_cipher_key(key=key, sender=msg.sender, receiver=group)
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         after deserialize content, this job should be do in subclass
         return content
 
     # noinspection PyUnusedLocal
     def sign_data(self, data: bytes, sender: ID, msg: SecureMessage) -> bytes:
-        user = self.barrack.user(identifier=sender)
+        user = self.user(identifier=sender)
         assert user is not None, 'failed to sign with sender: %s' % sender
         return user.sign(data)
 
@@ -395,7 +418,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return base64_decode(string=signature)
 
     def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage) -> bool:
-        contact = self.barrack.user(identifier=sender)
+        contact = self.user(identifier=sender)
         assert contact is not None, 'failed to verify signature for sender: %s' % sender
         return contact.verify(data=data, signature=signature)
 
