@@ -39,7 +39,7 @@ from abc import abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
-from mkm import NetworkType, ID, ANYONE
+from mkm import NetworkType, ID, ANYONE, FOUNDER
 from mkm import Document, Visa, Bulletin
 
 from .user import User, UserDataSource
@@ -201,24 +201,54 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
     #
     #   GroupDataSource
     #
+    @staticmethod
+    def __id_name(identifier) -> Optional[str]:
+        name = identifier.name
+        if name is not None:
+            length = len(name)
+            if length > 0 and (length != 8 or name != 'everyone'):
+                return name
+
+    def _broadcast_founder(self, identifier: ID) -> Optional[ID]:
+        name = self.__id_name(identifier=identifier)
+        if name is None:
+            # Consensus: the founder of group 'everyone@everywhere'
+            #            'Albert Moky'
+            return FOUNDER
+        else:
+            # DISCUSS: who should be the founder of group 'xxx@everywhere'?
+            #          'anyone@anywhere', or 'xxx.founder@anywhere'
+            return ID.parse(identifier=name + '.founder@anywhere')
+
+    def _broadcast_owner(self, identifier: ID) -> Optional[ID]:
+        name = self.__id_name(identifier=identifier)
+        if name is None:
+            # Consensus: the owner of group 'everyone@everywhere'
+            #            'anyone@anywhere'
+            return ANYONE
+        else:
+            # DISCUSS: who should be the owner of group 'xxx@everywhere'?
+            #          'anyone@anywhere', or 'xxx.owner@anywhere'
+            return ID.parse(identifier=name + '.owner@anywhere')
+
+    def _broadcast_members(self, identifier: ID) -> List[ID]:
+        name = self.__id_name(identifier=identifier)
+        if name is None:
+            # Consensus: the member of group 'everyone@everywhere'
+            #            'anyone@anywhere'
+            return [ANYONE]
+        else:
+            # DISCUSS: who should be the member of group 'xxx@everywhere'?
+            #          'anyone@anywhere', or 'xxx.member@anywhere'
+            owner = ID.parse(identifier=name + '.owner@anywhere')
+            member = ID.parse(identifier=name + '.member@anywhere')
+            return [owner, member]
+
     def founder(self, identifier: ID) -> Optional[ID]:
         # check for broadcast
         if identifier.is_broadcast:
             # founder of broadcast group
-            name = identifier.name
-            if name is None:
-                length = 0
-            else:
-                length = len(name)
-            if length == 0 or (length == 8 and name == 'everyone'):
-                # Consensus: the founder of group 'everyone@everywhere'
-                #            'Albert Moky'
-                founder = 'moky@anywhere'
-            else:
-                # DISCUSS: who should be the founder of group 'xxx@everywhere'?
-                #          'anyone@anywhere', or 'xxx.founder@anywhere'
-                founder = name + '.founder@anywhere'
-            return ID.parse(identifier=founder)
+            return self._broadcast_founder(identifier=identifier)
         # check group meta
         g_meta = self.meta(identifier=identifier)
         if g_meta is None:
@@ -243,20 +273,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         # check for broadcast
         if identifier.is_broadcast:
             # owner of broadcast group
-            name = identifier.name
-            if name is None:
-                length = 0
-            else:
-                length = len(name)
-            if length == 0 or (length == 8 and name == 'everyone'):
-                # Consensus: the owner of group 'everyone@everywhere'
-                #            'anyone@anywhere'
-                owner = ANYONE
-            else:
-                # DISCUSS: who should be the owner of group 'xxx@everywhere'?
-                #          'anyone@anywhere', or 'xxx.owner@anywhere'
-                owner = name + '.owner@anywhere'
-            return ID.parse(identifier=owner)
+            return self._broadcast_owner(identifier=identifier)
         # check group type
         if identifier.type == NetworkType.POLYLOGUE:
             # Polylogue's owner is its founder
@@ -267,27 +284,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         # check for broadcast
         if identifier.is_broadcast:
             # members of broadcast group
-            name = identifier.name
-            if name is None:
-                length = 0
-            else:
-                length = len(name)
-            if length == 0 or (length == 8 and name == 'everyone'):
-                # Consensus: the member of group 'everyone@everywhere'
-                #            'anyone@anywhere'
-                member = ANYONE
-                owner = ANYONE
-            else:
-                # DISCUSS: who should be the member of group 'xxx@everywhere'?
-                #          'anyone@anywhere', or 'xxx.member@anywhere'
-                member = name + '.member@anywhere'
-                owner = name + '.owner@anywhere'
-            member = ID.parse(identifier=member)
-            owner = ID.parse(identifier=owner)
-            if member == owner:
-                return [owner]
-            else:
-                return [owner, member]
+            return self._broadcast_members(identifier=identifier)
 
     def assistants(self, identifier: ID) -> Optional[List[ID]]:
         doc = self.document(identifier=identifier, doc_type=Document.BULLETIN)
