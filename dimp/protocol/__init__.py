@@ -43,6 +43,7 @@ from dkd.content import content_group
 from .forward import ForwardContent
 from .text import TextContent
 from .file import FileContent, ImageContent, AudioContent, VideoContent
+from .money import MoneyContent, TransferContent
 
 from .command import Command, command_name
 from .history import HistoryCommand
@@ -124,6 +125,9 @@ def register_content_factories():
     Content.register(content_type=ContentType.VIDEO, factory=ContentFactoryBuilder(content_class=VideoContent))
 
     # Content.register(content_type=ContentType.PAGE, factory=ContentFactoryBuilder(content_class=PageContent))
+
+    Content.register(content_type=ContentType.MONEY, factory=ContentFactoryBuilder(content_class=MoneyContent))
+    Content.register(content_type=ContentType.TRANSFER, factory=ContentFactoryBuilder(content_class=TransferContent))
 
     Content.register(content_type=ContentType.COMMAND, factory=CommandFactory())
     Content.register(content_type=ContentType.HISTORY, factory=HistoryCommandFactory())
