@@ -97,10 +97,11 @@ class Entity:
         return '<%s|%s %s/>' % (clazz, self.type, self.identifier)
 
     def __eq__(self, other) -> bool:
-        if super().__eq__(other):
+        if self is other:
             return True
-        elif isinstance(other, Entity):
-            return self.__identifier == other.identifier
+        if isinstance(other, Entity):
+            other = other.identifier
+        return self.__identifier == other
 
     @property
     def delegate(self) -> Optional[EntityDataSource]:
