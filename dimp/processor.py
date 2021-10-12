@@ -30,7 +30,7 @@
 
 import weakref
 from abc import ABC
-from typing import Optional
+from typing import List
 
 from dkd import Envelope, InstantMessage, SecureMessage, ReliableMessage
 
@@ -51,60 +51,80 @@ class Processor(Transceiver.Processor, ABC):
     #  Processing Message
     #
 
-    def process_package(self, data: bytes) -> Optional[bytes]:
+    def process_package(self, data: bytes) -> List[bytes]:
+        transceiver = self.transceiver
         # 1. deserialize message
-        msg = self.transceiver.deserialize_message(data=data)
+        msg = transceiver.deserialize_message(data=data)
         if msg is None:
             # no valid message received
-            return None
+            return []
         # 2. process message
-        msg = self.transceiver.process_reliable_message(msg=msg)
-        if msg is None:
-            # nothing to respond
-            return None
-        # 3. serialize message
-        return self.transceiver.serialize_message(msg=msg)
+        responses = transceiver.process_reliable_message(msg=msg)
+        # if len(responses) == 0:
+        #     return []
+        packages = []
+        for res in responses:
+            # 3. serialize messages
+            pack = transceiver.serialize_message(msg=res)
+            if pack is not None:
+                packages.append(pack)
+        return packages
 
-    def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+    def process_reliable_message(self, msg: ReliableMessage) -> List[ReliableMessage]:
         # TODO: override to check broadcast message before calling it
+        transceiver = self.transceiver
         # 1. verify message
-        s_msg = self.transceiver.verify_message(msg=msg)
+        s_msg = transceiver.verify_message(msg=msg)
         if s_msg is None:
             # waiting for sender's meta if not exists
-            return None
+            return []
         # 2. process message
-        s_msg = self.transceiver.process_secure_message(msg=s_msg, r_msg=msg)
-        if s_msg is None:
-            # nothing to respond
-            return None
-        # 3. sign message
-        return self.transceiver.sign_message(msg=s_msg)
+        responses = transceiver.process_secure_message(msg=s_msg, r_msg=msg)
+        # if len(responses) == 0:
+        #     return []
+        messages = []
+        for res in responses:
+            # 3. sign message
+            signed = transceiver.sign_message(msg=res)
+            if signed is not None:
+                messages.append(signed)
+        return messages
         # TODO: override to deliver to the receiver when catch exception "receiver error ..."
 
-    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> List[SecureMessage]:
+        transceiver = self.transceiver
         # 1. decrypt message
-        i_msg = self.transceiver.decrypt_message(msg=msg)
+        i_msg = transceiver.decrypt_message(msg=msg)
         if i_msg is None:
             # cannot decrypt this message, not for you?
             # delivering message to other receiver?
-            return None
+            return []
         # 2. process message
-        i_msg = self.transceiver.process_instant_message(msg=i_msg, r_msg=r_msg)
-        if i_msg is None:
-            # nothing to respond
-            return None
-        # 3. encrypt message
-        return self.transceiver.encrypt_message(msg=i_msg)
+        responses = transceiver.process_instant_message(msg=i_msg, r_msg=r_msg)
+        # if len(responses) == 0:
+        #     return []
+        messages = []
+        for res in responses:
+            # 3. encrypt messages
+            encrypted = transceiver.encrypt_message(msg=res)
+            if encrypted is not None:
+                messages.append(encrypted)
+        return messages
 
-    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
+        transceiver = self.transceiver
         # process content from sender
-        res = self.transceiver.process_content(content=msg.content, r_msg=r_msg)
-        if res is None:
+        responses = transceiver.process_content(content=msg.content, r_msg=r_msg)
+        if len(responses) == 0:
             # nothing to respond
-            return None
-        user = self.transceiver.select_user(receiver=msg.receiver)
+            return []
+        user = transceiver.select_user(receiver=msg.receiver)
         if user is None:
             raise AssertionError('receiver error: %s' % msg.receiver)
-        # pack message
-        env = Envelope.create(sender=user.identifier, receiver=msg.sender)
-        return InstantMessage.create(head=env, body=res)
+        messages = []
+        for res in responses:
+            # pack messages
+            env = Envelope.create(sender=user.identifier, receiver=msg.sender)
+            msg = InstantMessage.create(head=env, body=res)
+            messages.append(msg)
+        return messages

@@ -37,7 +37,7 @@
 
 import weakref
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm.crypto import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
 from mkm.crypto import SymmetricKey
@@ -218,55 +218,55 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     class Processor:
 
         @abstractmethod
-        def process_package(self, data: bytes) -> Optional[bytes]:
+        def process_package(self, data: bytes) -> List[bytes]:
             """
             Process data package
 
             :param data: data to be processed
-            :return: response data
+            :return: responses
             """
             raise NotImplemented
 
         @abstractmethod
-        def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+        def process_reliable_message(self, msg: ReliableMessage) -> List[ReliableMessage]:
             """
             Process network message
 
             :param msg: message to be processed
-            :return: response message
+            :return: response messages
             """
             raise NotImplemented
 
         @abstractmethod
-        def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+        def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> List[SecureMessage]:
             """
             Process encrypted message
 
             :param msg:   message to be processed
             :param r_msg: message received
-            :return: response message
+            :return: response messages
             """
             raise NotImplemented
 
         @abstractmethod
-        def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+        def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
             """
             Process plain message
 
             :param msg:   message to be processed
             :param r_msg: message received
-            :return: response message
+            :return: response messages
             """
             raise NotImplemented
 
         @abstractmethod
-        def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
+        def process_content(self, content: Content, r_msg: ReliableMessage) -> List[Content]:
             """
             Process message content
 
             :param content: content to be processed
             :param r_msg: message received
-            :return: response content
+            :return: response contents
             """
             raise NotImplemented
 
@@ -283,19 +283,19 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
     #
     #   Interfaces for Processing Message
     #
-    def process_package(self, data: bytes) -> Optional[bytes]:
+    def process_package(self, data: bytes) -> List[bytes]:
         return self.processor.process_package(data=data)
 
-    def process_reliable_message(self, msg: ReliableMessage) -> Optional[ReliableMessage]:
+    def process_reliable_message(self, msg: ReliableMessage) -> List[ReliableMessage]:
         return self.processor.process_reliable_message(msg=msg)
 
-    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> Optional[SecureMessage]:
+    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> List[SecureMessage]:
         return self.processor.process_secure_message(msg=msg, r_msg=r_msg)
 
-    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> Optional[InstantMessage]:
+    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
         return self.processor.process_instant_message(msg=msg, r_msg=r_msg)
 
-    def process_content(self, content: Content, r_msg: ReliableMessage) -> Optional[Content]:
+    def process_content(self, content: Content, r_msg: ReliableMessage) -> List[Content]:
         return self.processor.process_content(content=content, r_msg=r_msg)
 
     #
