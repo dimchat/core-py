@@ -171,5 +171,6 @@ __all__ = [
     'MetaCommand', 'DocumentCommand',
 
     'ContentFactoryBuilder', 'CommandFactoryBuilder',
+
     'register_core_factories',
 ]

@@ -60,11 +60,11 @@ class Processor(Transceiver.Processor, ABC):
             return []
         # 2. process message
         responses = transceiver.process_reliable_message(msg=msg)
-        # if len(responses) == 0:
-        #     return []
+        if responses is None or len(responses) == 0:
+            return []
+        # 3. serialize messages
         packages = []
         for res in responses:
-            # 3. serialize messages
             pack = transceiver.serialize_message(msg=res)
             if pack is not None:
                 packages.append(pack)
@@ -80,11 +80,11 @@ class Processor(Transceiver.Processor, ABC):
             return []
         # 2. process message
         responses = transceiver.process_secure_message(msg=s_msg, r_msg=msg)
-        # if len(responses) == 0:
-        #     return []
+        if responses is None or len(responses) == 0:
+            return []
+        # 3. sign message
         messages = []
         for res in responses:
-            # 3. sign message
             signed = transceiver.sign_message(msg=res)
             if signed is not None:
                 messages.append(signed)
@@ -101,11 +101,11 @@ class Processor(Transceiver.Processor, ABC):
             return []
         # 2. process message
         responses = transceiver.process_instant_message(msg=i_msg, r_msg=r_msg)
-        # if len(responses) == 0:
-        #     return []
+        if responses is None or len(responses) == 0:
+            return []
+        # 3. encrypt messages
         messages = []
         for res in responses:
-            # 3. encrypt messages
             encrypted = transceiver.encrypt_message(msg=res)
             if encrypted is not None:
                 messages.append(encrypted)
@@ -113,18 +113,24 @@ class Processor(Transceiver.Processor, ABC):
 
     def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
         transceiver = self.transceiver
-        # process content from sender
+        # 1. process content from sender
         responses = transceiver.process_content(content=msg.content, r_msg=r_msg)
-        if len(responses) == 0:
+        if responses is None or len(responses) == 0:
             # nothing to respond
             return []
-        user = transceiver.select_user(receiver=msg.receiver)
-        if user is None:
-            raise AssertionError('receiver error: %s' % msg.receiver)
+        # 2. select a local user to build message
+        sender = msg.sender
+        receiver = msg.receiver
+        user = transceiver.select_user(receiver=receiver)
+        assert user is not None, 'receiver error: %s' % receiver
+        me = user.identifier
+        # 3. package messages
         messages = []
         for res in responses:
-            # pack messages
-            env = Envelope.create(sender=user.identifier, receiver=msg.sender)
+            if res is None:
+                # should not happen
+                continue
+            env = Envelope.create(sender=me, receiver=sender)
             msg = InstantMessage.create(head=env, body=res)
             messages.append(msg)
         return messages
