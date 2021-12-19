@@ -88,6 +88,10 @@ class MetaCommand(Command):
             self.__meta = Meta.parse(meta=self.get('meta'))
         return self.__meta
 
+    #
+    #   Factory methods
+    #
+
     @classmethod
     def query(cls, identifier: ID):
         return cls(identifier=identifier)

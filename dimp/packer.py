@@ -28,174 +28,85 @@
 # SOFTWARE.
 # ==============================================================================
 
-import weakref
+from abc import ABC, abstractmethod
 from typing import Optional
-
-from mkm.crypto import json_encode, json_decode
 
 from mkm import ID
 from dkd import Content
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 
-from .protocol import Command
 
-from .transceiver import Transceiver
+#
+#   Message Packer
+#
+class Packer(ABC):
 
-
-class Packer(Transceiver.Packer):
-
-    def __init__(self, transceiver: Transceiver):
-        super().__init__()
-        self.__transceiver = weakref.ref(transceiver)
-
-    @property
-    def transceiver(self) -> Transceiver:
-        return self.__transceiver()
-
+    @abstractmethod
     def overt_group(self, content: Content) -> Optional[ID]:
-        group = content.group
-        if group is not None:
-            if group.is_broadcast:
-                # broadcast message is always overt
-                return group
-            if isinstance(content, Command):
-                # group command should be sent to each member directly, so
-                # don't expose group ID
-                return None
-            return group
+        """
+        Get group ID which should be exposed to public network
 
-    #
-    #   InstantMessage -> SecureMessage -> ReliableMessage -> Data
-    #
+        :param content: message content
+        :return: exposed group ID
+        """
+        raise NotImplemented
 
+    @abstractmethod
     def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
-        transceiver = self.transceiver
-        # check message delegate
-        if msg.delegate is None:
-            msg.delegate = transceiver
+        """
+        Encrypt message content
 
-        sender = msg.sender
-        receiver = msg.receiver
-        # if 'group' exists and the 'receiver' is a group ID,
-        # they must be equal
+        :param msg: plain message
+        :return: encrypted message
+        """
+        raise NotImplemented
 
-        # NOTICE: while sending group message, don't split it before encrypting.
-        #         this means you could set group ID into message content, but
-        #         keep the "receiver" to be the group ID;
-        #         after encrypted (and signed), you could split the message
-        #         with group members before sending out, or just send it directly
-        #         to the group assistant to let it split messages for you!
-        #    BUT,
-        #         if you don't want to share the symmetric key with other members,
-        #         you could split it (set group ID into message content and
-        #         set contact ID to the "receiver") before encrypting, this usually
-        #         for sending group command to assistant robot, which should not
-        #         share the symmetric key (group msg key) with other members.
-
-        # 1. get symmetric key
-        group = self.overt_group(content=msg.content)
-        if group is None:
-            # personal message or (group) command
-            password = transceiver.cipher_key(sender=sender, receiver=receiver, generate=True)
-            assert password is not None, 'failed to get msg key: %s -> %s' % (sender, receiver)
-        else:
-            # group message (excludes group command)
-            password = transceiver.cipher_key(sender=sender, receiver=group, generate=True)
-            assert password is not None, 'failed to get group msg key: %s -> %s' % (sender, group)
-
-        # 2. encrypt 'content' to 'data' for receiver/group members
-        if receiver.is_group:
-            # group message
-            grp = transceiver.group(identifier=receiver)
-            if grp is None:
-                # group not ready
-                # TODO: suspend this message for waiting group's meta
-                return None
-            members = grp.members
-            if members is None or len(members) == 0:
-                # group members not found
-                # TODO: suspend this message for waiting group's membership
-                return None
-            s_msg = msg.encrypt(password=password, members=grp.members)
-        else:
-            # personal message (or split group message)
-            s_msg = msg.encrypt(password=password)
-        if s_msg is None:
-            # public key for encryption not found
-            # TODO: suspend this message for waiting receiver's meta
-            return None
-
-        # overt group ID
-        if group is not None and receiver != group:
-            # NOTICE: this help the receiver knows the group ID
-            #         when the group message separated to multi-messages,
-            #         if don't want the others know you are the group members,
-            #         remove it.
-            s_msg.envelope.group = group
-
-        # NOTICE: copy content type to envelope
-        #         this help the intermediate nodes to recognize message type
-        s_msg.envelope.type = msg.content.type
-
-        # OK
-        return s_msg
-
+    @abstractmethod
     def sign_message(self, msg: SecureMessage) -> ReliableMessage:
-        # check message delegate
-        if msg.delegate is None:
-            msg.delegate = self.transceiver
-        assert msg.data is not None, 'message data cannot be empty: %s' % msg
-        # sign 'data' by sender
-        return msg.sign()
+        """
+        Sign content data
 
+        :param msg: encrypted message
+        :return: network message
+        """
+        raise NotImplemented
+
+    @abstractmethod
     def serialize_message(self, msg: ReliableMessage) -> bytes:
-        return json_encode(o=msg.dictionary)
+        """
+        Serialize network message
 
-    #
-    #   Data -> ReliableMessage -> SecureMessage -> InstantMessage
-    #
+        :param msg: network message
+        :return: data package
+        """
+        raise NotImplemented
 
+    @abstractmethod
     def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
-        dictionary = json_decode(data=data)
-        # TODO: translate short keys
-        #       'S' -> 'sender'
-        #       'R' -> 'receiver'
-        #       'W' -> 'time'
-        #       'T' -> 'type'
-        #       'G' -> 'group'
-        #       ------------------
-        #       'D' -> 'data'
-        #       'V' -> 'signature'
-        #       'K' -> 'key'
-        #       ------------------
-        #       'M' -> 'meta'
-        return ReliableMessage.parse(msg=dictionary)
+        """
+        Deserialize network message
 
+        :param data: data package
+        :return: network message
+        """
+        raise NotImplemented
+
+    @abstractmethod
     def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
-        # check message delegate
-        if msg.delegate is None:
-            msg.delegate = self.transceiver
-        #
-        # TODO: check [Meta Protocol]
-        #       make sure the sender's meta exists
-        #       (do in by application)
-        #
-        assert msg.signature is not None, 'message signature cannot be empty: %s' % msg
-        # verify 'data' with 'signature'
-        return msg.verify()
+        """
+        Verify encrypted content data
 
+        :param msg: network message
+        :return: encrypted message
+        """
+        raise NotImplemented
+
+    @abstractmethod
     def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
-        # check message delegate
-        if msg.delegate is None:
-            msg.delegate = self.transceiver
-        #
-        # NOTICE: make sure the receiver is YOU!
-        #         which means the receiver's private key exists;
-        #         if the receiver is a group ID, split it first
-        #
+        """
+        Decrypt message content
 
-        assert msg.data is not None, 'message data cannot be empty: %s' % msg
-        # decrypt 'data' to 'content'
-        return msg.decrypt()
-        # TODO: check top-secret message
-        #       (do it by application)
+        :param msg: encrypted message
+        :return: plain message
+        """
+        raise NotImplemented

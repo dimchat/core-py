@@ -30,17 +30,10 @@
 
 from typing import Optional, Union
 
-from mkm.crypto import base64_encode, base64_decode, hex_encode, md5
+from mkm.crypto import base64_encode, base64_decode
 from mkm.crypto import SymmetricKey
 
 from dkd import ContentType, BaseContent
-
-
-def data_filename(data: bytes, ext: str = None) -> str:
-    filename = hex_encode(md5(data))
-    if ext is None or len(ext) == 0:
-        return filename
-    return filename + '.' + ext
 
 
 class FileContent(BaseContent):

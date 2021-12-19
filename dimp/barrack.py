@@ -35,69 +35,22 @@
     Manage meta for all entities
 """
 
-from abc import abstractmethod
+from abc import ABC
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
 from mkm import NetworkType, ID, ANYONE, FOUNDER
-from mkm import Document, Visa, Bulletin
+from mkm import Meta, Document, Visa, Bulletin
 
 from .user import User, UserDataSource
-from .group import Group, GroupDataSource
+from .group import GroupDataSource
 
 from .delegate import EntityDelegate
 
 
-def thanos(planet: dict, finger: int) -> int:
-    """ Thanos can kill half lives of a world with a snap of the finger """
-    keys = planet.keys()
-    for key in keys:
-        if (++finger & 1) == 1:
-            # kill it
-            planet.pop(key)
-    return finger
-
-
-class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
-
-    def __init__(self):
-        super().__init__()
-        # memory caches
-        self.__users = {}   # ID -> User
-        self.__groups = {}  # ID -> Group
-
-    def reduce_memory(self) -> int:
-        """
-        Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-        this will remove 50% of cached objects
-
-        :return: number of survivors
-        """
-        finger = 0
-        finger = thanos(self.__users, finger)
-        finger = thanos(self.__groups, finger)
-        return finger >> 1
-
-    def cache_user(self, user: User):
-        if user.delegate is None:
-            user.delegate = self
-        self.__users[user.identifier] = user
-
-    def cache_group(self, group: Group):
-        if group.delegate is None:
-            group.delegate = self
-        self.__groups[group.identifier] = group
-
-    @abstractmethod
-    def create_user(self, identifier: ID) -> Optional[User]:
-        raise NotImplemented
-
-    @abstractmethod
-    def create_group(self, identifier: ID) -> Optional[Group]:
-        raise NotImplemented
+class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
 
     @property
-    @abstractmethod
     def local_users(self) -> List[User]:
         """
         Get all local users (for decrypting received message)
@@ -106,9 +59,18 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         """
         raise NotImplemented
 
+    @property
+    def current_user(self) -> Optional[User]:
+        """ Get current user (for signing and sending message) """
+        users = self.local_users
+        if users is not None and len(users) > 0:
+            return users[0]
+
     #
     #   EntityDelegate
     #
+
+    # Override
     def select_user(self, receiver: ID) -> Optional[User]:
         users = self.local_users
         assert users is not None and len(users) > 0, 'local users should not be empty'
@@ -134,26 +96,6 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
                     # DISCUSS: set this item to be current user?
                     return item
 
-    def user(self, identifier: ID) -> Optional[User]:
-        # 1. get from user cache
-        usr = self.__users.get(identifier)
-        if usr is None:
-            # 2. create and cache it
-            usr = self.create_user(identifier=identifier)
-            if usr is not None:
-                self.cache_user(user=usr)
-        return usr
-
-    def group(self, identifier: ID) -> Optional[Group]:
-        # 1. get from group cache
-        grp = self.__groups.get(identifier)
-        if grp is None:
-            # 2. create and cache it
-            grp = self.create_group(identifier=identifier)
-            if grp is not None:
-                self.cache_group(group=grp)
-        return grp
-
     #
     #   UserDataSource
     #
@@ -168,6 +110,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
         if meta is not None:
             return meta.key
 
+    # Override
     def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
         # 1. get key from visa
         key = self.__visa_key(identifier=identifier)
@@ -181,6 +124,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             # use it for encryption
             return key
 
+    # Override
     def public_keys_for_verification(self, identifier: ID) -> Optional[List[VerifyKey]]:
         keys = []
         # 1. get key from visa
@@ -244,6 +188,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             member = ID.parse(identifier=name + '.member@anywhere')
             return [owner, member]
 
+    # Override
     def founder(self, identifier: ID) -> Optional[ID]:
         # check for broadcast
         if identifier.is_broadcast:
@@ -263,12 +208,13 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
                 if u_meta is None:
                     # failed to get member's meta
                     continue
-                if g_meta.match_key(key=u_meta.key):
+                if Meta.matches(meta=g_meta, key=u_meta.key):
                     # if the member's public key matches with the group's meta,
                     # it means this meta was generated by the member's private key
                     return item
         # TODO: load founder from database
 
+    # Override
     def owner(self, identifier: ID) -> Optional[ID]:
         # check for broadcast
         if identifier.is_broadcast:
@@ -280,12 +226,14 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource):
             return self.founder(identifier=identifier)
         # TODO: load owner from database
 
+    # Override
     def members(self, identifier: ID) -> Optional[List[ID]]:
         # check for broadcast
         if identifier.is_broadcast:
             # members of broadcast group
             return self._broadcast_members(identifier=identifier)
 
+    # Override
     def assistants(self, identifier: ID) -> Optional[List[ID]]:
         doc = self.document(identifier=identifier, doc_type=Document.BULLETIN)
         if isinstance(doc, Bulletin):

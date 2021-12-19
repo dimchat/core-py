@@ -29,14 +29,14 @@
 # ==============================================================================
 
 import weakref
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import ID, Meta, Document
 
 
-class EntityDataSource:
-    """This interface is for getting information for entity(user/group)
+class EntityDataSource(ABC):
+    """ This interface is for getting information for entity(user/group)
 
         Entity Data Source
         ~~~~~~~~~~~~~~~~~~
@@ -70,7 +70,7 @@ class EntityDataSource:
 
 
 class Entity:
-    """Base class of User and Group, ...
+    """ Base class of User and Group, ...
 
         Entity (User/Group)
         ~~~~~~~~~~~~~~~~~~~
@@ -90,7 +90,7 @@ class Entity:
         """
         super().__init__()
         self.__identifier: ID = identifier
-        self.__delegate: Optional[weakref.ReferenceType] = None
+        self.__data_source = None
 
     def __str__(self):
         clazz = self.__class__.__name__
@@ -104,13 +104,13 @@ class Entity:
         return self.__identifier == other
 
     @property
-    def delegate(self) -> Optional[EntityDataSource]:
-        if self.__delegate is not None:
-            return self.__delegate()
+    def data_source(self) -> Optional[EntityDataSource]:
+        if self.__data_source is not None:
+            return self.__data_source()
 
-    @delegate.setter
-    def delegate(self, value: EntityDataSource):
-        self.__delegate = weakref.ref(value)
+    @data_source.setter
+    def data_source(self, delegate: EntityDataSource):
+        self.__data_source = weakref.ref(delegate)
 
     @property
     def identifier(self) -> ID:
@@ -123,9 +123,11 @@ class Entity:
 
     @property
     def meta(self) -> Meta:
-        assert isinstance(self.delegate, EntityDataSource), 'entity delegate error: %s' % self.delegate
-        return self.delegate.meta(identifier=self.identifier)
+        delegate = self.data_source
+        assert delegate is not None, 'entity delegate not set yet'
+        return delegate.meta(identifier=self.identifier)
 
     def document(self, doc_type: Optional[str] = '*') -> Optional[Document]:
-        assert isinstance(self.delegate, EntityDataSource), 'entity delegate error: %s' % self.delegate
-        return self.delegate.document(identifier=self.identifier, doc_type=doc_type)
+        delegate = self.data_source
+        assert delegate is not None, 'entity delegate not set yet'
+        return delegate.document(identifier=self.identifier, doc_type=doc_type)

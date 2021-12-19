@@ -37,15 +37,14 @@
 
 from typing import Optional
 
-from dkd import ContentType, Content, BaseContent
-from dkd.content import content_group
+from dkd import ContentType, Content, ContentFactory, BaseContent
 
 from .forward import ForwardContent
 from .text import TextContent
 from .file import FileContent, ImageContent, AudioContent, VideoContent
 from .money import MoneyContent, TransferContent
 
-from .command import Command, command_name
+from .command import Command, CommandFactory, command_name
 from .history import HistoryCommand
 from .group import GroupCommand, InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 
@@ -53,7 +52,7 @@ from .meta import MetaCommand
 from .document import DocumentCommand
 
 
-class ContentFactoryBuilder(Content.Factory):
+class ContentFactoryBuilder(ContentFactory):
 
     def __init__(self, content_class):
         super().__init__()
@@ -63,7 +62,7 @@ class ContentFactoryBuilder(Content.Factory):
         return self.__class(content=content)
 
 
-class CommandFactoryBuilder(Command.Factory):
+class CommandFactoryBuilder(CommandFactory):
 
     def __init__(self, command_class):
         super().__init__()
@@ -73,7 +72,7 @@ class CommandFactoryBuilder(Command.Factory):
         return self.__class(cmd=cmd)
 
 
-class CommandFactory(Content.Factory, Command.Factory):
+class CommandContentFactory(ContentFactory, CommandFactory):
 
     def __init__(self):
         super().__init__()
@@ -84,7 +83,7 @@ class CommandFactory(Content.Factory, Command.Factory):
         factory = Command.factory(command=name)
         if factory is None:
             # check for group command
-            if content_group(content=content) is not None:
+            if 'group' in content:
                 factory = Command.factory(command='group')
             if factory is None:
                 factory = self
@@ -94,7 +93,7 @@ class CommandFactory(Content.Factory, Command.Factory):
         return Command(cmd=cmd)
 
 
-class HistoryCommandFactory(CommandFactory):
+class HistoryCommandFactory(CommandContentFactory):
 
     def parse_command(self, cmd: dict) -> Optional[Command]:
         return HistoryCommand(cmd=cmd)
@@ -129,7 +128,7 @@ def register_content_factories():
     Content.register(content_type=ContentType.MONEY, factory=ContentFactoryBuilder(content_class=MoneyContent))
     Content.register(content_type=ContentType.TRANSFER, factory=ContentFactoryBuilder(content_class=TransferContent))
 
-    Content.register(content_type=ContentType.COMMAND, factory=CommandFactory())
+    Content.register(content_type=ContentType.COMMAND, factory=CommandContentFactory())
     Content.register(content_type=ContentType.HISTORY, factory=HistoryCommandFactory())
 
     Content.register(content_type=0, factory=ContentFactoryBuilder(content_class=BaseContent))

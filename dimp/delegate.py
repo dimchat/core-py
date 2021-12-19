@@ -38,7 +38,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from mkm.crypto import SymmetricKey
 from mkm import ID
 
 from .user import User
@@ -74,31 +73,5 @@ class EntityDelegate(ABC):
 
         :param identifier: ID object
         :return: Group object
-        """
-        raise NotImplemented
-
-
-class CipherKeyDelegate(ABC):
-
-    @abstractmethod
-    def cipher_key(self, sender: ID, receiver: ID, generate: bool = False) -> Optional[SymmetricKey]:
-        """
-        Get cipher key for encrypt message from 'sender' to 'receiver'
-
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
-        :param generate: generate when key not exists
-        :return:         cipher key
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def cache_cipher_key(self, key: SymmetricKey, sender: ID, receiver: ID):
-        """
-        Cache cipher key for reusing, with direction (from 'sender' to 'receiver')
-
-        :param key:      cipher key from a contact
-        :param sender:   user or contact ID
-        :param receiver: contact or user/group ID
         """
         raise NotImplemented

@@ -35,7 +35,7 @@
     Group with members
 """
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm import ID, Bulletin, Document
@@ -43,8 +43,8 @@ from mkm import ID, Bulletin, Document
 from .entity import Entity, EntityDataSource
 
 
-class GroupDataSource(EntityDataSource):
-    """This interface is for getting information for group
+class GroupDataSource(EntityDataSource, ABC):
+    """ This interface is for getting information for group
 
         Group Data Source
         ~~~~~~~~~~~~~~~~~
@@ -95,7 +95,7 @@ class GroupDataSource(EntityDataSource):
 
 
 class Group(Entity):
-    """This class is for creating group
+    """ This class is for creating group
 
         Group for organizing users
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,13 +113,13 @@ class Group(Entity):
         # once the group founder is set, it will never change
         self.__founder: Optional[ID] = None
 
-    @Entity.delegate.getter
-    def delegate(self) -> Optional[GroupDataSource]:
-        return super().delegate
+    @Entity.data_source.getter  # Override
+    def data_source(self) -> Optional[GroupDataSource]:
+        return super().data_source
 
-    # @delegate.setter
-    # def delegate(self, value: GroupDataSource):
-    #     super(Group, Group).delegate.__set__(self, value)
+    # @data_source.setter  # Override
+    # def data_source(self, delegate: GroupDataSource):
+    #     super(Group, Group).data_source.__set__(self, delegate)
 
     @property
     def bulletin(self) -> Optional[Bulletin]:
@@ -130,27 +130,27 @@ class Group(Entity):
     @property
     def founder(self) -> ID:
         if self.__founder is None:
-            assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
-            self.__founder = self.delegate.founder(identifier=self.identifier)
+            delegate = self.data_source
+            assert delegate is not None, 'group delegate not set yet'
+            self.__founder = delegate.founder(identifier=self.identifier)
         return self.__founder
 
     @property
     def owner(self) -> ID:
-        assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
-        return self.delegate.owner(identifier=self.identifier)
+        delegate = self.data_source
+        assert delegate is not None, 'group delegate not set yet'
+        return delegate.owner(identifier=self.identifier)
 
     @property
     def members(self) -> List[ID]:
-        """
-        NOTICE: the owner must be a member
-                (usually the first one)
-
-        :return: members ID list
-        """
-        assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
-        return self.delegate.members(identifier=self.identifier)
+        """ NOTICE: the owner must be a member
+            (usually the first one) """
+        delegate = self.data_source
+        assert delegate is not None, 'group delegate not set yet'
+        return delegate.members(identifier=self.identifier)
 
     @property
     def assistants(self) -> List[ID]:
-        assert isinstance(self.delegate, GroupDataSource), 'group data source error: %s' % self.delegate
-        return self.delegate.assistants(identifier=self.identifier)
+        delegate = self.data_source
+        assert delegate is not None, 'group delegate not set yet'
+        return delegate.assistants(identifier=self.identifier)

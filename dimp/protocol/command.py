@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 from dkd import ContentType, BaseContent
 
@@ -75,37 +75,30 @@ class Command(BaseContent):
             self.__command = command_name(cmd=self.dictionary)
         return self.__command
 
-    #
-    #  Factory for creating Command
-    #
-    class Factory:
-
-        @abstractmethod
-        def parse_command(self, cmd: dict):  # -> Optional[Command]:
-            """
-            Parse map object to command
-
-            :param cmd: command info
-            :return: Command
-            """
-            raise NotImplemented
-
-    __factories = {}  # name -> factory
+    @classmethod
+    def factory(cls, command: str):  # -> Optional[CommandFactory]:
+        return g_command_factories.get(command)
 
     @classmethod
-    def register(cls, command: str, factory: Factory):
-        cls.__factories[command] = factory
-
-    @classmethod
-    def factory(cls, command: str) -> Factory:
-        return cls.__factories.get(command)
-
-
-"""
-    Implements
-    ~~~~~~~~~~
-"""
+    def register(cls, command: str, factory):
+        g_command_factories[command] = factory
 
 
 def command_name(cmd: dict) -> str:
     return cmd.get('command')
+
+
+class CommandFactory:
+
+    @abstractmethod
+    def parse_command(self, cmd: dict) -> Optional[Command]:
+        """
+        Parse map object to command
+
+        :param cmd: command info
+        :return: Command
+        """
+        raise NotImplemented
+
+
+g_command_factories: Dict[str, CommandFactory] = {}

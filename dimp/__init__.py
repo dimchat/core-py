@@ -38,7 +38,7 @@ from .entity import Entity, EntityDataSource
 from .user import User, UserDataSource
 from .group import Group, GroupDataSource
 
-from .delegate import EntityDelegate, CipherKeyDelegate
+from .delegate import EntityDelegate
 
 from .barrack import Barrack
 from .transceiver import Transceiver
@@ -66,28 +66,29 @@ __all__ = [
 
     'CryptographyKey',
     'SymmetricKey', 'EncryptKey', 'DecryptKey',
+    'SymmetricKeyFactory',
     'AsymmetricKey', 'SignKey', 'VerifyKey',
-    'PublicKey', 'PrivateKey',
+    'PublicKey', 'PublicKeyFactory',
+    'PrivateKey', 'PrivateKeyFactory',
 
     #
     #   MingKeMing
     #
     'NetworkType', 'MetaType',
-    'Address', 'AddressFactory', 'ANYWHERE', 'EVERYWHERE',
+    'Address', 'AddressFactory', 'BaseAddressFactory',
+    'ANYWHERE', 'EVERYWHERE',
     'ID', 'ANYONE', 'EVERYONE', 'FOUNDER',
-    'Meta', 'BaseMeta',
-    'Document', 'BaseDocument',
+    'Meta', 'BaseMeta', 'MetaFactory',
+    'Document', 'BaseDocument', 'DocumentFactory',
     'Visa', 'BaseVisa', 'Bulletin', 'BaseBulletin',
 
     #
     #   DaoKeDao
     #
     'ContentType',
-    'Content', 'BaseContent',
-    'Envelope',
-    'Message',
+    'Content', 'BaseContent', 'ContentFactory',
+    'Envelope', 'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'MessageDelegate',
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
@@ -105,9 +106,10 @@ __all__ = [
     #
     #   Core
     #
-    'Entity', 'User', 'Group',
-    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
+    'Entity', 'EntityDataSource',
+    'User', 'UserDataSource',
+    'Group', 'GroupDataSource',
 
-    'EntityDelegate', 'CipherKeyDelegate',
+    'EntityDelegate',
     'Barrack', 'Transceiver', 'Packer', 'Processor',
 ]

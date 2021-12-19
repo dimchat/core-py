@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, DecryptKey, SignKey, VerifyKey
@@ -37,8 +37,8 @@ from mkm import ID, Visa, Document
 from .entity import Entity, EntityDataSource
 
 
-class UserDataSource(EntityDataSource):
-    """This interface is for getting information for user
+class UserDataSource(EntityDataSource, ABC):
+    """ This interface is for getting information for user
 
         User Data Source
         ~~~~~~~~~~~~~~~~
@@ -128,7 +128,7 @@ class UserDataSource(EntityDataSource):
 
 
 class User(Entity):
-    """This class is for creating user
+    """ This class is for creating user
 
         User for communication
         ~~~~~~~~~~~~~~~~~~~~~~
@@ -142,13 +142,13 @@ class User(Entity):
             4. decrypt(data) - decrypt (symmetric key) data
     """
 
-    @Entity.delegate.getter
-    def delegate(self) -> Optional[UserDataSource]:
-        return super().delegate
+    @Entity.data_source.getter  # Override
+    def data_source(self) -> Optional[UserDataSource]:
+        return super().data_source
 
-    # @delegate.setter
-    # def delegate(self, value: UserDataSource):
-    #     super(User, User).delegate.__set__(self, value)
+    # @data_source.setter  # Override
+    # def data_source(self, delegate: UserDataSource):
+    #     super(User, User).data_source.__set__(self, delegate)
 
     @property
     def visa(self) -> Optional[Visa]:
@@ -163,8 +163,9 @@ class User(Entity):
 
         :return: contacts list
         """
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
-        return self.delegate.contacts(identifier=self.identifier)
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
+        return delegate.contacts(identifier=self.identifier)
 
     def verify(self, data: bytes, signature: bytes) -> bool:
         """
@@ -174,10 +175,11 @@ class User(Entity):
         :param signature:
         :return:
         """
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
         # NOTICE: I suggest using the private key paired with meta.key to sign message,
         #         so here should return the meta.key
-        keys = self.delegate.public_keys_for_verification(identifier=self.identifier)
+        keys = delegate.public_keys_for_verification(identifier=self.identifier)
         assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
         for key in keys:
             if key.verify(data=data, signature=signature):
@@ -190,10 +192,11 @@ class User(Entity):
         :param data: plaintext
         :return: encrypted data
         """
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
         # NOTICE: meta.key will never changed, so use visa.key to encrypt message
         #         is the better way
-        key = self.delegate.public_key_for_encryption(identifier=self.identifier)
+        key = delegate.public_key_for_encryption(identifier=self.identifier)
         assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
         return key.encrypt(data=data)
 
@@ -207,10 +210,11 @@ class User(Entity):
         :param data: message data
         :return: signature
         """
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
         # NOTICE: I suggest use the private key which paired to meta.key
         #         to sign message
-        key = self.delegate.private_key_for_signature(identifier=self.identifier)
+        key = delegate.private_key_for_signature(identifier=self.identifier)
         assert key is not None, 'failed to get sign key for user: %s' % self.identifier
         return key.sign(data=data)
 
@@ -221,10 +225,11 @@ class User(Entity):
         :param data: encrypted data
         :return: plaintext
         """
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
-        keys = self.delegate.private_keys_for_decryption(identifier=self.identifier)
+        keys = delegate.private_keys_for_decryption(identifier=self.identifier)
         assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
             try:
@@ -242,9 +247,10 @@ class User(Entity):
     #
     def sign_visa(self, visa: Visa) -> Visa:
         assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
-        assert isinstance(self.delegate, UserDataSource), 'user data source error: %s' % self.delegate
+        delegate = self.data_source
+        assert delegate is not None, 'user delegate not set yet'
         # NOTICE: only sign visa with the private key paired with your meta.key
-        key = self.delegate.private_key_for_visa_signature(identifier=self.identifier)
+        key = delegate.private_key_for_visa_signature(identifier=self.identifier)
         assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
         visa.sign(private_key=key)
         return visa

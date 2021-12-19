@@ -115,6 +115,10 @@ class DocumentCommand(MetaCommand):
         """
         return self.get('signature')
 
+    #
+    #   Factory methods
+    #
+
     @classmethod
     def query(cls, identifier: ID, signature: Optional[str] = None):
         return cls(identifier=identifier, signature=signature)

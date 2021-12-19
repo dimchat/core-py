@@ -103,6 +103,10 @@ class GroupCommand(HistoryCommand):
         else:
             self['members'] = ID.revert(members=value)
 
+    #
+    #   Factory methods
+    #
+
     @classmethod
     def invite(cls, group: ID, member: Optional[ID] = None, members: Optional[List[ID]] = None):
         return InviteCommand(group=group, member=member, members=members)
