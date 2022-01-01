@@ -47,16 +47,6 @@ from .group import Group
 class EntityDelegate(ABC):
 
     @abstractmethod
-    def select_user(self, receiver: ID) -> Optional[User]:
-        """
-        Select local user for receiver
-
-        :param receiver: user/group ID
-        :return: local user
-        """
-        raise NotImplemented
-
-    @abstractmethod
     def user(self, identifier: ID) -> Optional[User]:
         """
         Create user with ID

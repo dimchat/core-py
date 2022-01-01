@@ -51,17 +51,11 @@ from .delegate import EntityDelegate
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
+    """ Converting message format between PlainMessage and NetworkMessage """
 
     @property
     def barrack(self) -> EntityDelegate:
         raise NotImplemented
-
-    # noinspection PyMethodMayBeStatic
-    def _is_broadcast(self, msg: Message) -> bool:
-        receiver = msg.group
-        if receiver is None:
-            receiver = msg.receiver
-        return receiver.is_broadcast
 
     #
     #   InstantMessageDelegate
@@ -79,7 +73,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
-        if self._is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
             return utf8_decode(data=data)
@@ -87,14 +81,14 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
-        if self._is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message has no key
             return None
         return json_encode(o=key.dictionary)
 
     # Override
     def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
-        assert not self._is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         # TODO: make sure the receiver's public key exists
         contact = self.barrack.user(identifier=receiver)
         assert contact is not None, 'failed to encrypt for receiver: %s' % receiver
@@ -103,7 +97,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def encode_key(self, data: bytes, msg: InstantMessage) -> str:
-        assert not self._is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         return base64_encode(data=data)
 
     #
@@ -112,13 +106,13 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
-        assert not self._is_broadcast(msg=msg), 'broadcast message has no key'
+        assert not is_broadcast(msg=msg), 'broadcast message has no key'
         return base64_decode(string=key)
 
     # Override
     # noinspection PyUnusedLocal
     def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
-        assert not self._is_broadcast(msg=msg), 'broadcast message has no key'
+        assert not is_broadcast(msg=msg), 'broadcast message has no key'
         # decrypt key data with the receiver's private key
         user = self.barrack.user(identifier=msg.receiver)
         assert user is not None, 'failed to create local user: %s' % msg.receiver
@@ -128,7 +122,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
     def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID,
                         msg: SecureMessage) -> Optional[SymmetricKey]:
         # NOTICE: the receiver will be group ID in a group message here
-        assert not self._is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
+        assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         dictionary = json_decode(data=data)
         # TODO: translate short keys
         #       'A' -> 'algorithm'
@@ -140,7 +134,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
-        if self._is_broadcast(msg=msg):
+        if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
             return utf8_encode(string=data)
@@ -183,3 +177,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         user = self.barrack.user(identifier=sender)
         assert user is not None, 'failed to verify signature for sender: %s' % sender
         return user.verify(data=data, signature=signature)
+
+
+def is_broadcast(msg: Message) -> bool:
+    receiver = msg.group
+    if receiver is None:
+        receiver = msg.receiver
+    return receiver.is_broadcast
