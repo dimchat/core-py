@@ -45,6 +45,7 @@ from .file import FileContent, ImageContent, AudioContent, VideoContent
 from .money import MoneyContent, TransferContent
 
 from .command import Command, CommandFactory, command_name
+from .command import BaseCommand
 from .history import HistoryCommand
 from .group import GroupCommand, InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 
@@ -90,7 +91,7 @@ class CommandContentFactory(ContentFactory, CommandFactory):
         return factory.parse_command(cmd=content)
 
     def parse_command(self, cmd: dict) -> Optional[Command]:
-        return Command(cmd=cmd)
+        return BaseCommand(cmd=cmd)
 
 
 class HistoryCommandFactory(CommandContentFactory):
@@ -153,17 +154,12 @@ def register_command_factories():
     Command.register(command=GroupCommand.RESET, factory=CommandFactoryBuilder(command_class=ResetCommand))
 
 
-def register_core_factories():
-    register_content_factories()
-    register_command_factories()
-
-
 __all__ = [
 
     'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
-    'Command', 'HistoryCommand', 'GroupCommand',
+    'Command', 'BaseCommand', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
 
@@ -171,5 +167,6 @@ __all__ = [
 
     'ContentFactoryBuilder', 'CommandFactoryBuilder',
 
-    'register_core_factories',
+    # register_core_factories
+    'register_content_factories', 'register_command_factories',
 ]

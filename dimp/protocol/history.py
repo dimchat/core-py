@@ -32,10 +32,10 @@ from typing import Optional
 
 from dkd import ContentType
 
-from .command import Command
+from .command import BaseCommand
 
 
-class HistoryCommand(Command):
+class HistoryCommand(BaseCommand):
     """
         History Command
         ~~~~~~~~~~~~~~~

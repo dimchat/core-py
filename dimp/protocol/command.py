@@ -28,13 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional, Union, Dict
 
-from dkd import ContentType, BaseContent
+from dkd import ContentType, Content, BaseContent
 
 
-class Command(BaseContent):
+class Command(Content, ABC):
     """
         Command Message Content
         ~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,23 +57,10 @@ class Command(BaseContent):
     LOGIN = 'login'
     # -------- command names end --------
 
-    def __init__(self, cmd: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
-                 command: Optional[str] = None):
-        if cmd is None:
-            if content_type == 0:
-                content_type = ContentType.COMMAND
-            super().__init__(content_type=content_type)
-        else:
-            super().__init__(content=cmd)
-        self.__command = command
-        if command is not None:
-            self['command'] = command
-
     @property
     def command(self) -> str:
-        if self.__command is None:
-            self.__command = command_name(cmd=self.dictionary)
-        return self.__command
+        # return command_name(cmd=self.dictionary)
+        raise NotImplemented
 
     @classmethod
     def factory(cls, command: str):  # -> Optional[CommandFactory]:
@@ -102,3 +89,24 @@ class CommandFactory:
 
 
 g_command_factories: Dict[str, CommandFactory] = {}
+
+
+class BaseCommand(BaseContent, Command):
+
+    def __init__(self, cmd: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+                 command: Optional[str] = None):
+        if cmd is None:
+            if content_type == 0:
+                content_type = ContentType.COMMAND
+            super().__init__(content_type=content_type)
+        else:
+            super().__init__(content=cmd)
+        self.__command = command
+        if command is not None:
+            self['command'] = command
+
+    @property
+    def command(self) -> str:
+        if self.__command is None:
+            self.__command = command_name(cmd=self.dictionary)
+        return self.__command

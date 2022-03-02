@@ -40,10 +40,10 @@ from typing import Optional
 
 from mkm import ID, Meta
 
-from .command import Command
+from .command import Command, BaseCommand
 
 
-class MetaCommand(Command):
+class MetaCommand(BaseCommand):
     """
         Meta Command
         ~~~~~~~~~~~~

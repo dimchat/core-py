@@ -97,7 +97,7 @@ __all__ = [
     'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
-    'Command', 'HistoryCommand', 'GroupCommand',
+    'Command', 'BaseCommand', 'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
     'QueryCommand', 'ResetCommand',
 
