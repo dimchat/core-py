@@ -85,7 +85,8 @@ class MetaCommand(BaseCommand):
     @property
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            self.__meta = Meta.parse(meta=self.get('meta'))
+            info = self.get('meta')
+            self.__meta = Meta.parse(meta=info)
         return self.__meta
 
     #

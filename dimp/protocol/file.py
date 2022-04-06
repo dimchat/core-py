@@ -112,7 +112,8 @@ class FileContent(BaseContent):
     @property
     def password(self) -> Optional[SymmetricKey]:
         if self.__password is None:
-            self.__password = SymmetricKey.parse(key=self.get('password'))
+            key = self.get('password')
+            self.__password = SymmetricKey.parse(key=key)
         return self.__password
 
     @password.setter

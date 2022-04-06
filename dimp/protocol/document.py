@@ -80,30 +80,8 @@ class DocumentCommand(MetaCommand):
     @property
     def document(self) -> Optional[Document]:
         if self.__doc is None:
-            data = self.get('profile')
-            if isinstance(data, str):
-                # compatible with v1.0
-                #    "ID"        : "{ID}",
-                #    "profile"   : "{JsON}",
-                #    "signature" : "{BASE64}"
-                dictionary = {
-                    'ID': str(self.identifier),
-                    'data': data,
-                    'signature': self.get("signature")
-                }
-                data = dictionary
-            else:
-                if data is None:
-                    data = self.get('document')
-                # (v1.1)
-                #    "ID"      : "{ID}",
-                #    "profile" : {
-                #        "ID"        : "{ID}",
-                #        "data"      : "{JsON}",
-                #        "signature" : "{BASE64}"
-                #    }
-                assert data is None or isinstance(data, dict), 'document data error: %s' % data
-            self.__doc = Document.parse(document=data)
+            info = self.get('document')
+            self.__doc = Document.parse(document=info)
         return self.__doc
 
     @property

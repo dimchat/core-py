@@ -137,14 +137,11 @@ def register_content_factories():
 
 def register_command_factories():
     """ Register core command factories """
+    # meta command
     Command.register(command=Command.META, factory=CommandFactoryBuilder(command_class=MetaCommand))
-
-    factory = CommandFactoryBuilder(command_class=DocumentCommand)
-    Command.register(command=Command.DOCUMENT, factory=factory)
-    Command.register(command='profile', factory=factory)
-    Command.register(command='visa', factory=factory)
-    Command.register(command='bulletin', factory=factory)
-
+    # document command
+    Command.register(command=Command.DOCUMENT, factory=CommandFactoryBuilder(command_class=DocumentCommand))
+    # group commands
     Command.register(command='group', factory=GroupCommandFactory())
     Command.register(command=GroupCommand.INVITE, factory=CommandFactoryBuilder(command_class=InviteCommand))
     Command.register(command=GroupCommand.EXPEL, factory=CommandFactoryBuilder(command_class=ExpelCommand))

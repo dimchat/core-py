@@ -28,6 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.wrappers import *
 from mkm.crypto import *
 from mkm import *
 from dkd import *
@@ -52,6 +53,11 @@ __author__ = 'Albert Moky'
 __all__ = [
 
     #
+    #   Wrappers
+    #
+    'Wrapper', 'StringWrapper', 'ArrayWrapper', 'MapWrapper', 'Dictionary',
+
+    #
     #   Crypto
     #
     'DataCoder', 'Base64', 'Base58', 'Hex',
@@ -61,8 +67,6 @@ __all__ = [
 
     'DataDigester', 'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
     'md5', 'sha1', 'sha256', 'keccak256', 'ripemd160',
-
-    'Wrapper', 'Array', 'Map', 'Dictionary', 'String',
 
     'CryptographyKey',
     'SymmetricKey', 'EncryptKey', 'DecryptKey',
