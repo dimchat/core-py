@@ -48,7 +48,7 @@ class TextContent(BaseContent):
 
     def __init__(self, content: Optional[dict] = None, text: Optional[str] = None):
         if content is None:
-            super().__init__(content_type=ContentType.TEXT)
+            super().__init__(msg_type=ContentType.TEXT)
         else:
             super().__init__(content=content)
         if text is not None:

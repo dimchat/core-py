@@ -51,12 +51,12 @@ class FileContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0,
                  filename: Optional[str] = None, data: Optional[bytes] = None):
         if content is None:
-            if content_type == 0:
-                content_type = ContentType.FILE
-            super().__init__(content_type=content_type)
+            if msg_type == 0:
+                msg_type = ContentType.FILE
+            super().__init__(msg_type=msg_type)
         else:
             super().__init__(content=content)
         self.__attachment = data  # attachment (file data)
@@ -143,7 +143,7 @@ class ImageContent(FileContent):
 
     def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
                  thumbnail: Optional[bytes] = None):
-        super().__init__(content, ContentType.IMAGE, filename=filename, data=data)
+        super().__init__(content=content, msg_type=ContentType.IMAGE, filename=filename, data=data)
         self.__thumbnail = thumbnail
         if thumbnail is not None:
             self['thumbnail'] = base64_encode(data=thumbnail)
@@ -184,7 +184,7 @@ class AudioContent(FileContent):
 
     def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
                  text: Optional[str] = None):
-        super().__init__(content, ContentType.AUDIO, filename=filename, data=data)
+        super().__init__(content=content, msg_type=ContentType.AUDIO, filename=filename, data=data)
         if text is not None:
             self['text'] = text
 
@@ -219,7 +219,7 @@ class VideoContent(FileContent):
 
     def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
                  snapshot: Optional[bytes] = None):
-        super().__init__(content, ContentType.VIDEO, filename=filename, data=data)
+        super().__init__(content=content, msg_type=ContentType.VIDEO, filename=filename, data=data)
         self.__snapshot = snapshot
         if snapshot is not None:
             self['snapshot'] = base64_encode(data=snapshot)

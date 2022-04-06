@@ -116,23 +116,23 @@ class GroupCommandFactory(HistoryCommandFactory):
 
 def register_content_factories():
     """ Register core content factories """
-    Content.register(content_type=ContentType.FORWARD, factory=ContentFactoryBuilder(content_class=ForwardContent))
-    Content.register(content_type=ContentType.TEXT, factory=ContentFactoryBuilder(content_class=TextContent))
+    Content.register(msg_type=ContentType.FORWARD, factory=ContentFactoryBuilder(content_class=ForwardContent))
+    Content.register(msg_type=ContentType.TEXT, factory=ContentFactoryBuilder(content_class=TextContent))
 
-    Content.register(content_type=ContentType.FILE, factory=ContentFactoryBuilder(content_class=FileContent))
-    Content.register(content_type=ContentType.IMAGE, factory=ContentFactoryBuilder(content_class=ImageContent))
-    Content.register(content_type=ContentType.AUDIO, factory=ContentFactoryBuilder(content_class=AudioContent))
-    Content.register(content_type=ContentType.VIDEO, factory=ContentFactoryBuilder(content_class=VideoContent))
+    Content.register(msg_type=ContentType.FILE, factory=ContentFactoryBuilder(content_class=FileContent))
+    Content.register(msg_type=ContentType.IMAGE, factory=ContentFactoryBuilder(content_class=ImageContent))
+    Content.register(msg_type=ContentType.AUDIO, factory=ContentFactoryBuilder(content_class=AudioContent))
+    Content.register(msg_type=ContentType.VIDEO, factory=ContentFactoryBuilder(content_class=VideoContent))
 
-    # Content.register(content_type=ContentType.PAGE, factory=ContentFactoryBuilder(content_class=PageContent))
+    # Content.register(msg_type=ContentType.PAGE, factory=ContentFactoryBuilder(content_class=PageContent))
 
-    Content.register(content_type=ContentType.MONEY, factory=ContentFactoryBuilder(content_class=MoneyContent))
-    Content.register(content_type=ContentType.TRANSFER, factory=ContentFactoryBuilder(content_class=TransferContent))
+    Content.register(msg_type=ContentType.MONEY, factory=ContentFactoryBuilder(content_class=MoneyContent))
+    Content.register(msg_type=ContentType.TRANSFER, factory=ContentFactoryBuilder(content_class=TransferContent))
 
-    Content.register(content_type=ContentType.COMMAND, factory=CommandContentFactory())
-    Content.register(content_type=ContentType.HISTORY, factory=HistoryCommandFactory())
+    Content.register(msg_type=ContentType.COMMAND, factory=CommandContentFactory())
+    Content.register(msg_type=ContentType.HISTORY, factory=HistoryCommandFactory())
 
-    Content.register(content_type=0, factory=ContentFactoryBuilder(content_class=BaseContent))
+    Content.register(msg_type=0, factory=ContentFactoryBuilder(content_class=BaseContent))
 
 
 def register_command_factories():

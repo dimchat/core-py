@@ -93,12 +93,12 @@ g_command_factories: Dict[str, CommandFactory] = {}
 
 class BaseCommand(BaseContent, Command):
 
-    def __init__(self, cmd: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+    def __init__(self, cmd: Optional[dict] = None, msg_type: Union[int, ContentType] = 0,
                  command: Optional[str] = None):
         if cmd is None:
-            if content_type == 0:
-                content_type = ContentType.COMMAND
-            super().__init__(content_type=content_type)
+            if msg_type == 0:
+                msg_type = ContentType.COMMAND
+            super().__init__(msg_type=msg_type)
         else:
             super().__init__(content=cmd)
         self.__command = command

@@ -47,12 +47,12 @@ class MoneyContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0,
+    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0,
                  currency: Optional[str] = None, amount: Optional[float] = 0.0):
         if content is None:
-            if content_type == 0:
-                content_type = ContentType.MONEY
-            super().__init__(content_type=content_type)
+            if msg_type == 0:
+                msg_type = ContentType.MONEY
+            super().__init__(msg_type=msg_type)
         else:
             super().__init__(content=content)
         # set values to inner dictionary
@@ -89,4 +89,4 @@ class TransferContent(MoneyContent):
     """
 
     def __init__(self, content: Optional[dict] = None, currency: Optional[str] = None, amount: Optional[float] = 0.0):
-        super().__init__(content, ContentType.TRANSFER, currency=currency, amount=amount)
+        super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
