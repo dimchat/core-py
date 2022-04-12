@@ -65,7 +65,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
     def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         before serialize content, this job should be do in subclass
-        return json_encode(o=content.dictionary)
+        js = json_encode(obj=content.dictionary)
+        return utf8_encode(string=js)
 
     # Override
     def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
@@ -84,7 +85,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         if is_broadcast(msg=msg):
             # broadcast message has no key
             return None
-        return json_encode(o=key.dictionary)
+        js = json_encode(obj=key.dictionary)
+        return utf8_encode(string=js)
 
     # Override
     def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
@@ -123,7 +125,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
                         msg: SecureMessage) -> Optional[SymmetricKey]:
         # NOTICE: the receiver will be group ID in a group message here
         assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
-        dictionary = json_decode(data=data)
+        js = utf8_decode(data=data)
+        dictionary = json_decode(string=js)
         # TODO: translate short keys
         #       'A' -> 'algorithm'
         #       'D' -> 'data'
@@ -146,7 +149,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
-        dictionary = json_decode(data=data)
+        js = utf8_decode(data=data)
+        dictionary = json_decode(string=js)
         # TODO: translate short keys
         #       'T' -> 'type'
         #       'N' -> 'sn'

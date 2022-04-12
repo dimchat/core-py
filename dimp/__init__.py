@@ -60,9 +60,10 @@ __all__ = [
     #
     #   Crypto
     #
-    'DataCoder', 'Base64', 'Base58', 'Hex',
+    'DataCoder', 'ObjectCoder', 'StringCoder',
+    'Base64', 'Base58', 'Hex',
     'base64_encode', 'base64_decode', 'base58_encode', 'base58_decode', 'hex_encode', 'hex_decode',
-    'DataParser', 'JSON', 'UTF8',
+    'JSON', 'UTF8',
     'json_encode', 'json_decode', 'utf8_encode', 'utf8_decode',
 
     'DataDigester', 'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
