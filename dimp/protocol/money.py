@@ -28,8 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict
 
+from mkm import ID
 from dkd import ContentType, BaseContent
 
 
@@ -47,14 +48,12 @@ class MoneyContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
                  currency: Optional[str] = None, amount: Optional[float] = 0.0):
-        if content is None:
-            if msg_type == 0:
-                msg_type = ContentType.MONEY
-            super().__init__(msg_type=msg_type)
-        else:
-            super().__init__(content=content)
+        if content is None and msg_type == 0:
+            msg_type = ContentType.MONEY
+        super().__init__(content=content, msg_type=msg_type)
         # set values to inner dictionary
         if currency is not None:
             self['currency'] = currency
@@ -67,7 +66,8 @@ class MoneyContent(BaseContent):
 
     @property
     def amount(self) -> float:
-        return float(self.get('amount'))
+        value = self.get('amount')
+        return 0 if value is None else float(value)
 
     @amount.setter
     def amount(self, value: float):
@@ -83,10 +83,37 @@ class TransferContent(MoneyContent):
             type : 0x41,
             sn   : 123,
 
-            currency : "RMB", // USD, USDT, ...
-            amount   : 100.00
+            currency : "RMB",    // USD, USDT, ...
+            amount   : 100.00,
+            remitter : "{FROM}", // sender ID
+            remittee : "{TO}"    // receiver ID
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, currency: Optional[str] = None, amount: Optional[float] = 0.0):
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 currency: Optional[str] = None, amount: Optional[float] = 0.0):
         super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
+
+    @property
+    def remitter(self) -> Optional[ID]:
+        sender = self.get('remitter')
+        return ID.parse(identifier=sender)
+
+    @remitter.setter
+    def remitter(self, sender: Optional[ID]):
+        if sender is None:
+            self.pop('remitter', None)
+        else:
+            self['remitter'] = str(sender)
+
+    @property
+    def remittee(self) -> Optional[ID]:
+        receiver = self.get('remittee')
+        return ID.parse(identifier=receiver)
+
+    @remittee.setter
+    def remittee(self, receiver: Optional[ID]):
+        if receiver is None:
+            self.pop('remittee', None)
+        else:
+            self['remittee'] = str(receiver)

@@ -35,7 +35,7 @@
     Define universal message types as contents and commands
 """
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from dkd import ContentType, Content, ContentFactory, BaseContent
 
@@ -59,7 +59,8 @@ class ContentFactoryBuilder(ContentFactory):
         super().__init__()
         self.__class = content_class
 
-    def parse_content(self, content: dict) -> Optional[Content]:
+    # Override
+    def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
         return self.__class(content=content)
 
 
@@ -69,8 +70,9 @@ class CommandFactoryBuilder(CommandFactory):
         super().__init__()
         self.__class = command_class
 
-    def parse_command(self, cmd: dict) -> Optional[Command]:
-        return self.__class(cmd=cmd)
+    # Override
+    def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
+        return self.__class(content=content)
 
 
 class CommandContentFactory(ContentFactory, CommandFactory):
@@ -78,40 +80,45 @@ class CommandContentFactory(ContentFactory, CommandFactory):
     def __init__(self):
         super().__init__()
 
-    def parse_content(self, content: dict) -> Optional[Content]:
-        name = command_name(cmd=content)
+    # Override
+    def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
+        name = command_name(content=content)
         # get factory by command name
-        factory = Command.factory(command=name)
+        factory = Command.factory(cmd=name)
         if factory is None:
             # check for group command
             if 'group' in content:
-                factory = Command.factory(command='group')
+                factory = Command.factory(cmd='group')
             if factory is None:
                 factory = self
-        return factory.parse_command(cmd=content)
+        return factory.parse_command(content=content)
 
-    def parse_command(self, cmd: dict) -> Optional[Command]:
-        return BaseCommand(cmd=cmd)
+    # Override
+    def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
+        return BaseCommand(content=content)
 
 
 class HistoryCommandFactory(CommandContentFactory):
 
-    def parse_command(self, cmd: dict) -> Optional[Command]:
-        return HistoryCommand(cmd=cmd)
+    # Override
+    def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
+        return HistoryCommand(content=content)
 
 
 class GroupCommandFactory(HistoryCommandFactory):
 
-    def parse_content(self, content: dict) -> Optional[Content]:
-        name = command_name(cmd=content)
+    # Override
+    def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
+        name = command_name(content=content)
         # get factory by command name
-        factory = Command.factory(command=name)
+        factory = Command.factory(cmd=name)
         if factory is None:
             factory = self
-        return factory.parse_command(cmd=content)
+        return factory.parse_command(content=content)
 
-    def parse_command(self, cmd: dict) -> Optional[Command]:
-        return GroupCommand(cmd=cmd)
+    # Override
+    def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
+        return GroupCommand(content=content)
 
 
 def register_content_factories():
@@ -138,17 +145,17 @@ def register_content_factories():
 def register_command_factories():
     """ Register core command factories """
     # meta command
-    Command.register(command=Command.META, factory=CommandFactoryBuilder(command_class=MetaCommand))
+    Command.register(cmd=Command.META, factory=CommandFactoryBuilder(command_class=MetaCommand))
     # document command
-    Command.register(command=Command.DOCUMENT, factory=CommandFactoryBuilder(command_class=DocumentCommand))
+    Command.register(cmd=Command.DOCUMENT, factory=CommandFactoryBuilder(command_class=DocumentCommand))
     # group commands
-    Command.register(command='group', factory=GroupCommandFactory())
-    Command.register(command=GroupCommand.INVITE, factory=CommandFactoryBuilder(command_class=InviteCommand))
-    Command.register(command=GroupCommand.EXPEL, factory=CommandFactoryBuilder(command_class=ExpelCommand))
-    Command.register(command=GroupCommand.JOIN, factory=CommandFactoryBuilder(command_class=JoinCommand))
-    Command.register(command=GroupCommand.QUIT, factory=CommandFactoryBuilder(command_class=QuitCommand))
-    Command.register(command=GroupCommand.QUERY, factory=CommandFactoryBuilder(command_class=QueryCommand))
-    Command.register(command=GroupCommand.RESET, factory=CommandFactoryBuilder(command_class=ResetCommand))
+    Command.register(cmd='group', factory=GroupCommandFactory())
+    Command.register(cmd=GroupCommand.INVITE, factory=CommandFactoryBuilder(command_class=InviteCommand))
+    Command.register(cmd=GroupCommand.EXPEL, factory=CommandFactoryBuilder(command_class=ExpelCommand))
+    Command.register(cmd=GroupCommand.JOIN, factory=CommandFactoryBuilder(command_class=JoinCommand))
+    Command.register(cmd=GroupCommand.QUIT, factory=CommandFactoryBuilder(command_class=QuitCommand))
+    Command.register(cmd=GroupCommand.QUERY, factory=CommandFactoryBuilder(command_class=QueryCommand))
+    Command.register(cmd=GroupCommand.RESET, factory=CommandFactoryBuilder(command_class=ResetCommand))
 
 
 __all__ = [

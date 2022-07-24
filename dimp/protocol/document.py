@@ -36,7 +36,7 @@
     2. contains 'document' and 'signature' (must match), means reply
 """
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mkm import ID, Meta, Document
 
@@ -53,7 +53,7 @@ class DocumentCommand(MetaCommand):
             type : 0x88,
             sn   : 123,
 
-            command   : "document", // command name
+            cmd       : "document", // command name
             ID        : "{ID}",     // entity ID
             meta      : {...},      // only for handshaking with new friend
             document  : {...},      // when document is empty, means query for ID
@@ -62,12 +62,14 @@ class DocumentCommand(MetaCommand):
 
     """
 
-    def __init__(self, cmd: Optional[dict] = None,
-                 identifier: Optional[ID] = None, meta: Optional[Meta] = None, document: Optional[Document] = None,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 identifier: Optional[ID] = None,
+                 meta: Optional[Meta] = None,
+                 document: Optional[Document] = None,
                  signature: Optional[str] = None):
         if identifier is None and document is not None:
             identifier = document.identifier
-        super().__init__(cmd, Command.DOCUMENT, identifier=identifier, meta=meta)
+        super().__init__(content=content, cmd=Command.DOCUMENT, identifier=identifier, meta=meta)
         self.__doc = document
         if document is not None:
             self['document'] = document.dictionary

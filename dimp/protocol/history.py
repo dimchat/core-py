@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from dkd import ContentType
 
@@ -44,7 +44,7 @@ class HistoryCommand(BaseCommand):
             type : 0x89,
             sn   : 123,
 
-            command : "...", // command name
+            cmd     : "...", // command name
             time    : 0,     // command timestamp
             extra   : info   // command parameters
         }
@@ -71,5 +71,8 @@ class HistoryCommand(BaseCommand):
     RESIGN = "resign"
     # -------- command names end --------
 
-    def __init__(self, cmd: Optional[dict] = None, command: Optional[str] = None):
-        super().__init__(cmd=cmd, msg_type=ContentType.HISTORY, command=command)
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 cmd: Optional[str] = None):
+        super().__init__(content=content,
+                         msg_type=ContentType.HISTORY,
+                         cmd=cmd)

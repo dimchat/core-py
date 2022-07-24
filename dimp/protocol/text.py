@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from dkd import ContentType, BaseContent
 
@@ -46,7 +46,8 @@ class TextContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, text: Optional[str] = None):
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 text: Optional[str] = None):
         if content is None:
             super().__init__(msg_type=ContentType.TEXT)
         else:
@@ -58,11 +59,11 @@ class TextContent(BaseContent):
     #   text
     #
     @property
-    def text(self) -> str:
+    def text(self) -> Optional[str]:
         return self.get('text')
 
     @text.setter
-    def text(self, value: str):
+    def text(self, value: Optional[str]):
         if value is None:
             self.pop('text', None)
         else:

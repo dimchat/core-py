@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm.wrappers import *
+from mkm.types import *
 from mkm.crypto import *
 from mkm import *
 from dkd import *
@@ -55,7 +55,7 @@ __all__ = [
     #
     #   Wrappers
     #
-    'Wrapper', 'StringWrapper', 'ArrayWrapper', 'MapWrapper', 'Dictionary',
+    'Wrapper', 'Stringer', 'Mapper', 'ConstantString', 'Dictionary',
 
     #
     #   Crypto

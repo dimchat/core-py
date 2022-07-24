@@ -36,7 +36,7 @@
     2. contains 'meta' (must match), means reply
 """
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mkm import ID, Meta
 
@@ -52,20 +52,21 @@ class MetaCommand(BaseCommand):
             type : 0x88,
             sn   : 123,
 
-            command : "meta", // command name
+            cmd     : "meta", // command name
             ID      : "{ID}", // contact's ID
             meta    : {...}   // When meta is empty, means query meta for ID
         }
     """
 
-    def __init__(self, cmd: Optional[dict] = None, command: Optional[str] = None,
-                 identifier: Optional[ID] = None, meta: Optional[Meta] = None):
-        if cmd is None:
-            if command is None:
-                command = Command.META
-            super().__init__(command=command)
-        else:
-            super().__init__(cmd=cmd)
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 cmd: Optional[str] = None,
+                 identifier: Optional[ID] = None,
+                 meta: Optional[Meta] = None):
+        if content is None:
+            if cmd is None:
+                cmd = Command.META
+            assert identifier is not None, 'ID should not be empty'
+        super().__init__(content=content, cmd=cmd)
         self.__meta = meta
         if meta is not None:
             self['meta'] = meta.dictionary

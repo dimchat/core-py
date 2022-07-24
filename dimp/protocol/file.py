@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict
 
 from mkm.crypto import base64_encode, base64_decode
 from mkm.crypto import SymmetricKey
@@ -51,14 +51,12 @@ class FileContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
                  filename: Optional[str] = None, data: Optional[bytes] = None):
-        if content is None:
-            if msg_type == 0:
-                msg_type = ContentType.FILE
-            super().__init__(msg_type=msg_type)
-        else:
-            super().__init__(content=content)
+        if content is None and msg_type == 0:
+            msg_type = ContentType.FILE
+        super().__init__(content=content, msg_type=msg_type)
         self.__attachment = data  # attachment (file data)
         self.__password = None    # symmetric key for decryption
         # set values to inner dictionary
@@ -141,7 +139,8 @@ class ImageContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 filename: Optional[str] = None, data: Optional[bytes] = None,
                  thumbnail: Optional[bytes] = None):
         super().__init__(content=content, msg_type=ContentType.IMAGE, filename=filename, data=data)
         self.__thumbnail = thumbnail
@@ -182,7 +181,8 @@ class AudioContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 filename: Optional[str] = None, data: Optional[bytes] = None,
                  text: Optional[str] = None):
         super().__init__(content=content, msg_type=ContentType.AUDIO, filename=filename, data=data)
         if text is not None:
@@ -217,7 +217,8 @@ class VideoContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[dict] = None, filename: Optional[str] = None, data: Optional[bytes] = None,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 filename: Optional[str] = None, data: Optional[bytes] = None,
                  snapshot: Optional[bytes] = None):
         super().__init__(content=content, msg_type=ContentType.VIDEO, filename=filename, data=data)
         self.__snapshot = snapshot
