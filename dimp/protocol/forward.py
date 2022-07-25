@@ -28,13 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict, List
+from abc import ABC
+from typing import Optional, List
 
-from dkd import ContentType, BaseContent
+from dkd import Content
 from dkd import ReliableMessage
 
 
-class ForwardContent(BaseContent):
+class ForwardContent(Content, ABC):
     """
         Top-Secret Message Content
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,57 +49,13 @@ class ForwardContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 message: Optional[ReliableMessage] = None,
-                 messages: Optional[List[ReliableMessage]] = None):
-        if content is None:
-            super().__init__(msg_type=ContentType.FORWARD)
-        else:
-            super().__init__(content=content)
-        self.__forward = message
-        self.__secrets = messages
-        if message is not None:
-            self['forward'] = message.dictionary
-        if messages is not None:
-            self['secrets'] = revert_messages(messages=messages)
-
     #
     #   forward (top-secret message)
     #
     @property
-    def forward(self) -> ReliableMessage:
-        if self.__forward is None:
-            msg = self.get('forward')
-            self.__forward = ReliableMessage.parse(msg=msg)
-            # assert msg is not None, 'forward message not found: %s' % self.dictionary
-        return self.__forward
+    def forward(self) -> Optional[ReliableMessage]:
+        raise NotImplemented
 
     @property
     def secrets(self) -> List[ReliableMessage]:
-        if self.__secrets is None:
-            messages = self.get('secrets')
-            if messages is None:
-                # get from 'forward'
-                self.__secrets = [self.forward]
-            else:
-                # get from 'secrets'
-                self.__secrets = convert_messages(messages=messages)
-        return self.__secrets
-
-
-def convert_messages(messages: List[Dict[str, Any]]) -> List[ReliableMessage]:
-    array = []
-    for item in messages:
-        msg = ReliableMessage.parse(msg=item)
-        if msg is None:
-            continue
-        array.append(msg)
-    return array
-
-
-def revert_messages(messages: List[ReliableMessage]) -> List[Dict[str, Any]]:
-    array = []
-    for msg in messages:
-        info = msg.dictionary
-        array.append(info)
-    return array
+        raise NotImplemented

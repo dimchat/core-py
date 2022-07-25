@@ -28,28 +28,34 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from typing import Optional, Union, Any, Dict
 
-from .command import Command
+from dkd import ContentType, BaseContent
+
+from ..protocol import Command
 
 
-class HistoryCommand(Command, ABC):
-    """
-        History Command
-        ~~~~~~~~~~~~~~~
+class BaseCommand(BaseContent, Command):
 
-        data format: {
-            type : 0x89,
-            sn   : 123,
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
+                 cmd: Optional[str] = None):
+        if content is None and msg_type == 0:
+            msg_type = ContentType.COMMAND
+        super().__init__(content=content, msg_type=msg_type)
+        if cmd is not None:
+            # TODO: modify after all server/clients support 'cmd'
+            # self['cmd'] = cmd
+            self['command'] = cmd
 
-            cmd     : "...", // command name
-            time    : 0,     // command timestamp
-            extra   : info   // command parameters
-        }
-    """
+    @property  # Override
+    def cmd(self) -> str:
+        return command_name(content=self.dictionary)
 
-    # -------- command names begin --------
-    # account
-    REGISTER = "register"
-    SUICIDE = "suicide"
-    # -------- command names end --------
+
+def command_name(content: Dict[str, Any]) -> str:
+    # TODO: modify after all server/clients support 'cmd'
+    cmd = content.get('cmd')
+    if cmd is None:
+        cmd = content.get('command')
+    return cmd

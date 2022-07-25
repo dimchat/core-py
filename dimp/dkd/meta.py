@@ -36,15 +36,16 @@
     2. contains 'meta' (must match), means reply
 """
 
-from abc import ABC
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mkm import ID, Meta
 
-from .command import Command
+from ..protocol import MetaCommand
+
+from .command import Command, BaseCommand
 
 
-class MetaCommand(Command, ABC):
+class BaseMetaCommand(BaseCommand, MetaCommand):
     """
         Meta Command
         ~~~~~~~~~~~~
@@ -59,30 +60,34 @@ class MetaCommand(Command, ABC):
         }
     """
 
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 cmd: Optional[str] = None,
+                 identifier: Optional[ID] = None,
+                 meta: Optional[Meta] = None):
+        if content is None:
+            if cmd is None:
+                cmd = Command.META
+            assert identifier is not None, 'ID should not be empty'
+        super().__init__(content=content, cmd=cmd)
+        self.__meta = meta
+        if meta is not None:
+            self['meta'] = meta.dictionary
+        if identifier is not None:
+            self['ID'] = str(identifier)
+
     #
     #   ID
     #
-    @property
+    @property  # Override
     def identifier(self) -> ID:
-        raise NotImplemented
+        return ID.parse(identifier=self.get('ID'))
 
     #
     #   Meta
     #
-    @property
+    @property  # Override
     def meta(self) -> Optional[Meta]:
-        raise NotImplemented
-
-    #
-    #   Factory methods
-    #
-
-    @classmethod
-    def query(cls, identifier: ID):
-        from ..dkd import BaseMetaCommand
-        return BaseMetaCommand(identifier=identifier)
-
-    @classmethod
-    def response(cls, identifier: ID, meta: Meta):
-        from ..dkd import BaseMetaCommand
-        return BaseMetaCommand(identifier=identifier, meta=meta)
+        if self.__meta is None:
+            info = self.get('meta')
+            self.__meta = Meta.parse(meta=info)
+        return self.__meta

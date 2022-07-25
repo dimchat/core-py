@@ -28,12 +28,16 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from typing import Optional, Union, Any, Dict
 
-from .command import Command
+from dkd import ContentType
+
+from ..protocol import HistoryCommand
+
+from .command import BaseCommand
 
 
-class HistoryCommand(Command, ABC):
+class BaseHistoryCommand(BaseCommand, HistoryCommand):
     """
         History Command
         ~~~~~~~~~~~~~~~
@@ -48,8 +52,11 @@ class HistoryCommand(Command, ABC):
         }
     """
 
-    # -------- command names begin --------
-    # account
-    REGISTER = "register"
-    SUICIDE = "suicide"
-    # -------- command names end --------
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
+                 cmd: Optional[str] = None):
+        if content is None:
+            if msg_type == 0:
+                msg_type = ContentType.HISTORY
+            assert cmd is not None, 'command name should not empty'
+        super().__init__(content=content, msg_type=msg_type, cmd=cmd)

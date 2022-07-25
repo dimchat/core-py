@@ -28,28 +28,45 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from typing import Optional, Any, Dict
 
-from .command import Command
+from dkd import ContentType, BaseContent
+
+from ..protocol import TextContent
 
 
-class HistoryCommand(Command, ABC):
+class BaseTextContent(BaseContent, TextContent):
     """
-        History Command
-        ~~~~~~~~~~~~~~~
+        Text Message Content
+        ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x89,
+            type : 0x01,
             sn   : 123,
 
-            cmd     : "...", // command name
-            time    : 0,     // command timestamp
-            extra   : info   // command parameters
+            text : "..."
         }
     """
 
-    # -------- command names begin --------
-    # account
-    REGISTER = "register"
-    SUICIDE = "suicide"
-    # -------- command names end --------
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 text: Optional[str] = None):
+        if content is None:
+            super().__init__(msg_type=ContentType.TEXT)
+        else:
+            super().__init__(content=content)
+        if text is not None:
+            self.text = text
+
+    #
+    #   text
+    #
+    @property  # Override
+    def text(self) -> Optional[str]:
+        return self.get('text')
+
+    @text.setter  # Override
+    def text(self, value: Optional[str]):
+        if value is None:
+            self.pop('text', None)
+        else:
+            self['text'] = value

@@ -102,11 +102,12 @@ __all__ = [
     'ForwardContent', 'TextContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
 
-    'Command', 'BaseCommand', 'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand',
-    'QueryCommand', 'ResetCommand',
-
+    'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
+
+    'HistoryCommand', 'GroupCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand',
+    'QuitCommand', 'QueryCommand', 'ResetCommand',
 
     #
     #   Core

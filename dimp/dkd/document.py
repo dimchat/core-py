@@ -36,15 +36,17 @@
     2. contains 'document' and 'signature' (must match), means reply
 """
 
-from abc import ABC
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mkm import ID, Meta, Document
 
-from .meta import MetaCommand
+from ..protocol import DocumentCommand
+
+from .command import Command
+from .meta import BaseMetaCommand
 
 
-class DocumentCommand(MetaCommand, ABC):
+class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
     """
         Document Command
         ~~~~~~~~~~~~~~~~
@@ -62,32 +64,35 @@ class DocumentCommand(MetaCommand, ABC):
 
     """
 
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 identifier: Optional[ID] = None,
+                 meta: Optional[Meta] = None,
+                 document: Optional[Document] = None,
+                 signature: Optional[str] = None):
+        if identifier is None and document is not None:
+            identifier = document.identifier
+        super().__init__(content=content, cmd=Command.DOCUMENT, identifier=identifier, meta=meta)
+        self.__doc = document
+        if document is not None:
+            self['document'] = document.dictionary
+        if signature is not None:
+            self['signature'] = signature
+
     #
     #   document
     #
-    @property
+    @property  # Override
     def document(self) -> Optional[Document]:
-        raise NotImplemented
+        if self.__doc is None:
+            info = self.get('document')
+            self.__doc = Document.parse(document=info)
+        return self.__doc
 
-    @property
+    @property  # Override
     def signature(self) -> Optional[str]:
         """
         signature for checking new document
 
         :return: part of signature in current document (base64)
         """
-        raise NotImplemented
-
-    #
-    #   Factory methods
-    #
-
-    @classmethod
-    def query(cls, identifier: ID, signature: Optional[str] = None):
-        from ..dkd import BaseDocumentCommand
-        return BaseDocumentCommand(identifier=identifier, signature=signature)
-
-    @classmethod
-    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: Optional[ID] = None):
-        from ..dkd import BaseDocumentCommand
-        return BaseDocumentCommand(identifier=identifier, meta=meta, document=document)
+        return self.get('signature')

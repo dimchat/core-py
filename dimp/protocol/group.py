@@ -37,14 +37,15 @@
     3. member quit
 """
 
-from typing import Optional, Any, Dict, List
+from abc import ABC
+from typing import Optional, List
 
 from mkm import ID
 
 from .history import HistoryCommand
 
 
-class GroupCommand(HistoryCommand):
+class GroupCommand(HistoryCommand, ABC):
     """
         Group Command
         ~~~~~~~~~~~~~
@@ -61,16 +62,22 @@ class GroupCommand(HistoryCommand):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 cmd: Optional[str] = None, group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
-        super().__init__(content=content, cmd=cmd)
-        if group is not None:
-            self.group = group
-        if member is not None:
-            self.member = member
-        elif members is not None:
-            self.members = members
+    # -------- command names begin --------
+    # founder/owner
+    FOUND = "found"
+    ABDICATE = "abdicate"
+    # member
+    INVITE = "invite"
+    EXPEL = "expel"
+    JOIN = "join"
+    QUIT = "quit"
+    RESET = "reset"
+    QUERY = "query"  # (not history command)
+    # administrator/assistant
+    HIRE = "hire"
+    FIRE = "fire"
+    RESIGN = "resign"
+    # -------- command names end --------
 
     #
     #   group (group ID already fetched in Content)
@@ -81,28 +88,19 @@ class GroupCommand(HistoryCommand):
     #
     @property
     def member(self) -> Optional[ID]:
-        return ID.parse(identifier=self.get('member'))
+        raise NotImplemented
 
     @member.setter
     def member(self, value: ID):
-        if value is None:
-            self.pop('member', None)
-        else:
-            self['member'] = str(value)
+        raise NotImplemented
 
     @property
     def members(self) -> Optional[List[ID]]:
-        array = self.get('members')
-        if array is not None:
-            # convert all items to ID objects
-            return ID.convert(members=array)
+        raise NotImplemented
 
     @members.setter
     def members(self, value: List[ID]):
-        if value is None:
-            self.pop('members', None)
-        else:
-            self['members'] = ID.revert(members=value)
+        raise NotImplemented
 
     #
     #   Factory methods
@@ -110,122 +108,54 @@ class GroupCommand(HistoryCommand):
 
     @classmethod
     def invite(cls, group: ID, member: Optional[ID] = None, members: Optional[List[ID]] = None):
-        return InviteCommand(group=group, member=member, members=members)
+        from ..dkd import InviteGroupCommand
+        return InviteGroupCommand(group=group, member=member, members=members)
 
     @classmethod
     def expel(cls, group: ID, member: Optional[ID] = None, members: Optional[List[ID]] = None):
-        return ExpelCommand(group=group, member=member, members=members)
+        from ..dkd import ExpelGroupCommand
+        return ExpelGroupCommand(group=group, member=member, members=members)
 
     @classmethod
     def join(cls, group: ID):
-        return JoinCommand(group=group)
+        from ..dkd import JoinGroupCommand
+        return JoinGroupCommand(group=group)
 
     @classmethod
     def quit(cls, group: ID):
-        return QuitCommand(group=group)
+        from ..dkd import QuitGroupCommand
+        return QuitGroupCommand(group=group)
 
     @classmethod
     def query(cls, group: ID):
-        return QueryCommand(group=group)
+        from ..dkd import QueryGroupCommand
+        return QueryGroupCommand(group=group)
 
     @classmethod
     def reset(cls, group: ID, members: Optional[List[ID]] = None):
-        return ResetCommand(group=group, members=members)
+        from ..dkd import ResetGroupCommand
+        return ResetGroupCommand(group=group, members=members)
 
 
-class InviteCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
-        """
-        Create invite group member command
-
-        :param content: command content
-        :param group:   group ID
-        :param member:  member ID
-        :param members: member list
-        :return: InviteCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.INVITE,
-                         group=group, member=member, members=members)
+class InviteCommand(GroupCommand, ABC):
+    pass
 
 
-class ExpelCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
-        """
-        Create expel group member command
-
-        :param content: command content
-        :param group:   group ID
-        :param member:  member ID
-        :param members: member list
-        :return: ExpelCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.EXPEL,
-                         group=group, member=member, members=members)
+class ExpelCommand(GroupCommand, ABC):
+    pass
 
 
-class JoinCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
-        """
-        Create join group command
-
-        :param content: command content
-        :param group:   group ID
-        :return: JoinCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.JOIN,
-                         group=group)
+class JoinCommand(GroupCommand, ABC):
+    pass
 
 
-class QuitCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
-        """
-        Create member quit command
-
-        :param content: command content
-        :param group:   group ID
-        :return: QuitCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.QUIT,
-                         group=group)
+class QuitCommand(GroupCommand, ABC):
+    pass
 
 
-class QueryCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
-        """
-        Create query group members command (not history command)
-
-        :param content: command content
-        :param group:   group ID
-        :return: QueryCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.QUERY,
-                         group=group)
+class QueryCommand(GroupCommand, ABC):
+    pass
 
 
-class ResetCommand(GroupCommand):
-
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 members: Optional[List[ID]] = None):
-        """
-        Create reset group members command
-
-        :param content: command content
-        :param group:   group ID
-        :param members: member list
-        :return: ResetCommand object
-        """
-        super().__init__(content=content, cmd=GroupCommand.RESET,
-                         group=group, members=members)
+class ResetCommand(GroupCommand, ABC):
+    pass

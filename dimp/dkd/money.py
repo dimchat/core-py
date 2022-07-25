@@ -28,14 +28,15 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
-from typing import Optional
+from typing import Optional, Union, Any, Dict
 
 from mkm import ID
-from dkd import Content
+from dkd import ContentType, BaseContent
+
+from ..protocol import MoneyContent, TransferContent
 
 
-class MoneyContent(Content, ABC):
+class BaseMoneyContent(BaseContent, MoneyContent):
     """
         Money Message Content
         ~~~~~~~~~~~~~~~~~~~~~
@@ -49,20 +50,33 @@ class MoneyContent(Content, ABC):
         }
     """
 
-    @property
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
+                 currency: Optional[str] = None, amount: Optional[float] = 0.0):
+        if content is None and msg_type == 0:
+            msg_type = ContentType.MONEY
+        super().__init__(content=content, msg_type=msg_type)
+        # set values to inner dictionary
+        if currency is not None:
+            self['currency'] = currency
+        if amount > 0:
+            self['amount'] = amount
+
+    @property  # Override
     def currency(self) -> str:
-        raise NotImplemented
+        return self.get('currency')
 
-    @property
+    @property  # Override
     def amount(self) -> float:
-        raise NotImplemented
+        value = self.get('amount')
+        return 0 if value is None else float(value)
 
-    @amount.setter
+    @amount.setter  # Override
     def amount(self, value: float):
-        raise NotImplemented
+        self['amount'] = value
 
 
-class TransferContent(MoneyContent, ABC):
+class TransferMoneyContent(BaseMoneyContent, TransferContent):
     """
         Transfer Money Message Content
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,18 +92,30 @@ class TransferContent(MoneyContent, ABC):
         }
     """
 
-    @property
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 currency: Optional[str] = None, amount: Optional[float] = 0.0):
+        super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
+
+    @property  # Override
     def remitter(self) -> Optional[ID]:
-        raise NotImplemented
+        sender = self.get('remitter')
+        return ID.parse(identifier=sender)
 
-    @remitter.setter
+    @remitter.setter  # Override
     def remitter(self, sender: Optional[ID]):
-        raise NotImplemented
+        if sender is None:
+            self.pop('remitter', None)
+        else:
+            self['remitter'] = str(sender)
 
-    @property
+    @property  # Override
     def remittee(self) -> Optional[ID]:
-        raise NotImplemented
+        receiver = self.get('remittee')
+        return ID.parse(identifier=receiver)
 
-    @remittee.setter
+    @remittee.setter  # Override
     def remittee(self, receiver: Optional[ID]):
-        raise NotImplemented
+        if receiver is None:
+            self.pop('remittee', None)
+        else:
+            self['remittee'] = str(receiver)

@@ -28,15 +28,15 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from abc import ABC
+from typing import Optional, Union
 
-from mkm.crypto import base64_encode, base64_decode
 from mkm.crypto import SymmetricKey
 
-from dkd import ContentType, BaseContent
+from dkd import Content
 
 
-class FileContent(BaseContent):
+class FileContent(Content, ABC):
     """
         File Message Content
         ~~~~~~~~~~~~~~~~~~~~
@@ -51,79 +51,65 @@ class FileContent(BaseContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
-                 filename: Optional[str] = None, data: Optional[bytes] = None):
-        if content is None and msg_type == 0:
-            msg_type = ContentType.FILE
-        super().__init__(content=content, msg_type=msg_type)
-        self.__attachment = data  # attachment (file data)
-        self.__password = None    # symmetric key for decryption
-        # set values to inner dictionary
-        if filename is not None:
-            self['filename'] = filename
-        if data is not None:
-            self['data'] = base64_encode(data=data)
-
-    # URL
     @property
     def url(self) -> Optional[str]:
-        return self.get('URL')
+        raise NotImplemented
 
     @url.setter
     def url(self, string: str):
-        if string is None:
-            self.pop('URL', None)
-        else:
-            self['URL'] = string
+        raise NotImplemented
 
-    # file data (it's too big to set in the dictionary)
     @property
     def data(self) -> Optional[bytes]:
-        if self.__attachment is None:
-            base64 = self.get('data')
-            if base64 is not None:
-                self.__attachment = base64_decode(base64)
-        return self.__attachment
+        # file data (it's too big to set in the dictionary)
+        raise NotImplemented
 
     @data.setter
     def data(self, attachment: bytes):
-        self.__attachment = attachment
-        if attachment is None:
-            self.pop('data', None)
-        else:
-            self['data'] = base64_encode(attachment)
+        raise NotImplemented
 
-    # filename
     @property
     def filename(self) -> Optional[str]:
-        return self.get('filename')
+        raise NotImplemented
 
     @filename.setter
     def filename(self, string: str):
-        if string is None:
-            self.pop('filename', None)
-        else:
-            self['filename'] = string
+        raise NotImplemented
 
-    # password for decrypting the downloaded data from CDN
     @property
     def password(self) -> Optional[SymmetricKey]:
-        if self.__password is None:
-            key = self.get('password')
-            self.__password = SymmetricKey.parse(key=key)
-        return self.__password
+        # password for decrypting the downloaded data from CDN
+        raise NotImplemented
 
     @password.setter
     def password(self, key: SymmetricKey):
-        self.__password = key
-        if key is None:
-            self.pop('password', None)
-        else:
-            self['password'] = key.dictionary
+        raise NotImplemented
+
+    #
+    #  Factories
+    #
+    @classmethod
+    def file(cls, filename: str, data: Union[bytes, str, None]):
+        from ..dkd import BaseFileContent
+        return BaseFileContent(filename=filename, data=data)
+
+    @classmethod
+    def image(cls, filename: str, data: Union[bytes, str, None]):
+        from ..dkd import ImageFileContent
+        return ImageFileContent(filename=filename, data=data)
+
+    @classmethod
+    def audio(cls, filename: str, data: Union[bytes, str, None]):
+        from ..dkd import AudioFileContent
+        return AudioFileContent(filename=filename, data=data)
+
+    @classmethod
+    def video(cls, filename: str, data: Union[bytes, str, None]):
+        from ..dkd import VideoFileContent
+        return VideoFileContent(filename=filename, data=data)
 
 
-class ImageContent(FileContent):
+class ImageContent(FileContent, ABC):
     """
         Image Message Content
         ~~~~~~~~~~~~~~~~~~~~~
@@ -139,33 +125,17 @@ class ImageContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 filename: Optional[str] = None, data: Optional[bytes] = None,
-                 thumbnail: Optional[bytes] = None):
-        super().__init__(content=content, msg_type=ContentType.IMAGE, filename=filename, data=data)
-        self.__thumbnail = thumbnail
-        if thumbnail is not None:
-            self['thumbnail'] = base64_encode(data=thumbnail)
-
-    # thumbnail of image
     @property
     def thumbnail(self) -> Optional[bytes]:
-        if self.__thumbnail is None:
-            base64 = self.get('thumbnail')
-            if base64 is not None:
-                self.__thumbnail = base64_decode(base64)
-        return self.__thumbnail
+        # thumbnail of image
+        raise NotImplemented
 
     @thumbnail.setter
     def thumbnail(self, small_image: bytes):
-        self.__thumbnail = small_image
-        if small_image is None:
-            self.pop('thumbnail', None)
-        else:
-            self['thumbnail'] = base64_encode(small_image)
+        raise NotImplemented
 
 
-class AudioContent(FileContent):
+class AudioContent(FileContent, ABC):
     """
         Audio Message Content
         ~~~~~~~~~~~~~~~~~~~~~
@@ -181,27 +151,17 @@ class AudioContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 filename: Optional[str] = None, data: Optional[bytes] = None,
-                 text: Optional[str] = None):
-        super().__init__(content=content, msg_type=ContentType.AUDIO, filename=filename, data=data)
-        if text is not None:
-            self['text'] = text
-
-    # ASR text
     @property
     def text(self) -> Optional[bytes]:
-        return self.get('text')
+        # Automatic Speech Recognition
+        raise NotImplemented
 
     @text.setter
     def text(self, string: str):
-        if string is None:
-            self.pop('text', None)
-        else:
-            self['text'] = string
+        raise NotImplemented
 
 
-class VideoContent(FileContent):
+class VideoContent(FileContent, ABC):
     """
         Video Message Content
         ~~~~~~~~~~~~~~~~~~~~~
@@ -217,27 +177,11 @@ class VideoContent(FileContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 filename: Optional[str] = None, data: Optional[bytes] = None,
-                 snapshot: Optional[bytes] = None):
-        super().__init__(content=content, msg_type=ContentType.VIDEO, filename=filename, data=data)
-        self.__snapshot = snapshot
-        if snapshot is not None:
-            self['snapshot'] = base64_encode(data=snapshot)
-
-    # snapshot of video
     @property
     def snapshot(self) -> Optional[bytes]:
-        if self.__snapshot is None:
-            base64 = self.get('snapshot')
-            if base64 is not None:
-                self.__snapshot = base64_decode(base64)
-        return self.__snapshot
+        # snapshot of video
+        raise NotImplemented
 
     @snapshot.setter
     def snapshot(self, small_image: bytes):
-        self.__snapshot = small_image
-        if small_image is None:
-            self.pop('snapshot', None)
-        else:
-            self['snapshot'] = base64_encode(small_image)
+        raise NotImplemented
