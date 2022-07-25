@@ -42,10 +42,7 @@ from mkm.crypto import EncryptKey, VerifyKey
 from mkm import NetworkType, ID, ANYONE, FOUNDER
 from mkm import Meta, Document, Visa, Bulletin
 
-from .user import UserDataSource
-from .group import GroupDataSource
-
-from .delegate import EntityDelegate
+from .mkm import EntityDelegate, UserDataSource, GroupDataSource
 
 
 class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):

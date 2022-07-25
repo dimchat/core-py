@@ -28,7 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-import weakref
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -69,7 +68,7 @@ class EntityDataSource(ABC):
         raise NotImplemented
 
 
-class Entity:
+class Entity(ABC):
     """ Base class of User and Group, ...
 
         Entity (User/Group)
@@ -82,52 +81,28 @@ class Entity:
                 document   - visa for user, or bulletin for group
     """
 
-    def __init__(self, identifier: ID):
-        """
-        Create Entity with ID
-
-        :param identifier: User/Group ID
-        """
-        super().__init__()
-        self.__identifier: ID = identifier
-        self.__data_source = None
-
-    def __str__(self):
-        clazz = self.__class__.__name__
-        return '<%s|%s %s/>' % (clazz, self.type, self.identifier)
-
-    def __eq__(self, other) -> bool:
-        if self is other:
-            return True
-        if isinstance(other, Entity):
-            other = other.identifier
-        return self.__identifier == other
-
     @property
     def data_source(self) -> Optional[EntityDataSource]:
-        if self.__data_source is not None:
-            return self.__data_source()
+        raise NotImplemented
 
     @data_source.setter
     def data_source(self, delegate: EntityDataSource):
-        self.__data_source = weakref.ref(delegate)
+        raise NotImplemented
 
     @property
     def identifier(self) -> ID:
-        return self.__identifier
+        raise NotImplemented
 
     @property
     def type(self) -> int:
         """ Entity type """
-        return self.__identifier.type
+        raise NotImplemented
 
     @property
     def meta(self) -> Meta:
-        delegate = self.data_source
-        assert delegate is not None, 'entity delegate not set yet'
-        return delegate.meta(identifier=self.identifier)
+        """ Get meta """
+        raise NotImplemented
 
     def document(self, doc_type: Optional[str] = '*') -> Optional[Document]:
-        delegate = self.data_source
-        assert delegate is not None, 'entity delegate not set yet'
-        return delegate.document(identifier=self.identifier, doc_type=doc_type)
+        """ Get document with type """
+        raise NotImplemented

@@ -47,7 +47,7 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 from dkd import InstantMessageDelegate, ReliableMessageDelegate
 from dkd import Content
 
-from .delegate import EntityDelegate
+from .mkm import EntityDelegate
 
 
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):

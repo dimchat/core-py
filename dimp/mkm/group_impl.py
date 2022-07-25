@@ -28,90 +28,20 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Group for assembly
-    ~~~~~~~~~~~~~~~~~~
-
-    Group with members
-"""
-
-from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from mkm import ID, Bulletin, Document
+from mkm import ID, Document, Bulletin
 
-from .entity import Entity, EntityDataSource
-
-
-class GroupDataSource(EntityDataSource, ABC):
-    """ This interface is for getting information for group
-
-        Group Data Source
-        ~~~~~~~~~~~~~~~~~
-
-        1. founder has the same public key with the group's meta.key
-        2. owner and members should be set complying with the consensus algorithm
-    """
-
-    @abstractmethod
-    def founder(self, identifier: ID) -> Optional[ID]:
-        """
-        Get founder of the group
-
-        :param identifier: group ID
-        :return: founder ID
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def owner(self, identifier: ID) -> Optional[ID]:
-        """
-        Get current owner of the group
-
-        :param identifier: group ID
-        :return: owner ID
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def members(self, identifier: ID) -> List[ID]:
-        """
-        Get all members in the group
-
-        :param identifier: group ID
-        :return: member ID list
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def assistants(self, identifier: ID) -> List[ID]:
-        """
-        Get assistants for this group
-
-        :param identifier: group ID
-        :return: robot ID list
-        """
-        raise NotImplemented
+from .group import Group, GroupDataSource
+from .entity_impl import Entity, BaseEntity
 
 
-class Group(Entity):
-    """ This class is for creating group
-
-        Group for organizing users
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            roles:
-                founder
-                owner
-                members
-                administrators - Optional
-                assistants     - Optional
-    """
+class BaseGroup(BaseEntity, Group):
 
     def __init__(self, identifier: ID):
         super().__init__(identifier=identifier)
         # once the group founder is set, it will never change
-        self.__founder: Optional[ID] = None
+        self.__founder = None
 
     @Entity.data_source.getter  # Override
     def data_source(self) -> Optional[GroupDataSource]:
@@ -121,36 +51,34 @@ class Group(Entity):
     # def data_source(self, delegate: GroupDataSource):
     #     super(Group, Group).data_source.__set__(self, delegate)
 
-    @property
+    @property  # Override
     def bulletin(self) -> Optional[Bulletin]:
         doc = self.document(doc_type=Document.BULLETIN)
         if isinstance(doc, Bulletin):
             return doc
 
-    @property
+    @property  # Override
     def founder(self) -> ID:
         if self.__founder is None:
             delegate = self.data_source
-            assert delegate is not None, 'group delegate not set yet'
+            # assert delegate is not None, 'group delegate not set yet'
             self.__founder = delegate.founder(identifier=self.identifier)
         return self.__founder
 
-    @property
+    @property  # Override
     def owner(self) -> ID:
         delegate = self.data_source
-        assert delegate is not None, 'group delegate not set yet'
+        # assert delegate is not None, 'group delegate not set yet'
         return delegate.owner(identifier=self.identifier)
 
-    @property
+    @property  # Override
     def members(self) -> List[ID]:
-        """ NOTICE: the owner must be a member
-            (usually the first one) """
         delegate = self.data_source
-        assert delegate is not None, 'group delegate not set yet'
+        # assert delegate is not None, 'group delegate not set yet'
         return delegate.members(identifier=self.identifier)
 
-    @property
+    @property  # Override
     def assistants(self) -> List[ID]:
         delegate = self.data_source
-        assert delegate is not None, 'group delegate not set yet'
+        # assert delegate is not None, 'group delegate not set yet'
         return delegate.assistants(identifier=self.identifier)

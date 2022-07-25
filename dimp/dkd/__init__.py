@@ -28,23 +28,16 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    DIMP - Message Contents & Commands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    Define universal message types as contents and commands
-"""
-
 from typing import Optional, Any, Dict
 
 from dkd import ContentType, Content, ContentFactory, BaseContent
 
 from ..protocol import Command, CommandFactory, GroupCommand
 
-from .forward import SecretContent
 from .text import BaseTextContent
-from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+from .forward import SecretContent
 from .money import BaseMoneyContent, TransferMoneyContent
+from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 
 from .command import BaseCommand, command_name
 from .meta import BaseMetaCommand
@@ -163,9 +156,9 @@ def register_command_factories():
 
 __all__ = [
 
-    'SecretContent', 'BaseTextContent',
-    'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
+    'BaseTextContent', 'SecretContent',
     'BaseMoneyContent', 'TransferMoneyContent',
+    'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
 
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',

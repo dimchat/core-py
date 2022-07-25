@@ -28,38 +28,21 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    DIMP - Message Contents & Commands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from .delegate import EntityDelegate
+from .entity import Entity, EntityDataSource
+from .user import User, UserDataSource
+from .group import Group, GroupDataSource
 
-    Define universal message types as contents and commands
-"""
-
-from .text import TextContent
-from .forward import ForwardContent
-from .money import MoneyContent, TransferContent
-from .file import FileContent, ImageContent, AudioContent, VideoContent
-
-from .command import Command, CommandFactory
-from .meta import MetaCommand
-from .document import DocumentCommand
-
-from .history import HistoryCommand
-from .group import GroupCommand
-from .group import InviteCommand, ExpelCommand, JoinCommand
-from .group import QuitCommand, QueryCommand, ResetCommand
+from .entity_impl import BaseEntity
+from .user_impl import BaseUser
+from .group_impl import BaseGroup
 
 
 __all__ = [
 
-    'TextContent', 'ForwardContent',
-    'MoneyContent', 'TransferContent',
-    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'EntityDelegate',
+    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
+    'Entity', 'User', 'Group',
 
-    'Command', 'CommandFactory',
-    'MetaCommand', 'DocumentCommand',
-
-    'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand',
-    'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'BaseEntity', 'BaseUser', 'BaseGroup',
 ]
