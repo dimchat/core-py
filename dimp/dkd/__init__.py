@@ -36,10 +36,14 @@ from ..protocol import Command, CommandFactory, GroupCommand
 
 from .text import BaseTextContent
 from .forward import SecretContent
+from .array import ListContent
 from .money import BaseMoneyContent, TransferMoneyContent
 from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+from .page import WebPageContent
+from .customized import AppCustomizedContent
 
 from .command import BaseCommand, command_name
+from .handshake import BaseHandshakeCommand
 from .meta import BaseMetaCommand
 from .document import BaseDocumentCommand
 
@@ -71,7 +75,11 @@ class CommandFactoryBuilder(CommandFactory):
         return self.__class(content=content)
 
 
-class CommandContentFactory(ContentFactory, CommandFactory):
+#
+#   General Command Factory
+#   ~~~~~~~~~~~~~~~~~~~~~~~
+#
+class GeneralCommandFactory(ContentFactory, CommandFactory):
 
     def __init__(self):
         super().__init__()
@@ -94,7 +102,7 @@ class CommandContentFactory(ContentFactory, CommandFactory):
         return BaseCommand(content=content)
 
 
-class HistoryCommandFactory(CommandContentFactory):
+class HistoryCommandFactory(GeneralCommandFactory):
 
     # Override
     def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
@@ -119,32 +127,60 @@ class GroupCommandFactory(HistoryCommandFactory):
 
 def register_content_factories():
     """ Register core content factories """
-    Content.register(msg_type=ContentType.FORWARD, factory=ContentFactoryBuilder(content_class=SecretContent))
+    # Text
     Content.register(msg_type=ContentType.TEXT, factory=ContentFactoryBuilder(content_class=BaseTextContent))
 
+    # File
     Content.register(msg_type=ContentType.FILE, factory=ContentFactoryBuilder(content_class=BaseFileContent))
+    # Image
     Content.register(msg_type=ContentType.IMAGE, factory=ContentFactoryBuilder(content_class=ImageFileContent))
+    # Audio
     Content.register(msg_type=ContentType.AUDIO, factory=ContentFactoryBuilder(content_class=AudioFileContent))
+    # Video
     Content.register(msg_type=ContentType.VIDEO, factory=ContentFactoryBuilder(content_class=VideoFileContent))
 
-    # Content.register(msg_type=ContentType.PAGE, factory=ContentFactoryBuilder(content_class=WebPageContent))
+    # Web Page
+    Content.register(msg_type=ContentType.PAGE, factory=ContentFactoryBuilder(content_class=WebPageContent))
 
+    # Money
     Content.register(msg_type=ContentType.MONEY, factory=ContentFactoryBuilder(content_class=BaseMoneyContent))
     Content.register(msg_type=ContentType.TRANSFER, factory=ContentFactoryBuilder(content_class=TransferMoneyContent))
+    # ...
 
-    Content.register(msg_type=ContentType.COMMAND, factory=CommandContentFactory())
+    # Command
+    Content.register(msg_type=ContentType.COMMAND, factory=GeneralCommandFactory())
+
+    # History Command
     Content.register(msg_type=ContentType.HISTORY, factory=HistoryCommandFactory())
 
+    # Content Array
+    Content.register(msg_type=ContentType.ARRAY, factory=ContentFactoryBuilder(content_class=ListContent))
+
+    # # Application Customized
+    # Content.register(msg_type=ContentType.APPLICATION,
+    #                  factory=ContentFactoryBuilder(content_class=AppCustomizedContent))
+    # Content.register(msg_type=ContentType.CUSTOMIZED,
+    #                  factory=ContentFactoryBuilder(content_class=AppCustomizedContent))
+
+    # Top-Secret
+    Content.register(msg_type=ContentType.FORWARD, factory=ContentFactoryBuilder(content_class=SecretContent))
+
+    # Unknown Content Type
     Content.register(msg_type=0, factory=ContentFactoryBuilder(content_class=BaseContent))
 
 
 def register_command_factories():
     """ Register core command factories """
-    # meta command
+    # Handshake Command
+    Command.register(cmd=Command.HANDSHAKE, factory=CommandFactoryBuilder(command_class=BaseHandshakeCommand))
+
+    # Meta Command
     Command.register(cmd=Command.META, factory=CommandFactoryBuilder(command_class=BaseMetaCommand))
-    # document command
+
+    # Document Command
     Command.register(cmd=Command.DOCUMENT, factory=CommandFactoryBuilder(command_class=BaseDocumentCommand))
-    # group commands
+
+    # Group Commands
     Command.register(cmd='group', factory=GroupCommandFactory())
     Command.register(cmd=GroupCommand.INVITE, factory=CommandFactoryBuilder(command_class=InviteGroupCommand))
     Command.register(cmd=GroupCommand.EXPEL, factory=CommandFactoryBuilder(command_class=ExpelGroupCommand))
@@ -156,11 +192,13 @@ def register_command_factories():
 
 __all__ = [
 
-    'BaseTextContent', 'SecretContent',
+    'BaseTextContent', 'SecretContent', 'ListContent',
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
+    'WebPageContent', 'AppCustomizedContent',
 
     'BaseCommand',
+    'BaseHandshakeCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
 
     'BaseHistoryCommand', 'BaseGroupCommand',
@@ -168,7 +206,7 @@ __all__ = [
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
 
     'ContentFactoryBuilder', 'CommandFactoryBuilder',
-    'CommandContentFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
+    'GeneralCommandFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
     # register_core_factories
     'register_content_factories', 'register_command_factories',
 ]

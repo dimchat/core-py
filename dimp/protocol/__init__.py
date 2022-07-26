@@ -37,10 +37,14 @@
 
 from .text import TextContent
 from .forward import ForwardContent
+from .array import ArrayContent
 from .money import MoneyContent, TransferContent
 from .file import FileContent, ImageContent, AudioContent, VideoContent
+from .page import PageContent
+from .customized import CustomizedContent
 
 from .command import Command, CommandFactory
+from .handshake import HandshakeCommand, HandshakeState
 from .meta import MetaCommand
 from .document import DocumentCommand
 
@@ -49,14 +53,15 @@ from .group import GroupCommand
 from .group import InviteCommand, ExpelCommand, JoinCommand
 from .group import QuitCommand, QueryCommand, ResetCommand
 
-
 __all__ = [
 
-    'TextContent', 'ForwardContent',
+    'TextContent', 'ForwardContent', 'ArrayContent',
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'PageContent', 'CustomizedContent',
 
     'Command', 'CommandFactory',
+    'HandshakeCommand', 'HandshakeState',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',
