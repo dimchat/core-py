@@ -63,3 +63,11 @@ class CustomizedContent(Content, ABC):
     def action(self) -> str:
         """ Action Name """
         raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, app: str, mod: str, act: str):
+        from ..dkd import AppCustomizedContent
+        return AppCustomizedContent(app=app, mod=mod, act=act)

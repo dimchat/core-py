@@ -43,7 +43,6 @@ from .page import WebPageContent
 # from .customized import AppCustomizedContent
 
 from .command import BaseCommand, command_name
-from .handshake import BaseHandshakeCommand
 from .meta import BaseMetaCommand
 from .document import BaseDocumentCommand
 
@@ -61,7 +60,8 @@ class ContentFactoryBuilder(ContentFactory):
 
     # Override
     def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
-        return self.__class(content=content)
+        # return self.__class(content=content)
+        return self.__class(content)
 
 
 class CommandFactoryBuilder(CommandFactory):
@@ -72,7 +72,8 @@ class CommandFactoryBuilder(CommandFactory):
 
     # Override
     def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
-        return self.__class(content=content)
+        # return self.__class(content=content)
+        return self.__class(content)
 
 
 #
@@ -171,9 +172,6 @@ def register_content_factories():
 
 def register_command_factories():
     """ Register core command factories """
-    # Handshake Command
-    Command.register(cmd=Command.HANDSHAKE, factory=CommandFactoryBuilder(command_class=BaseHandshakeCommand))
-
     # Meta Command
     Command.register(cmd=Command.META, factory=CommandFactoryBuilder(command_class=BaseMetaCommand))
 

@@ -59,3 +59,12 @@ class ForwardContent(Content, ABC):
     @property
     def secrets(self) -> List[ReliableMessage]:
         raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, message: Optional[ReliableMessage] = None,
+               messages: Optional[List[ReliableMessage]] = None):
+        from ..dkd import SecretContent
+        return SecretContent(message=message, messages=messages)

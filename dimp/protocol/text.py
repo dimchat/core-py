@@ -57,3 +57,11 @@ class TextContent(Content, ABC):
     @text.setter
     def text(self, value: Optional[str]):
         raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, text: str):
+        from ..dkd import BaseTextContent
+        return BaseTextContent(text=text)

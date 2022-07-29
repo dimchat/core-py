@@ -51,8 +51,6 @@ class Command(Content, ABC):
     # -------- command names begin --------
     META = 'meta'
     DOCUMENT = 'document'
-
-    HANDSHAKE = 'handshake'
     # -------- command names end --------
 
     @property

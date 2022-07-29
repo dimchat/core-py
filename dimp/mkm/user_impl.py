@@ -33,18 +33,18 @@ from typing import Optional, List
 from mkm import ID, Document, Visa
 
 from .user import User, UserDataSource
-from .entity_impl import Entity, BaseEntity
+from .entity_impl import BaseEntity
 
 
 class BaseUser(BaseEntity, User):
 
-    @Entity.data_source.getter  # Override
+    @BaseEntity.data_source.getter  # Override
     def data_source(self) -> Optional[UserDataSource]:
         return super().data_source
 
     # @data_source.setter  # Override
     # def data_source(self, delegate: UserDataSource):
-    #     super(User, User).data_source.__set__(self, delegate)
+    #     super(BaseUser, BaseUser).data_source.__set__(self, delegate)
 
     @property  # Override
     def visa(self) -> Optional[Visa]:

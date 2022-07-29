@@ -37,7 +37,6 @@ from .page import WebPageContent
 from .customized import AppCustomizedContent
 
 from .command import BaseCommand, command_name
-from .handshake import BaseHandshakeCommand
 from .meta import BaseMetaCommand
 from .document import BaseDocumentCommand
 
@@ -59,7 +58,6 @@ __all__ = [
     'WebPageContent', 'AppCustomizedContent',
 
     'BaseCommand',
-    'BaseHandshakeCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
 
     'BaseHistoryCommand', 'BaseGroupCommand',

@@ -33,7 +33,7 @@ from typing import Optional, List
 from mkm import ID, Document, Bulletin
 
 from .group import Group, GroupDataSource
-from .entity_impl import Entity, BaseEntity
+from .entity_impl import BaseEntity
 
 
 class BaseGroup(BaseEntity, Group):
@@ -43,13 +43,13 @@ class BaseGroup(BaseEntity, Group):
         # once the group founder is set, it will never change
         self.__founder = None
 
-    @Entity.data_source.getter  # Override
+    @BaseEntity.data_source.getter  # Override
     def data_source(self) -> Optional[GroupDataSource]:
         return super().data_source
 
     # @data_source.setter  # Override
     # def data_source(self, delegate: GroupDataSource):
-    #     super(Group, Group).data_source.__set__(self, delegate)
+    #     super(BaseGroup, BaseGroup).data_source.__set__(self, delegate)
 
     @property  # Override
     def bulletin(self) -> Optional[Bulletin]:

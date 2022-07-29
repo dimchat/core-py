@@ -44,7 +44,6 @@ from .page import PageContent
 from .customized import CustomizedContent
 
 from .command import Command, CommandFactory
-from .handshake import HandshakeCommand, HandshakeState
 from .meta import MetaCommand
 from .document import DocumentCommand
 
@@ -61,7 +60,6 @@ __all__ = [
     'PageContent', 'CustomizedContent',
 
     'Command', 'CommandFactory',
-    'HandshakeCommand', 'HandshakeState',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',

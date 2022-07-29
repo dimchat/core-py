@@ -50,3 +50,11 @@ class ArrayContent(Content, ABC):
     @property
     def contents(self) -> Optional[List[Content]]:
         raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, contents: List[Content]):
+        from ..dkd import ListContent
+        return ListContent(contents=contents)
