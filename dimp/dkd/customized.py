@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Union, Any, Dict
 
 from dkd import ContentType, BaseContent
 
@@ -52,9 +52,12 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
     """
 
     def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
                  app: Optional[str] = None, mod: Optional[str] = None, act: Optional[str] = None):
         if content is None:
-            super().__init__(msg_type=ContentType.PAGE)
+            if msg_type == 0:
+                msg_type = ContentType.CUSTOMIZED
+            super().__init__(msg_type=msg_type)
         else:
             super().__init__(content=content)
         if app is not None:
