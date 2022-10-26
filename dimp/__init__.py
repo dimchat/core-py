@@ -49,7 +49,7 @@ __all__ = [
     #
     #   MingKeMing
     #
-    'NetworkType', 'MetaType',
+    'EntityType', 'MetaType',
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
     'Meta', 'MetaFactory',

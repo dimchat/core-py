@@ -82,7 +82,7 @@ class GroupDataSource(EntityDataSource, ABC):
         Get assistants for this group
 
         :param identifier: group ID
-        :return: robot ID list
+        :return: bot ID list
         """
         raise NotImplemented
 

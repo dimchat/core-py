@@ -39,7 +39,7 @@ from abc import ABC
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
-from mkm import NetworkType, ID, ANYONE, FOUNDER
+from mkm import EntityType, ID, ANYONE, FOUNDER
 from mkm import Meta, Document, Visa, Bulletin
 
 from .mkm import EntityDelegate, UserDataSource, GroupDataSource
@@ -131,7 +131,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
             # owner of broadcast group
             return broadcast_owner(group=identifier)
         # check group type
-        if identifier.type == NetworkType.POLYLOGUE:
+        if identifier.type == EntityType.GROUP:
             # Polylogue's owner is its founder
             return self.founder(identifier=identifier)
         # TODO: load owner from database

@@ -154,6 +154,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         # TODO: translate short keys
         #       'T' -> 'type'
         #       'N' -> 'sn'
+        #       'W' -> 'time'
         #       'G' -> 'group'
         return Content.parse(content=dictionary)
 
