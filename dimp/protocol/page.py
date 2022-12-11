@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from dkd import Content
@@ -51,37 +51,45 @@ class PageContent(Content, ABC):
     """
 
     @property
+    @abstractmethod
     def url(self) -> str:
         """ Web Page URL """
         raise NotImplemented
 
     @url.setter
+    @abstractmethod
     def url(self, string: str):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def title(self) -> Optional[str]:
         """ Document Title """
         raise NotImplemented
 
     @title.setter
+    @abstractmethod
     def title(self, string: str):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def desc(self) -> Optional[str]:
         """ Description """
         raise NotImplemented
 
     @desc.setter
+    @abstractmethod
     def desc(self, string: str):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def icon(self) -> Optional[bytes]:
         """ Image data """
         raise NotImplemented
 
     @icon.setter
+    @abstractmethod
     def icon(self, image: bytes):
         raise NotImplemented

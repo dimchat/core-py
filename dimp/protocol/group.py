@@ -37,7 +37,7 @@
     3. member quit
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm import ID
@@ -87,18 +87,22 @@ class GroupCommand(HistoryCommand, ABC):
     #   member/members
     #
     @property
+    @abstractmethod
     def member(self) -> Optional[ID]:
         raise NotImplemented
 
     @member.setter
+    @abstractmethod
     def member(self, value: ID):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def members(self) -> Optional[List[ID]]:
         raise NotImplemented
 
     @members.setter
+    @abstractmethod
     def members(self, value: List[ID]):
         raise NotImplemented
 

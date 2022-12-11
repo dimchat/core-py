@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from dkd import Content
@@ -48,6 +48,7 @@ class ArrayContent(Content, ABC):
     """
 
     @property
+    @abstractmethod
     def contents(self) -> Optional[List[Content]]:
         raise NotImplemented
 

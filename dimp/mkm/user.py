@@ -143,18 +143,24 @@ class User(Entity, ABC):
     """
 
     @property
+    @abstractmethod
     def data_source(self) -> Optional[UserDataSource]:
         raise NotImplemented
 
     @data_source.setter
+    @abstractmethod
     def data_source(self, delegate: UserDataSource):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def visa(self) -> Optional[Visa]:
+        """ User Document """
+        # return self.document(doc_type=Document.VISA)
         raise NotImplemented
 
     @property
+    @abstractmethod
     def contacts(self) -> List[ID]:
         """
         Get all contacts of the user
@@ -163,6 +169,7 @@ class User(Entity, ABC):
         """
         raise NotImplemented
 
+    @abstractmethod
     def verify(self, data: bytes, signature: bytes) -> bool:
         """
         Verify data and signature with user's public keys
@@ -173,6 +180,7 @@ class User(Entity, ABC):
         """
         raise NotImplemented
 
+    @abstractmethod
     def encrypt(self, data: bytes) -> bytes:
         """Encrypt data, try visa.key first, if not found, use meta.key
 
@@ -184,6 +192,8 @@ class User(Entity, ABC):
     #
     #   interfaces for local user
     #
+
+    @abstractmethod
     def sign(self, data: bytes) -> bytes:
         """
         Sign data with user's private key
@@ -193,6 +203,7 @@ class User(Entity, ABC):
         """
         raise NotImplemented
 
+    @abstractmethod
     def decrypt(self, data: bytes) -> Optional[bytes]:
         """
         Decrypt data with user's private key(s)
@@ -205,10 +216,13 @@ class User(Entity, ABC):
     #
     #   Interfaces for Visa
     #
+
+    @abstractmethod
     def sign_visa(self, visa: Visa) -> Visa:
         # NOTICE: only sign visa with the private key paired with your meta.key
         raise NotImplemented
 
+    @abstractmethod
     def verify_visa(self, visa: Visa) -> bool:
         # NOTICE: only verify visa with meta.key
         #         (if meta not exists, user won't be created)

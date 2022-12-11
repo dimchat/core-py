@@ -56,10 +56,9 @@ __all__ = [
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
 
-    'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
-
     'BaseAddressFactory',  # 'BroadcastAddress',
     # 'IdentifierFactory', 'Identifier',
+    'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
 
@@ -87,7 +86,7 @@ __all__ = [
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'PageContent', 'CustomizedContent',
 
-    'Command', 'CommandFactory',
+    'Command', 'CommandFactory',  # 'command_name',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',
@@ -114,8 +113,7 @@ __all__ = [
 
     # 'ContentFactoryBuilder', 'CommandFactoryBuilder',
     # 'GeneralCommandFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
-    # # register_core_factories
-    # 'register_content_factories', 'register_command_factories',
+    # 'register_message_factories', 'register_content_factories', 'register_command_factories',
 
     'Barrack', 'Transceiver', 'Packer', 'Processor',
 ]

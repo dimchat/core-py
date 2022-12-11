@@ -35,6 +35,9 @@
     Define universal message types as contents and commands
 """
 
+from mkm.protocol import *
+from dkd.protocol import *
+
 from .text import TextContent
 from .forward import ForwardContent
 from .array import ArrayContent
@@ -43,7 +46,7 @@ from .file import FileContent, ImageContent, AudioContent, VideoContent
 from .page import PageContent
 from .customized import CustomizedContent
 
-from .command import Command, CommandFactory
+from .command import Command, CommandFactory, command_name
 from .meta import MetaCommand
 from .document import DocumentCommand
 
@@ -54,12 +57,42 @@ from .group import QuitCommand, QueryCommand, ResetCommand
 
 __all__ = [
 
+    #
+    #   MingKeMing
+    #
+    'EntityType',
+    'MetaType',
+
+    'Address', 'AddressFactory',
+    'ID', 'IDFactory',
+    'Meta', 'MetaFactory',
+    'Document', 'DocumentFactory',
+    'Visa', 'Bulletin',
+
+    'entity_is_user', 'entity_is_group', 'entity_is_broadcast',
+    'meta_has_seed', 'meta_type',
+    'document_type',
+
+    #
+    #   DaoKeDao
+    #
+    'ContentType', 'content_type',
+    'Content', 'ContentFactory',
+    'Envelope', 'EnvelopeFactory',
+
+    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+
+    #
+    #   DIMP
+    #
     'TextContent', 'ForwardContent', 'ArrayContent',
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'PageContent', 'CustomizedContent',
 
-    'Command', 'CommandFactory',
+    'Command', 'CommandFactory', 'command_name',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',

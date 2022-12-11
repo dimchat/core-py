@@ -36,7 +36,7 @@
     2. contains 'document' and 'signature' (must match), means reply
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import ID, Meta, Document
@@ -66,10 +66,12 @@ class DocumentCommand(MetaCommand, ABC):
     #   document
     #
     @property
+    @abstractmethod
     def document(self) -> Optional[Document]:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def signature(self) -> Optional[str]:
         """
         signature for checking new document

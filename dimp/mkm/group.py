@@ -102,31 +102,40 @@ class Group(Entity, ABC):
     """
 
     @property
+    @abstractmethod
     def data_source(self) -> Optional[GroupDataSource]:
         raise NotImplemented
 
     @data_source.setter
+    @abstractmethod
     def data_source(self, delegate: GroupDataSource):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def bulletin(self) -> Optional[Bulletin]:
+        """ Group Document """
+        # return self.document(doc_type=Document.BULLETIN)
         raise NotImplemented
 
     @property
+    @abstractmethod
     def founder(self) -> ID:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def owner(self) -> ID:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def members(self) -> List[ID]:
         """ NOTICE: the owner must be a member
             (usually the first one) """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def assistants(self) -> List[ID]:
         raise NotImplemented

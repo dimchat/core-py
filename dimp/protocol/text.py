@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from dkd import Content
@@ -51,10 +51,12 @@ class TextContent(Content, ABC):
     #   text
     #
     @property
+    @abstractmethod
     def text(self) -> Optional[str]:
         raise NotImplemented
 
     @text.setter
+    @abstractmethod
     def text(self, value: Optional[str]):
         raise NotImplemented
 

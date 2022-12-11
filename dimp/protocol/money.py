@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import ID
@@ -79,17 +79,21 @@ class TransferContent(MoneyContent, ABC):
     """
 
     @property
+    @abstractmethod
     def remitter(self) -> Optional[ID]:
         raise NotImplemented
 
     @remitter.setter
+    @abstractmethod
     def remitter(self, sender: Optional[ID]):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def remittee(self) -> Optional[ID]:
         raise NotImplemented
 
     @remittee.setter
+    @abstractmethod
     def remittee(self, receiver: Optional[ID]):
         raise NotImplemented

@@ -32,6 +32,7 @@ from typing import Optional, Union, Any, Dict
 
 from dkd import ContentType, BaseContent
 
+from ..protocol.command import command_name
 from ..protocol import Command
 
 
@@ -51,11 +52,3 @@ class BaseCommand(BaseContent, Command):
     @property  # Override
     def cmd(self) -> str:
         return command_name(content=self.dictionary)
-
-
-def command_name(content: Dict[str, Any]) -> str:
-    # TODO: modify after all server/clients support 'cmd'
-    cmd = content.get('cmd')
-    if cmd is None:
-        cmd = content.get('command')
-    return cmd

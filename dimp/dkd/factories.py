@@ -33,6 +33,7 @@ from typing import Optional, Any, Dict
 from dkd import ContentType, Content, ContentFactory, BaseContent
 
 from ..protocol import Command, CommandFactory, GroupCommand
+from ..protocol.command import command_name
 
 from .text import BaseTextContent
 from .forward import SecretContent
@@ -42,7 +43,7 @@ from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFile
 from .page import WebPageContent
 # from .customized import AppCustomizedContent
 
-from .command import BaseCommand, command_name
+from .command import BaseCommand
 from .meta import BaseMetaCommand
 from .document import BaseDocumentCommand
 

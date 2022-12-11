@@ -31,6 +31,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm.types import Wrapper
+from dkd.protocol import content_type
 from dkd import Content
 
 
@@ -54,10 +56,33 @@ class Command(Content, ABC):
     # -------- command names end --------
 
     @property
+    @abstractmethod
     def cmd(self) -> str:
         """ get command name """
         # return command_name(content=self.dictionary)
         raise NotImplemented
+
+    #
+    #   Factory method
+    #
+
+    @classmethod
+    def parse(cls, content: Any):  # -> Command:
+        if content is None:
+            return None
+        elif isinstance(content, Command):
+            return content
+        info = Wrapper.get_dictionary(content)
+        # assert info is not None, 'command content error: %s' % content
+        cmd = command_name(content=info)
+        factory = cls.factory(cmd=cmd)
+        if factory is None:
+            # unknown command name, get base command factory
+            msg_type = content_type(content=info)
+            factory = Content.factory(msg_type=msg_type)
+            assert isinstance(factory, CommandFactory), 'command factory error: %d, %s' % (msg_type, factory)
+        # assert isinstance(factory, CommandFactory), 'command factory error: %s' % factory
+        return factory.parse_command(content=info)
 
     @classmethod
     def factory(cls, cmd: str):  # -> Optional[CommandFactory]:
@@ -66,6 +91,14 @@ class Command(Content, ABC):
     @classmethod
     def register(cls, cmd: str, factory):
         g_command_factories[cmd] = factory
+
+
+def command_name(content: Dict[str, Any]) -> str:
+    # TODO: modify after all server/clients support 'cmd'
+    cmd = content.get('cmd')
+    if cmd is None:
+        cmd = content.get('command')
+    return cmd
 
 
 class CommandFactory:

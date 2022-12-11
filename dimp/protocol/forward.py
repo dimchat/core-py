@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from dkd import Content
@@ -53,10 +53,12 @@ class ForwardContent(Content, ABC):
     #   forward (top-secret message)
     #
     @property
+    @abstractmethod
     def forward(self) -> Optional[ReliableMessage]:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def secrets(self) -> List[ReliableMessage]:
         raise NotImplemented
 

@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+from dkd import *
+
 from .text import BaseTextContent
 from .forward import SecretContent
 from .array import ListContent
@@ -36,7 +38,7 @@ from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFile
 from .page import WebPageContent
 from .customized import AppCustomizedContent
 
-from .command import BaseCommand, command_name
+from .command import BaseCommand
 from .meta import BaseMetaCommand
 from .document import BaseDocumentCommand
 
@@ -52,6 +54,28 @@ from .factories import register_content_factories, register_command_factories
 
 __all__ = [
 
+    #
+    #   Protocol
+    #
+    'ContentType', 'Content', 'ContentFactory',
+    'Envelope', 'EnvelopeFactory',
+    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+
+    #
+    #   Core
+    #
+    'BaseContent',
+    'MessageEnvelope', 'MessageEnvelopeFactory',
+    'BaseMessage',
+    'PlainMessage', 'PlainMessageFactory',
+    'EncryptedMessage', 'EncryptedMessageFactory',
+    'NetworkMessage', 'NetworkMessageFactory',
+
+    #
+    #   Contents
+    #
     'BaseTextContent', 'SecretContent', 'ListContent',
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
@@ -66,6 +90,8 @@ __all__ = [
 
     'ContentFactoryBuilder', 'CommandFactoryBuilder',
     'GeneralCommandFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
-    # register_core_factories
-    'register_content_factories', 'register_command_factories',
+
+    'register_message_factories',
+    'register_content_factories',
+    'register_command_factories',
 ]

@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from dkd import Content
 
@@ -50,16 +50,19 @@ class CustomizedContent(Content, ABC):
     """
 
     @property
+    @abstractmethod
     def application(self) -> str:
         """ App ID """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def module(self) -> str:
         """ Module Name """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def action(self) -> str:
         """ Action Name """
         raise NotImplemented

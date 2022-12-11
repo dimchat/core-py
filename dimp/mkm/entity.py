@@ -82,27 +82,33 @@ class Entity(ABC):
     """
 
     @property
+    @abstractmethod
     def data_source(self) -> Optional[EntityDataSource]:
         raise NotImplemented
 
     @data_source.setter
+    @abstractmethod
     def data_source(self, delegate: EntityDataSource):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def identifier(self) -> ID:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def type(self) -> int:
         """ Entity type """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def meta(self) -> Meta:
         """ Get meta """
         raise NotImplemented
 
+    @abstractmethod
     def document(self, doc_type: Optional[str] = '*') -> Optional[Document]:
         """ Get document with type """
         raise NotImplemented

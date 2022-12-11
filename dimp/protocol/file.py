@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, Union
 
 from mkm.crypto import SymmetricKey
@@ -52,36 +52,44 @@ class FileContent(Content, ABC):
     """
 
     @property
+    @abstractmethod
     def url(self) -> Optional[str]:
         raise NotImplemented
 
     @url.setter
+    @abstractmethod
     def url(self, string: str):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def data(self) -> Optional[bytes]:
         # file data (it's too big to set in the dictionary)
         raise NotImplemented
 
     @data.setter
+    @abstractmethod
     def data(self, attachment: bytes):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def filename(self) -> Optional[str]:
         raise NotImplemented
 
     @filename.setter
+    @abstractmethod
     def filename(self, string: str):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def password(self) -> Optional[SymmetricKey]:
         # password for decrypting the downloaded data from CDN
         raise NotImplemented
 
     @password.setter
+    @abstractmethod
     def password(self, key: SymmetricKey):
         raise NotImplemented
 
@@ -126,11 +134,13 @@ class ImageContent(FileContent, ABC):
     """
 
     @property
+    @abstractmethod
     def thumbnail(self) -> Optional[bytes]:
         # thumbnail of image
         raise NotImplemented
 
     @thumbnail.setter
+    @abstractmethod
     def thumbnail(self, small_image: bytes):
         raise NotImplemented
 
@@ -152,11 +162,13 @@ class AudioContent(FileContent, ABC):
     """
 
     @property
+    @abstractmethod
     def text(self) -> Optional[bytes]:
         # Automatic Speech Recognition
         raise NotImplemented
 
     @text.setter
+    @abstractmethod
     def text(self, string: str):
         raise NotImplemented
 
@@ -178,10 +190,12 @@ class VideoContent(FileContent, ABC):
     """
 
     @property
+    @abstractmethod
     def snapshot(self) -> Optional[bytes]:
         # snapshot of video
         raise NotImplemented
 
     @snapshot.setter
+    @abstractmethod
     def snapshot(self, small_image: bytes):
         raise NotImplemented

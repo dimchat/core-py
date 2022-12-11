@@ -35,7 +35,7 @@
     Delegate to process message transforming
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm.crypto import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
@@ -54,6 +54,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
     """ Converting message format between PlainMessage and NetworkMessage """
 
     @property
+    @abstractmethod
     def barrack(self) -> EntityDelegate:
         raise NotImplemented
 

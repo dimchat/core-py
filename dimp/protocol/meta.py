@@ -36,7 +36,7 @@
     2. contains 'meta' (must match), means reply
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import ID, Meta
@@ -63,6 +63,7 @@ class MetaCommand(Command, ABC):
     #   ID
     #
     @property
+    @abstractmethod
     def identifier(self) -> ID:
         raise NotImplemented
 
@@ -70,6 +71,7 @@ class MetaCommand(Command, ABC):
     #   Meta
     #
     @property
+    @abstractmethod
     def meta(self) -> Optional[Meta]:
         raise NotImplemented
 
