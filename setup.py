@@ -14,7 +14,7 @@ import io
 
 from setuptools import setup, find_packages
 
-__version__ = '0.12.4'
+__version__ = '0.12.5'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 

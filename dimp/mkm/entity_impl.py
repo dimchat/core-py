@@ -48,16 +48,35 @@ class BaseEntity(Entity):
         self.__identifier = identifier
         self.__data_source = None
 
+    # Override
     def __str__(self):
+        """ Return str(self). """
         clazz = self.__class__.__name__
-        return '<%s|%s %s/>' % (clazz, self.type, self.identifier)
+        identifier = self.identifier
+        network = identifier.address.type
+        return '<%s id="%s" network=%d />' % (clazz, identifier, network)
 
+    # Override
     def __eq__(self, other) -> bool:
-        if self is other:
-            return True
+        """ Return self==value. """
         if isinstance(other, Entity):
+            if self is other:
+                # same object
+                return True
             other = other.identifier
-        return self.__identifier == other
+        # check with ID
+        return self.__identifier.__eq__(other)
+
+    # Override
+    def __ne__(self, other) -> bool:
+        """ Return self!=value. """
+        if isinstance(other, Entity):
+            if self is other:
+                # same object
+                return False
+            other = other.identifier
+        # check with ID
+        return self.__identifier.__ne__(other)
 
     @property  # Override
     def data_source(self) -> Optional[EntityDataSource]:

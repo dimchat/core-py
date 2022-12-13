@@ -94,11 +94,7 @@ class Command(Content, ABC):
 
 
 def command_name(content: Dict[str, Any]) -> str:
-    # TODO: modify after all server/clients support 'cmd'
-    cmd = content.get('cmd')
-    if cmd is None:
-        cmd = content.get('command')
-    return cmd
+    return content.get('cmd')
 
 
 class CommandFactory:

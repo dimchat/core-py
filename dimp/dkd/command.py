@@ -45,9 +45,7 @@ class BaseCommand(BaseContent, Command):
             msg_type = ContentType.COMMAND
         super().__init__(content=content, msg_type=msg_type)
         if cmd is not None:
-            # TODO: modify after all server/clients support 'cmd'
-            # self['cmd'] = cmd
-            self['command'] = cmd
+            self['cmd'] = cmd
 
     @property  # Override
     def cmd(self) -> str:
