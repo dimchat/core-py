@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   DIMP : Decentralized Instant Messaging Protocol
+#   Dao-Ke-Dao: Universal Message Module
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -28,47 +28,31 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from dkd import Envelope, InstantMessage, SecureMessage, ReliableMessage
 
-from dkd import ContentType
+from .envelope import MessageEnvelope, MessageEnvelopeFactory
 
-from ..protocol import TextContent
+from .base import BaseMessage
+from .instant import PlainMessage, PlainMessageFactory
+from .secure import EncryptedMessage, EncryptedMessageFactory
+from .reliable import NetworkMessage, NetworkMessageFactory
 
-from .content import BaseContent
+
+def register_message_factories():
+    Envelope.register(factory=MessageEnvelopeFactory())
+    InstantMessage.register(factory=PlainMessageFactory())
+    SecureMessage.register(factory=EncryptedMessageFactory())
+    ReliableMessage.register(factory=NetworkMessageFactory())
 
 
-class BaseTextContent(BaseContent, TextContent):
-    """
-        Text Message Content
-        ~~~~~~~~~~~~~~~~~~~~
+__all__ = [
 
-        data format: {
-            type : 0x01,
-            sn   : 123,
+    'MessageEnvelope', 'MessageEnvelopeFactory',
 
-            text : "..."
-        }
-    """
+    'BaseMessage',
+    'PlainMessage', 'PlainMessageFactory',
+    'EncryptedMessage', 'EncryptedMessageFactory',
+    'NetworkMessage', 'NetworkMessageFactory',
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 text: Optional[str] = None):
-        if content is None:
-            super().__init__(msg_type=ContentType.TEXT)
-        else:
-            super().__init__(content=content)
-        if text is not None:
-            self.text = text
-
-    #
-    #   text
-    #
-    @property  # Override
-    def text(self) -> Optional[str]:
-        return self.get_str(key='text')
-
-    @text.setter  # Override
-    def text(self, value: Optional[str]):
-        if value is None:
-            self.pop('text', None)
-        else:
-            self['text'] = value
+    'register_message_factories',
+]

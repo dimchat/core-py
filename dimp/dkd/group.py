@@ -84,7 +84,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
     #
     @property  # Override
     def member(self) -> Optional[ID]:
-        return ID.parse(identifier=self.get('member'))
+        return ID.parse(identifier=self.get(key='member'))
 
     @member.setter  # Override
     def member(self, value: ID):
@@ -95,17 +95,17 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 
     @property  # Override
     def members(self) -> Optional[List[ID]]:
-        array = self.get('members')
+        array = self.get(key='members')
         if array is not None:
             # convert all items to ID objects
-            return ID.convert(members=array)
+            return ID.convert(array=array)
 
     @members.setter  # Override
     def members(self, value: List[ID]):
         if value is None:
             self.pop('members', None)
         else:
-            self['members'] = ID.revert(members=value)
+            self['members'] = ID.revert(array=value)
 
 
 class InviteGroupCommand(BaseGroupCommand, InviteCommand):

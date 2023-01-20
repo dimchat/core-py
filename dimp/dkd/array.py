@@ -30,9 +30,11 @@
 
 from typing import Optional, Any, Dict, List
 
-from dkd import ContentType, Content, BaseContent
+from dkd import ContentType, Content
 
 from ..protocol import ArrayContent
+
+from .content import BaseContent
 
 
 class ListContent(BaseContent, ArrayContent):
@@ -61,7 +63,7 @@ class ListContent(BaseContent, ArrayContent):
     @property  # Override
     def contents(self) -> Optional[List[Content]]:
         if self.__contents is None:
-            array = self.get('contents')
+            array = self.get(key='contents')
             if array is not None:
                 self.__contents = convert_contents(contents=array)
         return self.__contents

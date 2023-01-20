@@ -30,9 +30,11 @@
 
 from typing import Optional, Union, Any, Dict
 
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 
 from ..protocol import CustomizedContent
+
+from .content import BaseContent
 
 
 class AppCustomizedContent(BaseContent, CustomizedContent):
@@ -69,12 +71,12 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
 
     @property  # Override
     def application(self) -> str:
-        return self.get('app')
+        return self.get_str(key='app')
 
     @property  # Override
     def module(self) -> str:
-        return self.get('mod')
+        return self.get_str(key='mod')
 
     @property  # Override
     def action(self) -> str:
-        return self.get('act')
+        return self.get_str(key='act')

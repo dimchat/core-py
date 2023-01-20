@@ -30,10 +30,11 @@
 
 from typing import Optional, Union, Any, Dict
 
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 
-from ..protocol.command import command_name
 from ..protocol import Command
+
+from .content import BaseContent
 
 
 class BaseCommand(BaseContent, Command):
@@ -49,4 +50,4 @@ class BaseCommand(BaseContent, Command):
 
     @property  # Override
     def cmd(self) -> str:
-        return command_name(content=self.dictionary)
+        return self.get_str(key='cmd')

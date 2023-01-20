@@ -30,10 +30,12 @@
 
 from typing import Optional, Any, Dict, List
 
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 from dkd import ReliableMessage
 
 from ..protocol import ForwardContent
+
+from .content import BaseContent
 
 
 class SecretContent(BaseContent, ForwardContent):
@@ -70,7 +72,7 @@ class SecretContent(BaseContent, ForwardContent):
     @property  # Override
     def forward(self) -> ReliableMessage:
         if self.__forward is None:
-            msg = self.get('forward')
+            msg = self.get(key='forward')
             self.__forward = ReliableMessage.parse(msg=msg)
             # assert msg is not None, 'forward message not found: %s' % self.dictionary
         return self.__forward
@@ -78,7 +80,7 @@ class SecretContent(BaseContent, ForwardContent):
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:
         if self.__secrets is None:
-            messages = self.get('secrets')
+            messages = self.get(key='secrets')
             if messages is None:
                 # get from 'forward'
                 self.__secrets = [self.forward]

@@ -36,7 +36,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Any
 
 from mkm.crypto import base64_encode, base64_decode, utf8_encode, utf8_decode, json_encode, json_decode
 from mkm.crypto import SymmetricKey
@@ -108,7 +108,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
     #
 
     # Override
-    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
         assert not is_broadcast(msg=msg), 'broadcast message has no key'
         return base64_decode(string=key)
 
@@ -137,7 +137,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         return SymmetricKey.parse(key=dictionary)
 
     # Override
-    def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
         if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so return the string data directly
@@ -175,14 +175,14 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
     #
 
     # Override
-    def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
+    def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
         return base64_decode(string=signature)
 
     # Override
     def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage) -> bool:
-        user = self.barrack.user(identifier=sender)
-        assert user is not None, 'failed to verify signature for sender: %s' % sender
-        return user.verify(data=data, signature=signature)
+        contact = self.barrack.user(identifier=sender)
+        assert contact is not None, 'failed to verify signature for sender: %s' % sender
+        return contact.verify(data=data, signature=signature)
 
 
 def is_broadcast(msg: Message) -> bool:

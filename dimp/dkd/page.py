@@ -31,9 +31,11 @@
 from typing import Optional, Union, Any, Dict
 
 from mkm.crypto import base64_encode, base64_decode
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 
 from ..protocol import PageContent
+
+from .content import BaseContent
 
 
 class WebPageContent(BaseContent, PageContent):
@@ -77,7 +79,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def url(self) -> str:
-        return self.get('URL')
+        return self.get_str(key='URL')
 
     @url.setter  # Override
     def url(self, string: str):
@@ -85,7 +87,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def title(self) -> Optional[str]:
-        return self.get('title')
+        return self.get_str(key='title')
 
     @title.setter  # Override
     def title(self, string: Optional[str]):
@@ -96,7 +98,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def desc(self) -> Optional[str]:
-        return self.get('desc')
+        return self.get_str(key='desc')
 
     @desc.setter  # Override
     def desc(self, string: Optional[str]):
@@ -108,7 +110,7 @@ class WebPageContent(BaseContent, PageContent):
     @property  # Override
     def icon(self) -> Optional[bytes]:
         if self.__icon is None:
-            base64 = self.get('icon')
+            base64 = self.get_str(key='icon')
             if base64 is not None:
                 self.__icon = base64_decode(string=base64)
         return self.__icon

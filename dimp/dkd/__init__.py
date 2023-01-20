@@ -30,6 +30,7 @@
 
 from dkd import *
 
+from .content import BaseContent
 from .text import BaseTextContent
 from .forward import SecretContent
 from .array import ListContent
@@ -47,10 +48,6 @@ from .group import BaseGroupCommand
 from .group import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
 from .group import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
 
-from .factories import ContentFactoryBuilder, CommandFactoryBuilder
-from .factories import GeneralCommandFactory, HistoryCommandFactory, GroupCommandFactory
-from .factories import register_content_factories, register_command_factories
-
 
 __all__ = [
 
@@ -64,18 +61,9 @@ __all__ = [
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
-    #   Core
-    #
-    'BaseContent',
-    'MessageEnvelope', 'MessageEnvelopeFactory',
-    'BaseMessage',
-    'PlainMessage', 'PlainMessageFactory',
-    'EncryptedMessage', 'EncryptedMessageFactory',
-    'NetworkMessage', 'NetworkMessageFactory',
-
-    #
     #   Contents
     #
+    'BaseContent',
     'BaseTextContent', 'SecretContent', 'ListContent',
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
@@ -87,11 +75,4 @@ __all__ = [
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
-
-    'ContentFactoryBuilder', 'CommandFactoryBuilder',
-    'GeneralCommandFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
-
-    'register_message_factories',
-    'register_content_factories',
-    'register_command_factories',
 ]

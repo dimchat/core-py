@@ -31,9 +31,11 @@
 from typing import Optional, Union, Any, Dict
 
 from mkm import ID
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 
 from ..protocol import MoneyContent, TransferContent
+
+from .content import BaseContent
 
 
 class BaseMoneyContent(BaseContent, MoneyContent):
@@ -64,11 +66,11 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
     @property  # Override
     def currency(self) -> str:
-        return self.get('currency')
+        return self.get_str(key='currency')
 
     @property  # Override
     def amount(self) -> float:
-        value = self.get('amount')
+        value = self.get_float(key='amount')
         return 0 if value is None else float(value)
 
     @amount.setter  # Override
@@ -98,7 +100,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
     @property  # Override
     def remitter(self) -> Optional[ID]:
-        sender = self.get('remitter')
+        sender = self.get(key='remitter')
         return ID.parse(identifier=sender)
 
     @remitter.setter  # Override
@@ -110,7 +112,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
     @property  # Override
     def remittee(self) -> Optional[ID]:
-        receiver = self.get('remittee')
+        receiver = self.get(key='remittee')
         return ID.parse(identifier=receiver)
 
     @remittee.setter  # Override

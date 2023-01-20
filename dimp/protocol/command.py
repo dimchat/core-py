@@ -31,8 +31,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
-from mkm.types import Wrapper
-from dkd.protocol import content_type
 from dkd import Content
 
 
@@ -67,34 +65,24 @@ class Command(Content, ABC):
     #
 
     @classmethod
-    def parse(cls, content: Any):  # -> Command:
-        if content is None:
-            return None
-        elif isinstance(content, Command):
-            return content
-        info = Wrapper.get_dictionary(content)
-        # assert info is not None, 'command content error: %s' % content
-        cmd = command_name(content=info)
-        factory = cls.factory(cmd=cmd)
-        if factory is None:
-            # unknown command name, get base command factory
-            msg_type = content_type(content=info)
-            factory = Content.factory(msg_type=msg_type)
-            assert isinstance(factory, CommandFactory), 'command factory error: %d, %s' % (msg_type, factory)
-        # assert isinstance(factory, CommandFactory), 'command factory error: %s' % factory
-        return factory.parse_command(content=info)
+    def parse(cls, content: Any):  # -> Optional[Command]:
+        gf = general_factory()
+        return gf.parse_command(content=content)
 
     @classmethod
     def factory(cls, cmd: str):  # -> Optional[CommandFactory]:
-        return g_command_factories.get(cmd)
+        gf = general_factory()
+        return gf.get_command_factory(cmd=cmd)
 
     @classmethod
     def register(cls, cmd: str, factory):
-        g_command_factories[cmd] = factory
+        gf = general_factory()
+        gf.set_command_factory(cmd=cmd, factory=factory)
 
 
-def command_name(content: Dict[str, Any]) -> str:
-    return content.get('cmd')
+def general_factory():
+    from ..dkd.factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 class CommandFactory:
@@ -108,6 +96,3 @@ class CommandFactory:
         :return: Command
         """
         raise NotImplemented
-
-
-g_command_factories: Dict[str, CommandFactory] = {}

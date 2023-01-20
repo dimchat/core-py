@@ -46,7 +46,7 @@ from .file import FileContent, ImageContent, AudioContent, VideoContent
 from .page import PageContent
 from .customized import CustomizedContent
 
-from .command import Command, CommandFactory, command_name
+from .command import Command, CommandFactory
 from .meta import MetaCommand
 from .document import DocumentCommand
 
@@ -60,8 +60,7 @@ __all__ = [
     #
     #   MingKeMing
     #
-    'EntityType',
-    'MetaType',
+    'EntityType', 'MetaType',
 
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
@@ -70,14 +69,12 @@ __all__ = [
     'Visa', 'Bulletin',
 
     'entity_is_user', 'entity_is_group', 'entity_is_broadcast',
-    'meta_has_seed', 'meta_type',
-    'document_type',
+    'meta_has_seed',
 
     #
     #   DaoKeDao
     #
-    'ContentType', 'content_type',
-    'Content', 'ContentFactory',
+    'ContentType', 'Content', 'ContentFactory',
     'Envelope', 'EnvelopeFactory',
 
     'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
@@ -85,14 +82,14 @@ __all__ = [
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
-    #   DIMP
+    #   DaoKeDao protocol extends
     #
     'TextContent', 'ForwardContent', 'ArrayContent',
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'PageContent', 'CustomizedContent',
 
-    'Command', 'CommandFactory', 'command_name',
+    'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',

@@ -84,7 +84,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
     @property  # Override
     def document(self) -> Optional[Document]:
         if self.__doc is None:
-            info = self.get('document')
+            info = self.get(key='document')
             self.__doc = Document.parse(document=info)
         return self.__doc
 
@@ -95,4 +95,4 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
 
         :return: part of signature in current document (base64)
         """
-        return self.get('signature')
+        return self.get_str(key='signature')

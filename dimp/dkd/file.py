@@ -33,9 +33,11 @@ from typing import Optional, Union, Any, Dict
 from mkm.crypto import base64_encode, base64_decode
 from mkm.crypto import SymmetricKey
 
-from dkd import ContentType, BaseContent
+from dkd import ContentType
 
 from ..protocol import FileContent, ImageContent, AudioContent, VideoContent
+
+from .content import BaseContent
 
 
 class BaseFileContent(BaseContent, FileContent):
@@ -77,7 +79,7 @@ class BaseFileContent(BaseContent, FileContent):
 
     @property  # Override
     def url(self) -> Optional[str]:
-        return self.get('URL')
+        return self.get_str(key='URL')
 
     @url.setter  # Override
     def url(self, string: str):
@@ -89,7 +91,7 @@ class BaseFileContent(BaseContent, FileContent):
     @property  # Override
     def data(self) -> Optional[bytes]:
         if self.__attachment is None:
-            base64 = self.get('data')
+            base64 = self.get_str(key='data')
             if base64 is not None:
                 self.__attachment = base64_decode(base64)
         return self.__attachment
@@ -104,7 +106,7 @@ class BaseFileContent(BaseContent, FileContent):
 
     @property  # Override
     def filename(self) -> Optional[str]:
-        return self.get('filename')
+        return self.get_str(key='filename')
 
     @filename.setter  # Override
     def filename(self, string: str):
@@ -116,7 +118,7 @@ class BaseFileContent(BaseContent, FileContent):
     @property  # Override
     def password(self) -> Optional[SymmetricKey]:
         if self.__password is None:
-            key = self.get('password')
+            key = self.get(key='password')
             self.__password = SymmetricKey.parse(key=key)
         return self.__password
 
@@ -155,7 +157,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
     @property  # Override
     def thumbnail(self) -> Optional[bytes]:
         if self.__thumbnail is None:
-            base64 = self.get('thumbnail')
+            base64 = self.get_str(key='thumbnail')
             if base64 is not None:
                 self.__thumbnail = base64_decode(base64)
         return self.__thumbnail
@@ -191,8 +193,8 @@ class AudioFileContent(BaseFileContent, AudioContent):
         super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
 
     @property  # Override
-    def text(self) -> Optional[bytes]:
-        return self.get('text')
+    def text(self) -> Optional[str]:
+        return self.get_str(key='text')
 
     @text.setter  # Override
     def text(self, string: str):
@@ -228,7 +230,7 @@ class VideoFileContent(BaseFileContent, VideoContent):
     @property  # Override
     def snapshot(self) -> Optional[bytes]:
         if self.__snapshot is None:
-            base64 = self.get('snapshot')
+            base64 = self.get_str(key='snapshot')
             if base64 is not None:
                 self.__snapshot = base64_decode(base64)
         return self.__snapshot

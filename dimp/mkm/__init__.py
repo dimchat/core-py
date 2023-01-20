@@ -30,6 +30,12 @@
 
 from mkm import *
 
+from .meta import BaseMeta
+from .profile import BaseDocument, BaseVisa, BaseBulletin
+from .document import BaseDocumentFactory
+from .address import BaseAddressFactory
+from .identifier import IdentifierFactory
+
 from .delegate import EntityDelegate
 from .entity import Entity, EntityDataSource
 from .user import User, UserDataSource
@@ -55,11 +61,14 @@ __all__ = [
     #
     #   Core
     #
-    'BaseAddressFactory', 'BroadcastAddress',
-    'IdentifierFactory', 'Identifier',
+    'BroadcastAddress',
+    'Identifier',
     'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
+
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
+    'BaseDocumentFactory',
+    'BaseAddressFactory', 'IdentifierFactory',
 
     #
     #   Entity

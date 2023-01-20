@@ -56,11 +56,21 @@ __all__ = [
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
 
-    'BaseAddressFactory',  # 'BroadcastAddress',
-    # 'IdentifierFactory', 'Identifier',
+    # 'BroadcastAddress', 'Identifier',
     'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
+
+    #
+    #   MingKeMing base extends
+    #
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
+    'BaseDocumentFactory',
+    'BaseAddressFactory', 'IdentifierFactory',
+
+    'EntityDelegate',
+    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
+    'Entity', 'User', 'Group',
+    'BaseEntity', 'BaseUser', 'BaseGroup',
 
     #
     #   DaoKeDao
@@ -71,22 +81,15 @@ __all__ = [
     # 'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
-    'BaseContent',
-    # 'MessageEnvelope', 'MessageEnvelopeFactory',
-    # 'BaseMessage',
-    # 'PlainMessage', 'PlainMessageFactory',
-    # 'EncryptedMessage', 'EncryptedMessageFactory',
-    # 'NetworkMessage', 'NetworkMessageFactory',
-
     #
-    #   Protocol
+    #   DaoKeDao protocol extends
     #
     'TextContent', 'ForwardContent', 'ArrayContent',
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'PageContent', 'CustomizedContent',
 
-    'Command', 'CommandFactory',  # 'command_name',
+    'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
 
     'HistoryCommand', 'GroupCommand',
@@ -94,13 +97,9 @@ __all__ = [
     'QuitCommand', 'QueryCommand', 'ResetCommand',
 
     #
-    #   Core
+    #   DaoKeDao base extends
     #
-    'EntityDelegate',
-    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
-    'Entity', 'User', 'Group',
-    'BaseEntity', 'BaseUser', 'BaseGroup',
-
+    'BaseContent',
     'BaseTextContent', 'SecretContent', 'ListContent',
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
@@ -111,9 +110,15 @@ __all__ = [
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
 
-    # 'ContentFactoryBuilder', 'CommandFactoryBuilder',
-    # 'GeneralCommandFactory', 'HistoryCommandFactory', 'GroupCommandFactory',
-    # 'register_message_factories', 'register_content_factories', 'register_command_factories',
+    # 'MessageEnvelope', 'MessageEnvelopeFactory',
+    # 'BaseMessage',
+    # 'PlainMessage', 'PlainMessageFactory',
+    # 'EncryptedMessage', 'EncryptedMessageFactory',
+    # 'NetworkMessage', 'NetworkMessageFactory',
+    # 'register_message_factories',
 
+    #
+    #   Core
+    #
     'Barrack', 'Transceiver', 'Packer', 'Processor',
 ]

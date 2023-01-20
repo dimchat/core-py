@@ -80,7 +80,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
     #
     @property  # Override
     def identifier(self) -> ID:
-        return ID.parse(identifier=self.get('ID'))
+        return ID.parse(identifier=self.get(key='ID'))
 
     #
     #   Meta
@@ -88,6 +88,6 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
     @property  # Override
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            info = self.get('meta')
+            info = self.get(key='meta')
             self.__meta = Meta.parse(meta=info)
         return self.__meta
