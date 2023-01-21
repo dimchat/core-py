@@ -31,7 +31,6 @@
 from abc import ABC
 from typing import Optional, Dict
 
-from mkm.core import ANYWHERE, EVERYWHERE
 from mkm import Address, AddressFactory
 
 
@@ -49,10 +48,7 @@ class BaseAddressFactory(AddressFactory, ABC):
     def __init__(self):
         super().__init__()
         # cache broadcast addresses
-        self.__addresses: Dict[str, Address] = {
-            str(ANYWHERE): ANYWHERE,
-            str(EVERYWHERE): EVERYWHERE,
-        }
+        self.__addresses: Dict[str, Address] = {}
 
     # Override
     def generate_address(self, meta, network: int) -> Optional[Address]:

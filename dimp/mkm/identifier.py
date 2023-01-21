@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Tuple
+from typing import Optional
 
 from mkm import ID, IDFactory, Identifier
 from mkm import Address
@@ -72,9 +72,8 @@ class IdentifierFactory(IDFactory):
     def parse_id(self, identifier: str) -> Optional[ID]:
         cid = self.__ids.get(identifier)
         if cid is None:
-            name, address, terminal = parse(string=identifier)
-            if address is not None:
-                cid = self._new_id(identifier=identifier, name=name, address=address, terminal=terminal)
+            cid = self._parse(identifier=identifier)
+            if cid is not None:
                 self.__ids[identifier] = cid
         return cid
 
@@ -83,29 +82,30 @@ class IdentifierFactory(IDFactory):
         # override for customized ID
         return Identifier(identifier=identifier, name=name, address=address, terminal=terminal)
 
-
-def parse(string: str) -> Tuple[Optional[str], Optional[Address], Optional[str]]:
-    # split ID string
-    pair = string.split('/', 1)
-    # terminal
-    if len(pair) == 1:
-        # no terminal
-        terminal = None
-    else:
-        # got terminal
-        terminal = pair[1]
-    # name @ address
-    assert len(pair[0]) > 0, 'ID error: %s' % string
-    pair = pair[0].split('@', 1)
-    if len(pair) == 1:
-        # got address without name
-        name = None
-        address = Address.parse(address=pair[0])
-    else:
-        # got name & address
-        name = pair[0]
-        address = Address.parse(address=pair[1])
-    return name, address, terminal
+    # noinspection PyMethodMayBeStatic
+    def _parse(self, identifier: str) -> Optional[ID]:
+        # split ID string
+        pair = identifier.split('/', 1)
+        # terminal
+        if len(pair) == 1:
+            # no terminal
+            terminal = None
+        else:
+            # got terminal
+            terminal = pair[1]
+        # name @ address
+        assert len(pair[0]) > 0, 'ID error: %s' % identifier
+        pair = pair[0].split('@', 1)
+        if len(pair) == 1:
+            # got address without name
+            name = None
+            address = Address.parse(address=pair[0])
+        else:
+            # got name & address
+            name = pair[0]
+            address = Address.parse(address=pair[1])
+        if address is not None:
+            return self._new_id(identifier=identifier, name=name, address=address, terminal=terminal)
 
 
 def concat(name: Optional[str], address: Address, terminal: Optional[str] = None) -> str:

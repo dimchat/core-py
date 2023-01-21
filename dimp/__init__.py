@@ -28,6 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.crypto import *
 from mkm import *
 from dkd import *
 
@@ -45,6 +46,31 @@ name = "DIMP"
 __author__ = 'Albert Moky'
 
 __all__ = [
+
+    #
+    #   Crypto
+    #
+
+    # 'DataCoder', 'ObjectCoder', 'StringCoder',
+    # 'Base64', 'Base58',
+    # 'Hex',
+    # 'JSON', 'UTF8',
+
+    'base64_encode', 'base64_decode', 'base58_encode', 'base58_decode',
+    'hex_encode', 'hex_decode',
+    'json_encode', 'json_decode', 'utf8_encode', 'utf8_decode',
+
+    # 'DataDigester',
+    # 'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
+
+    'md5', 'sha1', 'sha256', 'keccak256', 'ripemd160',
+
+    # 'CryptographyKey',
+    'SymmetricKey', 'EncryptKey', 'DecryptKey',
+    # 'SymmetricKeyFactory',
+    'AsymmetricKey', 'SignKey', 'VerifyKey',
+    'PublicKey',   # 'PublicKeyFactory',
+    'PrivateKey',  # 'PrivateKeyFactory',
 
     #
     #   MingKeMing
@@ -115,7 +141,6 @@ __all__ = [
     # 'PlainMessage', 'PlainMessageFactory',
     # 'EncryptedMessage', 'EncryptedMessageFactory',
     # 'NetworkMessage', 'NetworkMessageFactory',
-    # 'register_message_factories',
 
     #
     #   Core

@@ -28,21 +28,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import Envelope, InstantMessage, SecureMessage, ReliableMessage
-
 from .envelope import MessageEnvelope, MessageEnvelopeFactory
 
 from .base import BaseMessage
 from .instant import PlainMessage, PlainMessageFactory
 from .secure import EncryptedMessage, EncryptedMessageFactory
 from .reliable import NetworkMessage, NetworkMessageFactory
-
-
-def register_message_factories():
-    Envelope.register(factory=MessageEnvelopeFactory())
-    InstantMessage.register(factory=PlainMessageFactory())
-    SecureMessage.register(factory=EncryptedMessageFactory())
-    ReliableMessage.register(factory=NetworkMessageFactory())
 
 
 __all__ = [
@@ -53,6 +44,4 @@ __all__ = [
     'PlainMessage', 'PlainMessageFactory',
     'EncryptedMessage', 'EncryptedMessageFactory',
     'NetworkMessage', 'NetworkMessageFactory',
-
-    'register_message_factories',
 ]

@@ -31,7 +31,7 @@
 from typing import Dict, Any, Optional, Union
 
 from mkm import ID, Document, DocumentFactory
-from mkm.core.factory import FactoryManager
+from mkm.factory import FactoryManager
 
 from .profile import BaseDocument, BaseVisa, BaseBulletin
 
@@ -58,7 +58,7 @@ class BaseDocumentFactory(DocumentFactory):
         if identifier is not None:
             # check document type
             gf = FactoryManager.general_factory
-            doc_type = gf.get_document_type(identifier=document)
+            doc_type = gf.get_document_type(document=document)
             if doc_type is None:
                 doc_type = get_type(doc_type='*', identifier=identifier)
             # create with document type
