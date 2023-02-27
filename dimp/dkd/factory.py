@@ -51,7 +51,7 @@ class GeneralFactory(SuperFactory):
 
     # noinspection PyMethodMayBeStatic
     def get_cmd(self, content: Dict[str, Any]) -> str:
-        return content.get('cmd')
+        return content.get('command')
 
     def parse_command(self, content: Any) -> Optional[Command]:
         if content is None:

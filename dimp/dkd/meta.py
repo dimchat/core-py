@@ -54,7 +54,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
             type : 0x88,
             sn   : 123,
 
-            cmd     : "meta", // command name
+            command : "meta", // command name
             ID      : "{ID}", // contact's ID
             meta    : {...}   // When meta is empty, means query meta for ID
         }

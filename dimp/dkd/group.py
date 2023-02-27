@@ -56,7 +56,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
             type : 0x89,
             sn   : 123,
 
-            cmd     : "invite",         // "expel", "quit"
+            command : "invite",         // "expel", "quit"
             time    : 0,                // timestamp
             group   : "{GROUP_ID}",     // group ID
             member  : "{MEMBER_ID}",    // member ID

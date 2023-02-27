@@ -55,7 +55,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
             type : 0x88,
             sn   : 123,
 
-            cmd       : "document", // command name
+            command   : "document", // command name
             ID        : "{ID}",     // entity ID
             meta      : {...},      // only for handshaking with new friend
             document  : {...},      // when document is empty, means query for ID

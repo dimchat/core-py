@@ -43,7 +43,7 @@ class Command(Content, ABC):
             type : 0x88,
             sn   : 123,
 
-            cmd     : "...", // command name
+            command : "...", // command name
             extra   : info   // command parameters
         }
     """
@@ -57,7 +57,6 @@ class Command(Content, ABC):
     @abstractmethod
     def cmd(self) -> str:
         """ get command name """
-        # return command_name(content=self.dictionary)
         raise NotImplemented
 
     #

@@ -42,7 +42,7 @@ class HistoryCommand(Command, ABC):
             type : 0x89,
             sn   : 123,
 
-            cmd     : "...", // command name
+            command : "...", // command name
             time    : 0,     // command timestamp
             extra   : info   // command parameters
         }
