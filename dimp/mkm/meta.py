@@ -34,10 +34,20 @@ from typing import Optional, Union, Any, Dict
 from mkm.crypto import base64_encode, base64_decode
 from mkm.crypto import VerifyKey, PublicKey
 from mkm.types import Dictionary
-from mkm.protocol import meta_has_seed
+from mkm.factory import AccountFactoryManager
 from mkm import Meta, MetaType
 
 
+"""
+    Base Meta
+    ~~~~~~~~~~~~~~~~~~~~
+
+    abstractmethod:
+        - generate_address(network)
+"""
+
+
+# noinspection PyAbstractClass
 class BaseMeta(Dictionary, Meta, ABC):
 
     def __init__(self, meta: Optional[Dict[str, Any]] = None,
@@ -80,7 +90,11 @@ class BaseMeta(Dictionary, Meta, ABC):
     @property  # Override
     def type(self) -> int:
         if self.__type == 0:
-            self.__type = self.get_int(key='type')
+            gf = AccountFactoryManager.general_factory
+            version = gf.get_meta_type(meta=self.dictionary)
+            if version is None:
+                version = 0
+            self.__type = version
         return self.__type
 
     @property  # Override
@@ -92,13 +106,13 @@ class BaseMeta(Dictionary, Meta, ABC):
 
     @property  # Override
     def seed(self) -> Optional[str]:
-        if self.__seed is None and meta_has_seed(version=self.type):
+        if self.__seed is None and MetaType.has_seed(version=self.type):
             self.__seed = self.get_str(key='seed')
         return self.__seed
 
     @property  # Override
     def fingerprint(self) -> Optional[bytes]:
-        if self.__fingerprint is None and meta_has_seed(version=self.type):
+        if self.__fingerprint is None and MetaType.has_seed(version=self.type):
             fingerprint = self.get_str(key='fingerprint')
             if fingerprint is not None:
                 self.__fingerprint = base64_decode(string=fingerprint)

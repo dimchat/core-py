@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao: Universal Message Module
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -32,10 +32,14 @@ import time as time_lib
 from typing import Optional, Union, Any, Dict
 
 from mkm.types import Dictionary
+from dkd.factory import MessageFactoryManager
+from dkd import ContentType, Content
+from dkd import InstantMessage
 from mkm import ID
 
-from dkd import Content, ContentType
-from dkd import InstantMessage
+from ..protocol import Command
+from .factory import CommandFactoryManager
+
 
 """
     Message Content
@@ -75,7 +79,11 @@ class BaseContent(Dictionary, Content):
     def type(self) -> int:
         """ message content type: text, image, ... """
         if self.__type == 0:
-            self.__type = self.get_int(key='type')
+            gf = MessageFactoryManager.general_factory
+            msg_type = gf.get_content_type(content=self.dictionary)
+            if msg_type is None:
+                msg_type = 0
+            self.__type = msg_type
         return self.__type
 
     @property  # Override
@@ -88,7 +96,7 @@ class BaseContent(Dictionary, Content):
     @property  # Override
     def time(self) -> Optional[float]:
         if self.__time == 0:
-            self.__time = self.get_float(key='time')
+            self.__time = self.get_time(key='time')
         return self.__time
 
     @property  # Override
@@ -105,3 +113,26 @@ class BaseContent(Dictionary, Content):
         else:
             self['group'] = str(identifier)
         self.__group = identifier
+
+
+"""
+    Base Command
+"""
+
+
+class BaseCommand(BaseContent, Command):
+
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
+                 cmd: Optional[str] = None):
+        if content is None and msg_type == 0:
+            msg_type = ContentType.COMMAND
+        super().__init__(content=content, msg_type=msg_type)
+        if cmd is not None:
+            self['command'] = cmd
+
+    @property  # Override
+    def cmd(self) -> str:
+        gf = CommandFactoryManager.general_factory
+        name = gf.get_cmd(content=self.dictionary)
+        return '' if name is None else name

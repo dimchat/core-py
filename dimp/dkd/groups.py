@@ -37,14 +37,40 @@
     3. member quit
 """
 
-from typing import Optional, Any, Dict, List
+from typing import Optional, Union, Any, Dict, List
 
+from dkd import ContentType
 from mkm import ID
 
-from ..protocol import GroupCommand
+from ..protocol import HistoryCommand, GroupCommand
 from ..protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 
-from .history import BaseHistoryCommand
+from .base import BaseCommand
+
+
+class BaseHistoryCommand(BaseCommand, HistoryCommand):
+    """
+        History Command
+        ~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x89,
+            sn   : 123,
+
+            command : "...", // command name
+            time    : 0,     // command timestamp
+            extra   : info   // command parameters
+        }
+    """
+
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0,
+                 cmd: Optional[str] = None):
+        if content is None:
+            if msg_type == 0:
+                msg_type = ContentType.HISTORY
+            assert cmd is not None, 'command name should not empty'
+        super().__init__(content=content, msg_type=msg_type, cmd=cmd)
 
 
 class BaseGroupCommand(BaseHistoryCommand, GroupCommand):

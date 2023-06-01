@@ -31,8 +31,8 @@
 from mkm import *
 
 from .meta import BaseMeta
-from .profile import BaseDocument, BaseVisa, BaseBulletin
-from .document import BaseDocumentFactory
+from .document import BaseDocument
+from .docs import BaseVisa, BaseBulletin, BaseDocumentFactory
 from .address import BaseAddressFactory
 from .identifier import IdentifierFactory
 

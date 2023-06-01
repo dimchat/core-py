@@ -43,6 +43,7 @@ from mkm import Address, AddressFactory
 """
 
 
+# noinspection PyAbstractClass
 class BaseAddressFactory(AddressFactory, ABC):
 
     def __init__(self):

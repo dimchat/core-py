@@ -37,7 +37,7 @@ from dkd import ContentType
 
 from ..protocol import FileContent, ImageContent, AudioContent, VideoContent
 
-from .content import BaseContent
+from .contents import BaseContent
 
 
 class BaseFileContent(BaseContent, FileContent):

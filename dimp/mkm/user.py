@@ -218,7 +218,7 @@ class User(Entity, ABC):
     #
 
     @abstractmethod
-    def sign_visa(self, visa: Visa) -> Visa:
+    def sign_visa(self, visa: Visa) -> Optional[Visa]:
         # NOTICE: only sign visa with the private key paired with your meta.key
         raise NotImplemented
 

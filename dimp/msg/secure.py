@@ -108,6 +108,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         if key is not None:
             key = delegate.decrypt_key(data=key, sender=sender, receiver=receiver, msg=self)
             if key is None:
+                # TODO: check whether my visa key is changed, push new visa to this contact
                 raise AssertionError('failed to decrypt key in msg: %s' % self)
         # 1.3. deserialize key
         #      if key is empty, means it should be reused, get it from key cache

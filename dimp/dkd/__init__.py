@@ -30,23 +30,15 @@
 
 from dkd import *
 
-from .content import BaseContent
-from .text import BaseTextContent
-from .forward import SecretContent
-from .array import ListContent
-from .money import BaseMoneyContent, TransferMoneyContent
-from .file import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
-from .page import WebPageContent
-from .customized import AppCustomizedContent
+from .base import BaseContent, BaseCommand
+from .contents import BaseTextContent, ListContent, SecretContent, AppCustomizedContent
+from .contents import WebPageContent, BaseMoneyContent, TransferMoneyContent
+from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+from .commands import BaseMetaCommand, BaseDocumentCommand
 
-from .command import BaseCommand
-from .meta import BaseMetaCommand
-from .document import BaseDocumentCommand
-
-from .history import BaseHistoryCommand
-from .group import BaseGroupCommand
-from .group import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
-from .group import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
+from .groups import BaseHistoryCommand, BaseGroupCommand
+from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
+from .groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
 
 
 __all__ = [

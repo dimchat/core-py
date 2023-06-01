@@ -42,7 +42,30 @@ from typing import Optional, List
 
 from mkm import ID
 
-from .history import HistoryCommand
+from .commands import Command
+
+
+# noinspection PyAbstractClass
+class HistoryCommand(Command, ABC):
+    """
+        History Command
+        ~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x89,
+            sn   : 123,
+
+            command : "...", // command name
+            time    : 0,     // command timestamp
+            extra   : info   // command parameters
+        }
+    """
+
+    # -------- command names begin --------
+    # account
+    REGISTER = "register"
+    SUICIDE = "suicide"
+    # -------- command names end --------
 
 
 class GroupCommand(HistoryCommand, ABC):
@@ -141,25 +164,31 @@ class GroupCommand(HistoryCommand, ABC):
         return ResetGroupCommand(group=group, members=members)
 
 
+# noinspection PyAbstractClass
 class InviteCommand(GroupCommand, ABC):
     pass
 
 
+# noinspection PyAbstractClass
 class ExpelCommand(GroupCommand, ABC):
     pass
 
 
+# noinspection PyAbstractClass
 class JoinCommand(GroupCommand, ABC):
     pass
 
 
+# noinspection PyAbstractClass
 class QuitCommand(GroupCommand, ABC):
     pass
 
 
+# noinspection PyAbstractClass
 class QueryCommand(GroupCommand, ABC):
     pass
 
 
+# noinspection PyAbstractClass
 class ResetCommand(GroupCommand, ABC):
     pass

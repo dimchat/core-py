@@ -112,6 +112,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
             msg.pop('signature')  # remove 'signature'
             return SecureMessage.parse(msg=msg)
         # else:
+        #     # TODO: check whether visa is expired, query new document for this contact
         #     raise ValueError('Signature error: %s' % self)
 
 

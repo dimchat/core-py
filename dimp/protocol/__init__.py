@@ -38,22 +38,16 @@
 from mkm.protocol import *
 from dkd.protocol import *
 
-from .text import TextContent
-from .forward import ForwardContent
-from .array import ArrayContent
-from .money import MoneyContent, TransferContent
-from .file import FileContent, ImageContent, AudioContent, VideoContent
-from .page import PageContent
-from .customized import CustomizedContent
+from .contents import TextContent, ArrayContent, ForwardContent, CustomizedContent
+from .contents import PageContent, MoneyContent, TransferContent
+from .files import FileContent, ImageContent, AudioContent, VideoContent
 
-from .command import Command, CommandFactory
-from .meta import MetaCommand
-from .document import DocumentCommand
+from .commands import Command, CommandFactory
+from .commands import MetaCommand, DocumentCommand
 
-from .history import HistoryCommand
-from .group import GroupCommand
-from .group import InviteCommand, ExpelCommand, JoinCommand
-from .group import QuitCommand, QueryCommand, ResetCommand
+from .groups import HistoryCommand, GroupCommand
+from .groups import InviteCommand, ExpelCommand, JoinCommand
+from .groups import QuitCommand, QueryCommand, ResetCommand
 
 __all__ = [
 
@@ -67,9 +61,6 @@ __all__ = [
     'Meta', 'MetaFactory',
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
-
-    'entity_is_user', 'entity_is_group', 'entity_is_broadcast',
-    'meta_has_seed',
 
     #
     #   DaoKeDao

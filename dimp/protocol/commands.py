@@ -31,6 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm import ID, Meta, Document
 from dkd import Content
 
 
@@ -80,8 +81,8 @@ class Command(Content, ABC):
 
 
 def general_factory():
-    from ..dkd.factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..dkd.factory import CommandFactoryManager
+    return CommandFactoryManager.general_factory
 
 
 class CommandFactory:
@@ -95,3 +96,100 @@ class CommandFactory:
         :return: Command
         """
         raise NotImplemented
+
+
+class MetaCommand(Command, ABC):
+    """
+        Meta Command
+        ~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "meta", // command name
+            ID      : "{ID}", // contact's ID
+            meta    : {...}   // When meta is empty, means query meta for ID
+        }
+    """
+
+    #
+    #   ID
+    #
+    @property
+    @abstractmethod
+    def identifier(self) -> ID:
+        raise NotImplemented
+
+    #
+    #   Meta
+    #
+    @property
+    @abstractmethod
+    def meta(self) -> Optional[Meta]:
+        raise NotImplemented
+
+    #
+    #   Factory methods
+    #
+
+    @classmethod
+    def query(cls, identifier: ID):
+        from ..dkd import BaseMetaCommand
+        return BaseMetaCommand(identifier=identifier)
+
+    @classmethod
+    def response(cls, identifier: ID, meta: Meta):
+        from ..dkd import BaseMetaCommand
+        return BaseMetaCommand(identifier=identifier, meta=meta)
+
+
+class DocumentCommand(MetaCommand, ABC):
+    """
+        Document Command
+        ~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command   : "document", // command name
+            ID        : "{ID}",     // entity ID
+            meta      : {...},      // only for handshaking with new friend
+            document  : {...},      // when document is empty, means query for ID
+            signature : "..."       // old document's signature for querying
+        }
+
+    """
+
+    #
+    #   document
+    #
+    @property
+    @abstractmethod
+    def document(self) -> Optional[Document]:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def signature(self) -> Optional[str]:
+        """
+        signature for checking new document
+
+        :return: part of signature in current document (base64)
+        """
+        raise NotImplemented
+
+    #
+    #   Factory methods
+    #
+
+    @classmethod
+    def query(cls, identifier: ID, signature: Optional[str] = None):
+        from ..dkd import BaseDocumentCommand
+        return BaseDocumentCommand(identifier=identifier, signature=signature)
+
+    @classmethod
+    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: Optional[ID] = None):
+        from ..dkd import BaseDocumentCommand
+        return BaseDocumentCommand(identifier=identifier, meta=meta, document=document)

@@ -62,7 +62,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def sign_message(self, msg: SecureMessage) -> ReliableMessage:
+    def sign_message(self, msg: SecureMessage) -> Optional[ReliableMessage]:
         """
         Sign content data
 
@@ -72,7 +72,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def serialize_message(self, msg: ReliableMessage) -> bytes:
+    def serialize_message(self, msg: ReliableMessage) -> Optional[bytes]:
         """
         Serialize network message
 

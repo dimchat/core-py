@@ -29,21 +29,68 @@
 # ==============================================================================
 
 """
-    Document Command Protocol
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    Meta Command Protocol
+    ~~~~~~~~~~~~~~~~~~~~~
 
-    1. contains 'ID' only, means query document for ID
-    2. contains 'document' and 'signature' (must match), means reply
+    1. contains 'ID' only, means query meta for ID
+    2. contains 'meta' (must match), means reply
 """
 
 from typing import Optional, Any, Dict
 
 from mkm import ID, Meta, Document
 
-from ..protocol import DocumentCommand
+from ..protocol import MetaCommand, DocumentCommand
 
-from .command import Command
-from .meta import BaseMetaCommand
+from .base import Command, BaseCommand
+
+
+class BaseMetaCommand(BaseCommand, MetaCommand):
+    """
+        Meta Command
+        ~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "meta", // command name
+            ID      : "{ID}", // contact's ID
+            meta    : {...}   // When meta is empty, means query meta for ID
+        }
+    """
+
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 cmd: Optional[str] = None,
+                 identifier: Optional[ID] = None,
+                 meta: Optional[Meta] = None):
+        if content is None:
+            if cmd is None:
+                cmd = Command.META
+            assert identifier is not None, 'ID should not be empty'
+        super().__init__(content=content, cmd=cmd)
+        self.__meta = meta
+        if meta is not None:
+            self['meta'] = meta.dictionary
+        if identifier is not None:
+            self['ID'] = str(identifier)
+
+    #
+    #   ID
+    #
+    @property  # Override
+    def identifier(self) -> ID:
+        return ID.parse(identifier=self.get(key='ID'))
+
+    #
+    #   Meta
+    #
+    @property  # Override
+    def meta(self) -> Optional[Meta]:
+        if self.__meta is None:
+            info = self.get(key='meta')
+            self.__meta = Meta.parse(meta=info)
+        return self.__meta
 
 
 class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):

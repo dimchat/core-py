@@ -43,8 +43,8 @@ class BaseUser(BaseEntity, User):
         return super().data_source
 
     # @data_source.setter  # Override
-    # def data_source(self, delegate: UserDataSource):
-    #     super(BaseUser, BaseUser).data_source.__set__(self, delegate)
+    # def data_source(self, barrack: UserDataSource):
+    #     super(BaseUser, BaseUser).data_source.__set__(self, barrack)
 
     @property  # Override
     def visa(self) -> Optional[Visa]:
@@ -54,30 +54,32 @@ class BaseUser(BaseEntity, User):
 
     @property  # Override
     def contacts(self) -> List[ID]:
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        return delegate.contacts(identifier=self.identifier)
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        return barrack.contacts(identifier=self.identifier)
 
     # Override
     def verify(self, data: bytes, signature: bytes) -> bool:
         # NOTICE: I suggest using the private key paired with meta.key to sign message,
         #         so here should return the meta.key
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        keys = delegate.public_keys_for_verification(identifier=self.identifier)
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        keys = barrack.public_keys_for_verification(identifier=self.identifier)
         # assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
         for key in keys:
             if key.verify(data=data, signature=signature):
                 # matched!
                 return True
+        # signature not match
+        # TODO: check whether visa is expired, query new document for this contact
 
     # Override
     def encrypt(self, data: bytes) -> bytes:
         # NOTICE: meta.key will never changed, so use visa.key to encrypt message
         #         is the better way
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        key = delegate.public_key_for_encryption(identifier=self.identifier)
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        key = barrack.public_key_for_encryption(identifier=self.identifier)
         # assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
         return key.encrypt(data=data)
 
@@ -85,9 +87,9 @@ class BaseUser(BaseEntity, User):
     def sign(self, data: bytes) -> bytes:
         # NOTICE: I suggest use the private key which paired to meta.key
         #         to sign message
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        key = delegate.private_key_for_signature(identifier=self.identifier)
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        key = barrack.private_key_for_signature(identifier=self.identifier)
         # assert key is not None, 'failed to get sign key for user: %s' % self.identifier
         return key.sign(data=data)
 
@@ -95,31 +97,34 @@ class BaseUser(BaseEntity, User):
     def decrypt(self, data: bytes) -> Optional[bytes]:
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        keys = delegate.private_keys_for_decryption(identifier=self.identifier)
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        keys = barrack.private_keys_for_decryption(identifier=self.identifier)
         # assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
-            try:
-                # try decrypting it with each private key
-                plaintext = key.decrypt(data=data)
-                if plaintext is not None:
-                    # OK!
-                    return plaintext
-            except ValueError:
-                # this key not match, try next one
-                continue
+            # try decrypting it with each private key
+            plaintext = key.decrypt(data=data)
+            if plaintext is not None:
+                # OK!
+                return plaintext
+        # decryption failed
+        # TODO: check whether my visa key is changed, push new visa to this contact
 
     # Override
-    def sign_visa(self, visa: Visa) -> Visa:
+    def sign_visa(self, visa: Visa) -> Optional[Visa]:
         # NOTICE: only sign visa with the private key paired with your meta.key
         assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
-        delegate = self.data_source
-        # assert delegate is not None, 'user delegate not set yet'
-        key = delegate.private_key_for_visa_signature(identifier=self.identifier)
-        # assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
-        visa.sign(private_key=key)
-        return visa
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        key = barrack.private_key_for_visa_signature(identifier=self.identifier)
+        if key is None:
+            # assert False, 'failed to get sign key for visa: %s' % self.identifier
+            return None
+        elif visa.sign(private_key=key) is None:
+            # assert False, 'failed to sign visa: %s, %s' % (self.identifier, visa)
+            return None
+        else:
+            return visa
 
     # Override
     def verify_visa(self, visa: Visa) -> bool:

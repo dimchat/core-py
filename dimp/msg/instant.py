@@ -68,12 +68,17 @@ class PlainMessage(BaseMessage, InstantMessage):
             self.__content = Content.parse(content=content)
         return self.__content
 
+    @content.setter  # Override
+    def content(self, value: Content):
+        self['content'] = value.dictionary
+        self.__content = value
+
     @property  # Override
     def time(self) -> float:
         value = self.content.time
-        if value > 0:
-            return value
-        return self.envelope.time
+        if value is None or value <= 0:
+            value = self.envelope.time
+        return value
 
     @property  # Override
     def group(self) -> Optional[ID]:
@@ -124,7 +129,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> Dict[str, Any]:
+    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> Optional[Dict[str, Any]]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -152,7 +157,11 @@ class PlainMessage(BaseMessage, InstantMessage):
             # 2.4. insert to 'message.keys' with member ID
             keys[str(member)] = base64
             count += 1
-        if count > 0:
+        if count == 0:
+            # public key for member(s) not found
+            # TODO: suspend this message for waiting member's visa
+            return None
+        else:
             msg['keys'] = keys
         return msg
 

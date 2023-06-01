@@ -55,7 +55,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     @property
     @abstractmethod
-    def barrack(self) -> EntityDelegate:
+    def barrack(self) -> Optional[EntityDelegate]:
         raise NotImplemented
 
     #
@@ -74,7 +74,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         return key.encrypt(data=data)
 
     # Override
-    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
         if is_broadcast(msg=msg):
             # broadcast message content will not be encrypted (just encoded to JsON),
             # so no need to encode to Base64 here
@@ -99,7 +99,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
         return contact.encrypt(data=data)
 
     # Override
-    def encode_key(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
         assert not is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         return base64_encode(data=data)
 
@@ -146,6 +146,7 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate, ABC):
 
     # Override
     def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
+        # TODO: check 'IV' in sMsg for AES decryption
         return key.decrypt(data)
 
     # Override

@@ -31,8 +31,10 @@
 """
     Entity Database
     ~~~~~~~~~~~~~~~
+    Entity pool to manage User/Contact/Group/Member instances
 
-    Manage meta for all entities
+       1st, get instance here to avoid create same instance,
+       2nd, if they were updated, we can refresh them immediately here
 """
 
 from abc import ABC

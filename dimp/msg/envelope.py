@@ -90,7 +90,7 @@ class MessageEnvelope(Dictionary, Envelope):
     @property  # Override
     def time(self) -> float:
         if self.__time == 0:
-            self.__time = self.get_float(key='time')
+            self.__time = self.get_time(key='time')
         return self.__time
 
     @property  # Override
