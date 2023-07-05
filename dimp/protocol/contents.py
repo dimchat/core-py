@@ -54,12 +54,7 @@ class TextContent(Content, ABC):
     #
     @property
     @abstractmethod
-    def text(self) -> Optional[str]:
-        raise NotImplemented
-
-    @text.setter
-    @abstractmethod
-    def text(self, value: Optional[str]):
+    def text(self) -> str:
         raise NotImplemented
 
     #

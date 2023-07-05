@@ -117,6 +117,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
+    'ReceiptCommand',   # 'ReceiptCommandMixIn',
 
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand',
@@ -130,8 +131,11 @@ __all__ = [
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     'WebPageContent', 'AppCustomizedContent',
+
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
+    'BaseReceiptCommand', 'TextReceiptCommand',
+
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',

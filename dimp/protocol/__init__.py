@@ -44,6 +44,7 @@ from .files import FileContent, ImageContent, AudioContent, VideoContent
 
 from .commands import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
+from .receipt import ReceiptCommand, ReceiptCommandMixIn
 
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand
@@ -82,6 +83,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
+    'ReceiptCommand', 'ReceiptCommandMixIn',
 
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand',

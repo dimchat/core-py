@@ -58,24 +58,17 @@ class BaseTextContent(BaseContent, TextContent):
                  text: Optional[str] = None):
         if content is None:
             super().__init__(msg_type=ContentType.TEXT)
+            assert text is not None, 'text should not be empty'
+            self['text'] = text
         else:
             super().__init__(content=content)
-        if text is not None:
-            self.text = text
 
     #
     #   text
     #
     @property  # Override
-    def text(self) -> Optional[str]:
-        return self.get_str(key='text')
-
-    @text.setter  # Override
-    def text(self, value: Optional[str]):
-        if value is None:
-            self.pop('text', None)
-        else:
-            self['text'] = value
+    def text(self) -> str:
+        return self.get_str(key='text', default='')
 
 
 class ListContent(BaseContent, ArrayContent):

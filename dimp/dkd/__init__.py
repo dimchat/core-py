@@ -35,6 +35,7 @@ from .contents import BaseTextContent, ListContent, SecretContent, AppCustomized
 from .contents import WebPageContent, BaseMoneyContent, TransferMoneyContent
 from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 from .commands import BaseMetaCommand, BaseDocumentCommand
+from .receipt import BaseReceiptCommand, TextReceiptCommand
 
 from .groups import BaseHistoryCommand, BaseGroupCommand
 from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
@@ -63,6 +64,7 @@ __all__ = [
 
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
+    'BaseReceiptCommand', 'TextReceiptCommand',
 
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
