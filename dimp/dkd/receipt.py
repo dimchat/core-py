@@ -41,7 +41,6 @@ from mkm.crypto import base64_encode
 from dkd import ContentType
 from dkd import Envelope
 
-from ..protocol import TextContent
 from ..protocol import ReceiptCommand, ReceiptCommandMixIn
 from .commands import BaseCommand
 
@@ -137,10 +136,3 @@ class BaseReceiptCommand(BaseReceipt, ReceiptCommandMixIn):
     @classmethod
     def from_text(cls, text: str, envelope: Envelope = None, sn: int = 0, signature: Union[str, bytes] = None):
         return cls(msg_type=ContentType.COMMAND, text=text, envelope=envelope, sn=sn, signature=signature)
-
-
-class TextReceiptCommand(BaseReceipt, TextContent):
-
-    @classmethod
-    def from_text(cls, text: str):
-        return cls(msg_type=ContentType.TEXT, text=text)

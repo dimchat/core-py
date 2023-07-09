@@ -134,7 +134,7 @@ __all__ = [
 
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
-    'BaseReceiptCommand', 'TextReceiptCommand',
+    'BaseReceiptCommand',
 
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
