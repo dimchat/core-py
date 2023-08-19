@@ -54,13 +54,13 @@ class IdentifierFactory(IDFactory):
         return finger >> 1
 
     # Override
-    def generate_id(self, meta, network: int, terminal: Optional[str] = None) -> ID:
+    def generate_id(self, meta, network: int, terminal: Optional[str]) -> ID:
         address = Address.generate(meta=meta, network=network)
         assert address is not None, 'failed to generate ID with meta: %s' % meta
         return ID.create(address=address, name=meta.seed, terminal=terminal)
 
     # Override
-    def create_id(self, name: Optional[str], address: Address, terminal: Optional[str] = None) -> ID:
+    def create_id(self, name: Optional[str], address: Address, terminal: Optional[str]) -> ID:
         identifier = concat(address=address, name=name, terminal=terminal)
         cid = self.__ids.get(identifier)
         if cid is None:
@@ -108,7 +108,7 @@ class IdentifierFactory(IDFactory):
             return self._new_id(identifier=identifier, name=name, address=address, terminal=terminal)
 
 
-def concat(name: Optional[str], address: Address, terminal: Optional[str] = None) -> str:
+def concat(name: Optional[str], address: Address, terminal: Optional[str]) -> str:
     string = str(address)
     if name is not None and len(name) > 0:
         string = name + '@' + string

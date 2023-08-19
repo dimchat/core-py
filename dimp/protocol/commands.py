@@ -135,12 +135,25 @@ class MetaCommand(Command, ABC):
     #
 
     @classmethod
-    def query(cls, identifier: ID):
+    def query(cls, identifier: ID):  # -> MetaCommand:
+        """
+        Query meta
+
+        :param identifier: entity ID
+        :return: MetaCommand
+        """
         from ..dkd import BaseMetaCommand
         return BaseMetaCommand(identifier=identifier)
 
     @classmethod
-    def response(cls, identifier: ID, meta: Meta):
+    def response(cls, identifier: ID, meta: Meta):  # -> MetaCommand:
+        """
+        Response Meta
+
+        :param identifier: entity ID
+        :param meta: entity meta
+        :return: MetaCommand
+        """
         from ..dkd import BaseMetaCommand
         return BaseMetaCommand(identifier=identifier, meta=meta)
 
@@ -175,7 +188,7 @@ class DocumentCommand(MetaCommand, ABC):
     @abstractmethod
     def signature(self) -> Optional[str]:
         """
-        signature for checking new document
+        Document's signature (just for querying new document)
 
         :return: part of signature in current document (base64)
         """
@@ -186,11 +199,28 @@ class DocumentCommand(MetaCommand, ABC):
     #
 
     @classmethod
-    def query(cls, identifier: ID, signature: Optional[str] = None):
+    def query(cls, identifier: ID, signature: str = None):  # -> DocumentCommand:
+        """
+        1. Query Entity Document
+        2. Query Entity Document for updating with current signature
+
+        :param identifier: entity ID
+        :param signature:  document signature
+        :return: DocumentCommand
+        """
         from ..dkd import BaseDocumentCommand
         return BaseDocumentCommand(identifier=identifier, signature=signature)
 
     @classmethod
-    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: Optional[ID] = None):
+    def response(cls, document: Document, meta: Meta = None, identifier: ID = None):
+        """
+        1. Send Meta and Document to new friend
+        2. Response Entity Document
+
+        :param identifier: entity ID
+        :param meta:       entity meta
+        :param document:   entity document
+        :return: DocumentCommand
+        """
         from ..dkd import BaseDocumentCommand
         return BaseDocumentCommand(identifier=identifier, meta=meta, document=document)

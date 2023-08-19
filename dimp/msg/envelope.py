@@ -39,22 +39,28 @@ from dkd import Envelope, EnvelopeFactory
 
 
 """
-    Message Envelope
-    ~~~~~~~~~~~~~~~~
-
-    Implementations for Envelope
+    Envelope for message
+    ~~~~~~~~~~~~~~~~~~~~
+    This class is used to create a message envelope
+    which contains 'sender', 'receiver' and 'time'
+    
+    data format: {
+        sender   : "moki@xxx",
+        receiver : "hulk@yyy",
+        time     : 123
+    }
 """
 
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: Optional[Dict[str, Any]] = None,
-                 sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[float] = 0):
+    def __init__(self, envelope: Dict[str, Any] = None,
+                 sender: ID = None, receiver: ID = None, time: float = None):
         if envelope is None:
             assert sender is not None, 'sender should not be empty'
             if receiver is None:
                 receiver = ANYONE
-            if time == 0:
+            if time is None:
                 time = time_lib.time()
             envelope = {
                 'sender': str(sender),
@@ -68,7 +74,7 @@ class MessageEnvelope(Dictionary, Envelope):
         self.__receiver = receiver
         self.__time = time
         self.__group = None
-        self.__type = 0
+        self.__type = None
 
     @property  # Override
     def sender(self) -> ID:
@@ -89,7 +95,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property  # Override
     def time(self) -> float:
-        if self.__time == 0:
+        if self.__time is None:
             self.__time = self.get_time(key='time')
         return self.__time
 
@@ -110,7 +116,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property  # Override
     def type(self) -> Optional[int]:
-        if self.__type == 0:
+        if self.__type is None:
             self.__type = self.get_int('type')
         return self.__type
 
@@ -118,7 +124,7 @@ class MessageEnvelope(Dictionary, Envelope):
     def type(self, value: Union[int, ContentType]):
         if isinstance(value, ContentType):
             value = value.value
-        if value == 0:
+        if value is None or value == 0:
             self.pop('type', None)
         else:
             self['type'] = value
@@ -134,8 +140,6 @@ class MessageEnvelopeFactory(EnvelopeFactory):
     # Override
     def parse_envelope(self, envelope: Dict[str, Any]) -> Optional[Envelope]:
         # check 'sender'
-        sender = envelope.get('sender')
-        if sender is None:
-            # env.sender should not be empty
-            return None
-        return MessageEnvelope(envelope=envelope)
+        if 'sender' in envelope:
+            return MessageEnvelope(envelope=envelope)
+        # env.sender should not be empty

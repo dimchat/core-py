@@ -57,7 +57,7 @@ class EntityDataSource(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def document(self, identifier: ID, doc_type: Optional[str] = '*') -> Optional[Document]:
+    def document(self, identifier: ID, doc_type: str = '*') -> Optional[Document]:
         """
         Get document for entity ID
 
@@ -109,6 +109,6 @@ class Entity(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def document(self, doc_type: Optional[str] = '*') -> Optional[Document]:
+    def document(self, doc_type: str = '*') -> Optional[Document]:
         """ Get document with type """
         raise NotImplemented

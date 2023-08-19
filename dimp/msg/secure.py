@@ -39,10 +39,22 @@ from .base import BaseMessage
 
 
 """
-    Encrypted Message
-    ~~~~~~~~~~~~~~~~~
+    Secure Message
+    ~~~~~~~~~~~~~~
+    Instant Message encrypted by a symmetric key
 
-    Implementations for SecureMessage
+    data format: {
+        //-- envelope
+        sender   : "moki@xxx",
+        receiver : "hulk@yyy",
+        time     : 123,
+        //-- content data and key/keys
+        data     : "...",  // base64_encode(symmetric)
+        key      : "...",  // base64_encode(asymmetric)
+        keys     : {
+            "ID1": "key1", // base64_encode(asymmetric)
+        }
+    }
 """
 
 
@@ -59,10 +71,13 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get(key='data')
-            # assert base64 is not None, 'secure message data cannot be empty: %s' % self
-            delegate = self.delegate
-            assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
-            self.__data = delegate.decode_data(data=base64, msg=self)
+            if base64 is not None:
+                delegate = self.delegate
+                assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
+                self.__data = delegate.decode_data(data=base64, msg=self)
+                assert self.__data is not None, 'message data error: %s' % base64
+            # else:
+            #     assert False, 'secure message data cannot be empty: %s' % self
         return self.__data
 
     @property  # Override
@@ -79,6 +94,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
                 delegate = self.delegate
                 assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
                 self.__key = delegate.decode_key(key=base64, msg=self)
+                assert self.__key is not None, 'message key error: %s' % base64
         return self.__key
 
     @property  # Override
@@ -225,15 +241,11 @@ class EncryptedMessageFactory(SecureMessageFactory):
     # Override
     def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
         # check 'sender', 'data'
-        sender = msg.get('sender')
-        data = msg.get('data')
-        if sender is None or data is None:
-            # msg.sender should not be empty
-            # msg.data should not be empty
-            return None
-        # check 'signature'
-        signature = msg.get('signature')
-        if signature is not None:
-            from .reliable import NetworkMessage
-            return NetworkMessage(msg=msg)
-        return EncryptedMessage(msg=msg)
+        if 'sender' in msg and 'data' in msg:
+            # check 'signature'
+            if 'signature' in msg:
+                from .reliable import NetworkMessage
+                return NetworkMessage(msg=msg)
+            return EncryptedMessage(msg=msg)
+        # msg.sender should not be empty
+        # msg.data should not be empty

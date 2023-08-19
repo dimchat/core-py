@@ -103,7 +103,7 @@ class BaseEntity(Entity):
         return delegate.meta(identifier=self.identifier)
 
     # Override
-    def document(self, doc_type: Optional[str] = '*') -> Optional[Document]:
+    def document(self, doc_type: str = '*') -> Optional[Document]:
         delegate = self.data_source
         # assert delegate is not None, 'entity delegate not set yet'
         return delegate.document(identifier=self.identifier, doc_type=doc_type)

@@ -39,10 +39,25 @@ from .secure import EncryptedMessage
 
 
 """
-    Network Message
-    ~~~~~~~~~~~~~~~
+    Reliable Message signed by an asymmetric key
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This class is used to sign the SecureMessage
+    It contains a 'signature' field which signed with sender's private key
 
-    Implementations for ReliableMessage
+    data format: {
+        //-- envelope
+        sender   : "moki@xxx",
+        receiver : "hulk@yyy",
+        time     : 123,
+        //-- content data and key/keys
+        data     : "...",  // base64_encode(symmetric)
+        key      : "...",  // base64_encode(asymmetric)
+        keys     : {
+            "ID1": "key1", // base64_encode(asymmetric)
+        },
+        //-- signature
+        signature: "..."   // base64_encode()
+    }
 """
 
 
@@ -59,40 +74,39 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get(key='signature')
-            # assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
-            delegate = self.delegate
-            assert isinstance(delegate, ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
-            self.__signature = delegate.decode_signature(signature=base64, msg=self)
+            if base64 is not None:
+                delegate = self.delegate
+                assert isinstance(delegate, ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
+                self.__signature = delegate.decode_signature(signature=base64, msg=self)
+                assert self.__signature is not None, 'message signature error: %s' % base64
+            # else:
+            #     assert False, 'signature of reliable message cannot be empty: %s' % self
         return self.__signature
 
     @property  # Override
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            info = self.get(key='meta')
-            self.__meta = Meta.parse(meta=info)
+            self.__meta = Meta.parse(meta=self.get(key='meta'))
         return self.__meta
 
     @meta.setter  # Override
     def meta(self, info: Meta):
-        if info is None:
-            self.pop('meta', None)
-        else:
-            self['meta'] = info.dictionary
+        self.set_map(key='meta', dictionary=info)
         self.__meta = info
 
     @property  # Override
     def visa(self) -> Optional[Visa]:
         if self.__visa is None:
-            info = self.get(key='visa')
-            self.__visa = Document.parse(document=info)
+            doc = Document.parse(document=self.get(key='visa'))
+            if isinstance(doc, Visa):
+                self.__visa = doc
+            # else:
+            #     assert False, 'visa document error: %s' % doc
         return self.__visa
 
     @visa.setter  # Override
     def visa(self, info: Visa):
-        if info is None:
-            self.pop('visa', None)
-        else:
-            self['visa'] = info.dictionary
+        self.set_map(key='visa', dictionary=info)
         self.__visa = info
 
     # Override
@@ -121,12 +135,8 @@ class NetworkMessageFactory(ReliableMessageFactory):
     # Override
     def parse_reliable_message(self, msg: Dict[str, Any]) -> Optional[ReliableMessage]:
         # check 'sender', 'data', 'signature'
-        sender = msg.get('sender')
-        data = msg.get('data')
-        signature = msg.get('signature')
-        if sender is None or data is None or signature is None:
-            # msg.sender should not be empty
-            # msg.data should not be empty
-            # msg.signature should not be empty
-            return None
-        return NetworkMessage(msg=msg)
+        if 'sender' in msg and 'data' in msg and 'signature' in msg:
+            return NetworkMessage(msg=msg)
+        # msg.sender should not be empty
+        # msg.data should not be empty
+        # msg.signature should not be empty

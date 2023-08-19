@@ -60,16 +60,15 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 cmd: Optional[str] = None,
-                 identifier: Optional[ID] = None,
+    def __init__(self, content: Dict[str, Any] = None,
+                 cmd: str = None,
+                 identifier: ID = None,
                  meta: Optional[Meta] = None):
         if content is None:
             if cmd is None:
                 cmd = Command.META
             assert identifier is not None, 'ID should not be empty'
         super().__init__(content=content, cmd=cmd)
-        self.__meta = meta
         if meta is not None:
             self['meta'] = meta.dictionary
         if identifier is not None:
@@ -87,10 +86,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
     #
     @property  # Override
     def meta(self) -> Optional[Meta]:
-        if self.__meta is None:
-            info = self.get(key='meta')
-            self.__meta = Meta.parse(meta=info)
-        return self.__meta
+        return Meta.parse(meta=self.get(key='meta'))
 
 
 class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
@@ -111,15 +107,14 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
 
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 identifier: Optional[ID] = None,
+    def __init__(self, content: Dict[str, Any] = None,
+                 identifier: ID = None,
                  meta: Optional[Meta] = None,
                  document: Optional[Document] = None,
                  signature: Optional[str] = None):
         if identifier is None and document is not None:
             identifier = document.identifier
         super().__init__(content=content, cmd=Command.DOCUMENT, identifier=identifier, meta=meta)
-        self.__doc = document
         if document is not None:
             self['document'] = document.dictionary
         if signature is not None:
@@ -130,10 +125,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
     #
     @property  # Override
     def document(self) -> Optional[Document]:
-        if self.__doc is None:
-            info = self.get(key='document')
-            self.__doc = Document.parse(document=info)
-        return self.__doc
+        return Document.parse(document=self.get(key='document'))
 
     @property  # Override
     def signature(self) -> Optional[str]:

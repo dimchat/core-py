@@ -69,12 +69,14 @@ class CommandGeneralFactory:
             # unknown command name, get base command factory
             gf = MessageFactoryManager.general_factory
             msg_type = gf.get_content_type(content=info)
-            assert msg_type is not None, 'content type not found: %s' % info
-            fact = gf.get_content_factory(msg_type=msg_type)
-            if isinstance(fact, CommandFactory):
-                factory = fact
+            if msg_type is not None:
+                fact = gf.get_content_factory(msg_type=msg_type)
+                if isinstance(fact, CommandFactory):
+                    factory = fact
+                else:
+                    assert False, 'cannot parse command: %s' % info
             else:
-                assert False, 'cannot parse command: %s' % info
+                assert False, 'content type not found: %s' % info
         return factory.parse_command(content=info)
 
 

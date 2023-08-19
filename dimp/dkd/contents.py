@@ -54,8 +54,8 @@ class BaseTextContent(BaseContent, TextContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 text: Optional[str] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 text: str = None):
         if content is None:
             super().__init__(msg_type=ContentType.TEXT)
             assert text is not None, 'text should not be empty'
@@ -84,25 +84,25 @@ class ListContent(BaseContent, ArrayContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 contents: Optional[List[Content]] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 contents: List[Content] = None):
         if content is None:
             super().__init__(msg_type=ContentType.ARRAY)
         else:
             super().__init__(content=content)
-        self.__contents = contents
+        self.__list = contents
         if contents is not None:
             self['contents'] = ArrayContent.revert(contents=contents)
 
     @property  # Override
-    def contents(self) -> Optional[List[Content]]:
-        if self.__contents is None:
+    def contents(self) -> List[Content]:
+        if self.__list is None:
             array = self.get(key='contents')
             if array is None:
-                self.__contents = []
+                self.__list = []
             else:
-                self.__contents = ArrayContent.convert(contents=array)
-        return self.__contents
+                self.__list = ArrayContent.convert(contents=array)
+        return self.__list
 
 
 class AppCustomizedContent(BaseContent, CustomizedContent):
@@ -121,11 +121,11 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
-                 app: Optional[str] = None, mod: Optional[str] = None, act: Optional[str] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None,
+                 app: str = None, mod: str = None, act: str = None):
         if content is None:
-            if msg_type == 0:
+            if msg_type is None:
                 msg_type = ContentType.CUSTOMIZED
             super().__init__(msg_type=msg_type)
         else:
@@ -139,15 +139,15 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
 
     @property  # Override
     def application(self) -> str:
-        return self.get_str(key='app')
+        return self.get_str(key='app', default='')
 
     @property  # Override
     def module(self) -> str:
-        return self.get_str(key='mod')
+        return self.get_str(key='mod', default='')
 
     @property  # Override
     def action(self) -> str:
-        return self.get_str(key='act')
+        return self.get_str(key='act', default='')
 
 
 class SecretContent(BaseContent, ForwardContent):
@@ -164,9 +164,9 @@ class SecretContent(BaseContent, ForwardContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 message: Optional[ReliableMessage] = None,
-                 messages: Optional[List[ReliableMessage]] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 message: ReliableMessage = None,
+                 messages: List[ReliableMessage] = None):
         if content is None:
             super().__init__(msg_type=ContentType.FORWARD)
         else:
@@ -222,8 +222,8 @@ class WebPageContent(BaseContent, PageContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 url: Optional[str] = None, title: Optional[str] = None,
+    def __init__(self, content: Dict[str, Any] = None,
+                 url: str = None, title: str = None,
                  desc: Optional[str] = None, icon: Union[bytes, str, None] = None):
         if content is None:
             super().__init__(msg_type=ContentType.PAGE)
@@ -254,15 +254,12 @@ class WebPageContent(BaseContent, PageContent):
         self['URL'] = string
 
     @property  # Override
-    def title(self) -> Optional[str]:
-        return self.get_str(key='title')
+    def title(self) -> str:
+        return self.get_str(key='title', default='')
 
     @title.setter  # Override
-    def title(self, string: Optional[str]):
-        if string is None:
-            self.pop('title', None)
-        else:
-            self['title'] = string
+    def title(self, string: str):
+        self['title'] = string
 
     @property  # Override
     def desc(self) -> Optional[str]:
@@ -306,10 +303,10 @@ class BaseMoneyContent(BaseContent, MoneyContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
-                 currency: Optional[str] = None, amount: Optional[float] = 0.0):
-        if content is None and msg_type == 0:
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None,
+                 currency: str = None, amount: float = 0.0):
+        if content is None and msg_type is None:
             msg_type = ContentType.MONEY
         super().__init__(content=content, msg_type=msg_type)
         # set values to inner dictionary
@@ -320,12 +317,11 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
     @property  # Override
     def currency(self) -> str:
-        return self.get_str(key='currency')
+        return self.get_str(key='currency', default='')
 
     @property  # Override
     def amount(self) -> float:
-        value = self.get_float(key='amount')
-        return 0 if value is None else float(value)
+        return self.get_float(key='amount')
 
     @amount.setter  # Override
     def amount(self, value: float):
@@ -348,8 +344,8 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 currency: Optional[str] = None, amount: Optional[float] = 0.0):
+    def __init__(self, content: Dict[str, Any] = None,
+                 currency: str = None, amount: float = 0.0):
         super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
 
     @property  # Override
@@ -359,10 +355,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
     @remitter.setter  # Override
     def remitter(self, sender: Optional[ID]):
-        if sender is None:
-            self.pop('remitter', None)
-        else:
-            self['remitter'] = str(sender)
+        self.set_string(key='remitter', string=sender)
 
     @property  # Override
     def remittee(self) -> Optional[ID]:
@@ -371,7 +364,4 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
     @remittee.setter  # Override
     def remittee(self, receiver: Optional[ID]):
-        if receiver is None:
-            self.pop('remittee', None)
-        else:
-            self['remittee'] = str(receiver)
+        self.set_string(key='remittee', string=receiver)

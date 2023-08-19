@@ -51,8 +51,8 @@ from .factory import CommandFactoryManager
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0):
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None):
         if content is None:
             if isinstance(msg_type, ContentType):
                 msg_type = msg_type.value
@@ -65,54 +65,47 @@ class BaseContent(Dictionary, Content):
                 'time': time,
             }
         else:
-            sn = 0
-            time = 0
+            sn = None
+            time = None
         # initialize with content info
         super().__init__(dictionary=content)
         # lazy load
         self.__type = msg_type
         self.__sn = sn
         self.__time = time
-        self.__group = None
 
     @property  # Override
     def type(self) -> int:
         """ message content type: text, image, ... """
-        if self.__type == 0:
+        msg_type = self.__type
+        if msg_type is None:
             gf = MessageFactoryManager.general_factory
             msg_type = gf.get_content_type(content=self.dictionary)
             if msg_type is None:
                 msg_type = 0
             self.__type = msg_type
-        return self.__type
+        return msg_type
 
     @property  # Override
     def sn(self) -> int:
         """ serial number: random number to identify message content """
-        if self.__sn == 0:
+        if self.__sn is None:
             self.__sn = self.get_int(key='sn')
         return self.__sn
 
     @property  # Override
     def time(self) -> Optional[float]:
-        if self.__time == 0:
+        if self.__time is None:
             self.__time = self.get_time(key='time')
         return self.__time
 
     @property  # Override
     def group(self) -> Optional[ID]:
-        if self.__group is None:
-            identifier = self.get(key='group')
-            self.__group = ID.parse(identifier=identifier)
-        return self.__group
+        return ID.parse(identifier=self.get(key='group'))
 
     @group.setter  # Override
     def group(self, identifier: ID):
-        if identifier is None:
-            self.pop('group', None)
-        else:
-            self['group'] = str(identifier)
-        self.__group = identifier
+        self.set_string(key='group', string=identifier)
 
 
 """
@@ -122,10 +115,10 @@ class BaseContent(Dictionary, Content):
 
 class BaseCommand(BaseContent, Command):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
-                 cmd: Optional[str] = None):
-        if content is None and msg_type == 0:
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None,
+                 cmd: str = None):
+        if content is None and msg_type is None:
             msg_type = ContentType.COMMAND
         super().__init__(content=content, msg_type=msg_type)
         if cmd is not None:

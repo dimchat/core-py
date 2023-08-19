@@ -116,7 +116,7 @@ class GroupCommand(HistoryCommand, ABC):
 
     @member.setter
     @abstractmethod
-    def member(self, value: ID):
+    def member(self, user: ID):
         raise NotImplemented
 
     @property
@@ -126,7 +126,7 @@ class GroupCommand(HistoryCommand, ABC):
 
     @members.setter
     @abstractmethod
-    def members(self, value: List[ID]):
+    def members(self, users: List[ID]):
         raise NotImplemented
 
     #
@@ -134,12 +134,12 @@ class GroupCommand(HistoryCommand, ABC):
     #
 
     @classmethod
-    def invite(cls, group: ID, member: Optional[ID] = None, members: Optional[List[ID]] = None):
+    def invite(cls, group: ID, member: ID = None, members: List[ID] = None):
         from ..dkd import InviteGroupCommand
         return InviteGroupCommand(group=group, member=member, members=members)
 
     @classmethod
-    def expel(cls, group: ID, member: Optional[ID] = None, members: Optional[List[ID]] = None):
+    def expel(cls, group: ID, member: ID = None, members: List[ID] = None):
         from ..dkd import ExpelGroupCommand
         return ExpelGroupCommand(group=group, member=member, members=members)
 
@@ -159,7 +159,7 @@ class GroupCommand(HistoryCommand, ABC):
         return QueryGroupCommand(group=group)
 
     @classmethod
-    def reset(cls, group: ID, members: Optional[List[ID]] = None):
+    def reset(cls, group: ID, members: List[ID]):
         from ..dkd import ResetGroupCommand
         return ResetGroupCommand(group=group, members=members)
 
@@ -186,6 +186,11 @@ class QuitCommand(GroupCommand, ABC):
 
 # noinspection PyAbstractClass
 class QueryCommand(GroupCommand, ABC):
+    """
+    NOTICE:
+        This command is just for querying group info,
+        should not be saved in group history
+    """
     pass
 
 

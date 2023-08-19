@@ -44,17 +44,24 @@ from .base import BaseMessage
 
 
 """
-    Plain Message
-    ~~~~~~~~~~~~~
+    Instant Message
+    ~~~~~~~~~~~~~~~
 
-    Implementations for InstantMessage
+    data format: {
+        //-- envelope
+        sender   : "moki@xxx",
+        receiver : "hulk@yyy",
+        time     : 123,
+        //-- content
+        content  : {...}
+    }
 """
 
 
 class PlainMessage(BaseMessage, InstantMessage):
 
-    def __init__(self, msg: Optional[Dict[str, Any]] = None,
-                 head: Optional[Envelope] = None, body: Optional[Content] = None):
+    def __init__(self, msg: Dict[str, Any] = None,
+                 head: Envelope = None, body: Content = None):
         super().__init__(msg=msg, head=head)
         self.__content = body
         if body is not None:
@@ -89,7 +96,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         return self.content.type
 
     # Override
-    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]] = None) -> Optional[SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: List[ID] = None) -> Optional[SecureMessage]:
         # 0. check attachment for File/Image/Audio/Video message content
         #    (do it in 'core' module)
 
@@ -214,10 +221,7 @@ class PlainMessageFactory(InstantMessageFactory):
     # Override
     def parse_instant_message(self, msg: Dict[str, Any]) -> Optional[InstantMessage]:
         # check 'sender', 'content'
-        sender = msg.get('sender')
-        content = msg.get('content')
-        if sender is None or content is None:
-            # msg.sender should not be empty
-            # msg.content should not be empty
-            return None
-        return PlainMessage(msg=msg)
+        if 'sender' in msg and 'content' in msg:
+            return PlainMessage(msg=msg)
+        # msg.sender should not be empty
+        # msg.content should not be empty

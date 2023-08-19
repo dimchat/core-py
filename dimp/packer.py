@@ -51,6 +51,10 @@ class Packer(ABC):
         """
         raise NotImplemented
 
+    #
+    #   InstantMessage -> SecureMessage -> ReliableMessage -> Data
+    #
+
     @abstractmethod
     def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
         """
@@ -80,6 +84,10 @@ class Packer(ABC):
         :return: data package
         """
         raise NotImplemented
+
+    #
+    #   Data -> ReliableMessage -> SecureMessage -> InstantMessage
+    #
 
     @abstractmethod
     def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:

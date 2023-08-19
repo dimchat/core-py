@@ -131,7 +131,9 @@ class BaseUser(BaseEntity, User):
         # NOTICE: only verify visa with meta.key
         #         (if meta not exists, user won't be created)
         if self.identifier != visa.identifier:
+            # visa ID not match
             return False
+        # if meta not exists, user won't be created
         key = self.meta.key
         # assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
         return visa.verify(public_key=key)

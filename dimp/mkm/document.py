@@ -48,8 +48,8 @@ from mkm.factory import AccountFactoryManager
 
 class BaseDocument(Dictionary, Document):
 
-    def __init__(self, document: Optional[Dict[str, Any]] = None,
-                 doc_type: Optional[str] = None, identifier: Optional[ID] = None,
+    def __init__(self, document: Dict[str, Any] = None,
+                 doc_type: str = None, identifier: ID = None,
                  data: Optional[str] = None, signature: Union[bytes, str, None] = None):
         # check signature
         if signature is None:
@@ -72,6 +72,7 @@ class BaseDocument(Dictionary, Document):
                 if doc_type is not None:
                     properties = {
                         'type': doc_type,
+                        'created_time': time.time(),
                     }
             else:
                 """ Create document with ID, data and signature loaded from local storage """
@@ -92,7 +93,7 @@ class BaseDocument(Dictionary, Document):
         self.__status = status  # 1 for valid, -1 for invalid
 
     @property  # Override
-    def type(self) -> str:
+    def type(self) -> Optional[str]:
         doc_type = self.get_property(key='type')
         if doc_type is None:
             gf = AccountFactoryManager.general_factory
@@ -102,8 +103,7 @@ class BaseDocument(Dictionary, Document):
     @property  # Override
     def identifier(self) -> ID:
         if self.__identifier is None:
-            identifier = self.get(key='ID')
-            self.__identifier = ID.parse(identifier=identifier)
+            self.__identifier = ID.parse(identifier=self.get(key='ID'))
         return self.__identifier
 
     @property  # private
@@ -128,6 +128,7 @@ class BaseDocument(Dictionary, Document):
             base64 = self.get_str(key='signature')
             if base64 is not None:
                 self.__signature = base64_decode(string=base64)
+                assert self.__signature is not None, 'document signature error: %s' % base64
         return self.__signature
 
     @property  # Override
@@ -153,7 +154,7 @@ class BaseDocument(Dictionary, Document):
         signature = self.signature
         if data is None:
             # NOTICE: if data is empty, signature should be empty at the same time
-            #         this happen while profile not found
+            #         this happen while document not found
             if signature is None:
                 self.__status = 0
             else:
@@ -165,7 +166,7 @@ class BaseDocument(Dictionary, Document):
         elif public_key.verify(data=utf8_encode(string=data), signature=signature):
             # signature matched
             self.__status = 1
-        # NOTICE: if status is 0, it doesn't mean the profile is invalid,
+        # NOTICE: if status is 0, it doesn't mean the document is invalid,
         #         try another key
         return self.__status == 1
 
@@ -179,8 +180,10 @@ class BaseDocument(Dictionary, Document):
         """
         if self.__status > 0:
             # already signed/verified
-            assert len(self.__data) > 0, 'document data error'
-            return self.signature
+            assert self.__data is not None, 'document data error: %s' % self
+            signature = self.signature
+            assert signature is not None, 'document signature error: %s' % self
+            return signature
         # 1. update sign time
         self.set_property(key='time', value=time.time())
         # 2. encode & sign
@@ -189,11 +192,11 @@ class BaseDocument(Dictionary, Document):
             # assert False, 'should not happen'
             return None
         data = json_encode(info)
-        if data is None or len(data) == 0:
+        if len(data) == 0:
             # properties error
             return None
         signature = private_key.sign(data=utf8_encode(string=data))
-        if signature is None or len(signature) == 0:
+        if len(signature) == 0:
             # assert False, 'should not happen'
             return None
         # 3. update 'data' & 'signature' fields
@@ -257,8 +260,8 @@ class BaseDocument(Dictionary, Document):
 
     @property  # Override
     def time(self) -> float:
-        timestamp = self.get_property(key='time')
-        value = Converter.get_time(value=timestamp)
+        seconds = self.get_property(key='time')
+        value = Converter.get_time(value=seconds)
         return 0.0 if value is None else value
 
     @property  # Override

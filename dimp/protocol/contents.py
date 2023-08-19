@@ -81,7 +81,7 @@ class ArrayContent(Content, ABC):
 
     @property
     @abstractmethod
-    def contents(self) -> Optional[List[Content]]:
+    def contents(self) -> List[Content]:
         raise NotImplemented
 
     #
@@ -185,8 +185,7 @@ class ForwardContent(Content, ABC):
     #   Factory methods
     #
     @classmethod
-    def create(cls, message: Optional[ReliableMessage] = None,
-               messages: Optional[List[ReliableMessage]] = None):
+    def create(cls, message: ReliableMessage = None, messages: List[ReliableMessage] = None):
         from ..dkd import SecretContent
         return SecretContent(message=message, messages=messages)
 
@@ -238,7 +237,7 @@ class PageContent(Content, ABC):
 
     @property
     @abstractmethod
-    def title(self) -> Optional[str]:
+    def title(self) -> str:
         """ Document Title """
         raise NotImplemented
 
@@ -311,7 +310,7 @@ class MoneyContent(Content, ABC):
     #   Factory method
     #
     @classmethod
-    def create(cls, msg_type: Union[int, ContentType], currency: Optional[str], amount: Optional[float] = 0.0):
+    def create(cls, msg_type: Union[int, ContentType], currency: str, amount: float):
         from ..dkd import BaseMoneyContent
         return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
 
@@ -334,28 +333,28 @@ class TransferContent(MoneyContent, ABC):
 
     @property
     @abstractmethod
-    def remitter(self) -> Optional[ID]:
+    def remitter(self) -> ID:
         raise NotImplemented
 
     @remitter.setter
     @abstractmethod
-    def remitter(self, sender: Optional[ID]):
+    def remitter(self, sender: ID):
         raise NotImplemented
 
     @property
     @abstractmethod
-    def remittee(self) -> Optional[ID]:
+    def remittee(self) -> ID:
         raise NotImplemented
 
     @remittee.setter
     @abstractmethod
-    def remittee(self, receiver: Optional[ID]):
+    def remittee(self, receiver: ID):
         raise NotImplemented
 
     #
     #   Factory method
     #
     @classmethod
-    def transfer(cls, currency: Optional[str], amount: Optional[float] = 0.0):
+    def transfer(cls, currency: str, amount: float):
         from ..dkd import TransferMoneyContent
         return TransferMoneyContent(currency=currency, amount=amount)

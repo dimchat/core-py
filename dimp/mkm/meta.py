@@ -39,8 +39,19 @@ from mkm import Meta, MetaType
 
 
 """
-    Base Meta
+    User/Group Meta data
     ~~~~~~~~~~~~~~~~~~~~
+    This class is used to generate entity ID
+
+        data format: {
+            type: 1,             // meta version
+            seed: "moKy",        // user/group name
+            key: "{public key}", // PK = secp256k1(SK);
+            fingerprint: "..."   // CT = sign(seed, SK);
+        }
+
+        algorithm:
+            fingerprint = sign(seed, SK);
 
     abstractmethod:
         - generate_address(network)
@@ -50,8 +61,8 @@ from mkm import Meta, MetaType
 # noinspection PyAbstractClass
 class BaseMeta(Dictionary, Meta, ABC):
 
-    def __init__(self, meta: Optional[Dict[str, Any]] = None,
-                 version: Union[MetaType, int] = 0, key: Optional[VerifyKey] = None,
+    def __init__(self, meta: Dict[str, Any] = None,
+                 version: Union[MetaType, int] = None, key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Union[bytes, str, None] = None):
         # check parameters
         if isinstance(version, MetaType):
@@ -89,19 +100,22 @@ class BaseMeta(Dictionary, Meta, ABC):
 
     @property  # Override
     def type(self) -> int:
-        if self.__type == 0:
+        version = self.__type
+        if version is None:
             gf = AccountFactoryManager.general_factory
             version = gf.get_meta_type(meta=self.dictionary)
             if version is None:
                 version = 0
             self.__type = version
-        return self.__type
+        return version
 
     @property  # Override
     def key(self) -> VerifyKey:
         if self.__key is None:
-            key = self.get(key='key')
-            self.__key = PublicKey.parse(key=key)
+            info = self.get(key='key')
+            pub = PublicKey.parse(key=info)
+            self.__key = pub
+            assert pub is not None, 'meta key error: %s' % info
         return self.__key
 
     @property  # Override
@@ -113,7 +127,8 @@ class BaseMeta(Dictionary, Meta, ABC):
     @property  # Override
     def fingerprint(self) -> Optional[bytes]:
         if self.__fingerprint is None and MetaType.has_seed(version=self.type):
-            fingerprint = self.get_str(key='fingerprint')
-            if fingerprint is not None:
-                self.__fingerprint = base64_decode(string=fingerprint)
+            base64 = self.get_str(key='fingerprint')
+            if base64 is not None:
+                self.__fingerprint = base64_decode(string=base64)
+                assert self.__fingerprint is not None, 'meta.fingerprint error: %s' % base64
         return self.__fingerprint

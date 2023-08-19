@@ -58,7 +58,7 @@ class FileContent(Content, ABC):
 
     @url.setter
     @abstractmethod
-    def url(self, string: str):
+    def url(self, string: Optional[str]):
         raise NotImplemented
 
     @property
@@ -69,7 +69,7 @@ class FileContent(Content, ABC):
 
     @data.setter
     @abstractmethod
-    def data(self, attachment: bytes):
+    def data(self, attachment: Optional[bytes]):
         raise NotImplemented
 
     @property
@@ -169,7 +169,7 @@ class AudioContent(FileContent, ABC):
 
     @text.setter
     @abstractmethod
-    def text(self, string: str):
+    def text(self, asr: str):
         raise NotImplemented
 
 

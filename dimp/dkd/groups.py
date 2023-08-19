@@ -63,11 +63,11 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
-                 cmd: Optional[str] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None,
+                 cmd: str = None):
         if content is None:
-            if msg_type == 0:
+            if msg_type is None:
                 msg_type = ContentType.HISTORY
             assert cmd is not None, 'command name should not empty'
         super().__init__(content=content, msg_type=msg_type, cmd=cmd)
@@ -90,9 +90,9 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 cmd: Optional[str] = None, group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 cmd: str = None, group: ID = None,
+                 member: ID = None, members: List[ID] = None):
         super().__init__(content=content, cmd=cmd)
         if group is not None:
             self.group = group
@@ -113,11 +113,9 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         return ID.parse(identifier=self.get(key='member'))
 
     @member.setter  # Override
-    def member(self, value: ID):
-        if value is None:
-            self.pop('member', None)
-        else:
-            self['member'] = str(value)
+    def member(self, user: ID):
+        self.set_string(key='member', string=user)
+        self.pop(key='members')
 
     @property  # Override
     def members(self) -> Optional[List[ID]]:
@@ -125,20 +123,21 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         if array is not None:
             # convert all items to ID objects
             return ID.convert(array=array)
+        # TODO: get from 'member'?
 
     @members.setter  # Override
-    def members(self, value: List[ID]):
-        if value is None:
+    def members(self, users: List[ID]):
+        if users is None:
             self.pop('members', None)
         else:
-            self['members'] = ID.revert(array=value)
+            self['members'] = ID.revert(array=users)
+        self.pop(key='member')
 
 
 class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 group: ID = None, member: ID = None, members: List[ID] = None):
         """
         Create invite group member command
 
@@ -154,9 +153,8 @@ class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 
 class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 member: Optional[ID] = None, members: Optional[List[ID]] = None):
+    def __init__(self, content: Dict[str, Any] = None,
+                 group: ID = None, member: ID = None, members: List[ID] = None):
         """
         Create expel group member command
 
@@ -172,8 +170,7 @@ class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
 
 class JoinGroupCommand(BaseGroupCommand, JoinCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
         """
         Create join group command
 
@@ -187,8 +184,7 @@ class JoinGroupCommand(BaseGroupCommand, JoinCommand):
 
 class QuitGroupCommand(BaseGroupCommand, QuitCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
         """
         Create member quit command
 
@@ -202,8 +198,7 @@ class QuitGroupCommand(BaseGroupCommand, QuitCommand):
 
 class QueryGroupCommand(BaseGroupCommand, QueryCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None):
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
         """
         Create query group members command (not history command)
 
@@ -217,9 +212,7 @@ class QueryGroupCommand(BaseGroupCommand, QueryCommand):
 
 class ResetGroupCommand(BaseGroupCommand, ResetCommand):
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 group: Optional[ID] = None,
-                 members: Optional[List[ID]] = None):
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None, members: List[ID] = None):
         """
         Create reset group members command
 

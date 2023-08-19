@@ -68,11 +68,11 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = 0,
+                 msg_type: Union[int, ContentType] = None,
                  text: str = None,
                  envelope: Envelope = None, sn: int = 0, signature: Union[str, bytes] = None):
         if content is None:
-            assert msg_type > 0 and text is not None, 'receipt error: type=%s, text="%s"' % (msg_type, text)
+            assert text is not None, 'receipt error: type=%s, text="%s"' % (msg_type, text)
             super().__init__(msg_type=msg_type, cmd=self.RECEIPT)
             # text message
             self['text'] = text
@@ -113,9 +113,9 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
     def original_envelope(self) -> Optional[Envelope]:
         if self.__env is None:
             # origin: { sender: "...", receiver: "...", time: 0 }
-            origin = self.origin
-            if origin is not None and 'sender' in origin:
-                self.__env = Envelope.parse(envelope=origin)
+            info = self.origin
+            if info is not None:  # and 'sender' in info:
+                self.__env = Envelope.parse(envelope=info)
         return self.__env
 
     @property

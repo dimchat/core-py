@@ -32,6 +32,7 @@ from typing import Optional, Union, Any, Dict, List
 
 from mkm.crypto import PublicKey, EncryptKey, VerifyKey
 from mkm.factory import AccountFactoryManager
+from mkm.types import Converter
 from mkm import ID
 from mkm import Document, DocumentFactory
 from mkm import Visa, Bulletin
@@ -45,6 +46,7 @@ class BaseVisa(BaseDocument, Visa):
                  identifier: Optional[ID] = None,
                  data: Optional[str] = None, signature: Union[bytes, str, None] = None):
         super().__init__(document, doc_type=Document.VISA, identifier=identifier, data=data, signature=signature)
+        # lazy
         self.__key = None
 
     """
@@ -59,7 +61,10 @@ class BaseVisa(BaseDocument, Visa):
         if self.__key is None:
             info = self.get_property(key='key')
             if info is not None:
-                self.__key = PublicKey.parse(key=info)
+                pub = PublicKey.parse(key=info)
+                if isinstance(pub, EncryptKey):
+                    self.__key = pub
+                assert self.__key is not None, 'visa key error: %s' % info
         return self.__key
 
     @key.setter  # Override
@@ -87,24 +92,39 @@ class BaseBulletin(BaseDocument, Bulletin):
                  identifier: Optional[ID] = None,
                  data: Optional[str] = None, signature: Union[bytes, str, None] = None):
         super().__init__(document, doc_type=Document.BULLETIN, identifier=identifier, data=data, signature=signature)
-        self.__assistants = None
+        # lazy
+        self.__bots = None
+
+    @property  # Override
+    def founder(self) -> Optional[ID]:
+        return ID.parse(identifier=self.get('founder'))
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
-        if self.__assistants is None:
-            assistants = self.get_property(key='assistants')
-            if assistants is None:
-                self.__assistants = []
-            else:
-                self.__assistants = ID.convert(array=assistants)
-        return self.__assistants
+        if self.__bots is None:
+            bots = self.get_property(key='assistants')
+            if bots is not None:
+                self.__bots = ID.convert(array=bots)
+        return self.__bots
 
     @assistants.setter  # Override
     def assistants(self, bots: List[ID]):
         if bots is not None and len(bots) > 0:
             bots = ID.revert(array=bots)
         self.set_property(key='assistants', value=bots)
-        self.__assistants = bots
+        self.__bots = bots
+
+    @property  # Override
+    def created_time(self) -> Optional[float]:
+        timestamp = self.get_property(key='created_time')
+        return Converter.get_time(value=timestamp)
+
+    @property  # Override
+    def modified_time(self) -> Optional[float]:
+        timestamp = self.get_property(key='modified_time')
+        if timestamp is None:
+            return self.time
+        return Converter.get_time(value=timestamp)
 
 
 class BaseDocumentFactory(DocumentFactory):
@@ -115,7 +135,7 @@ class BaseDocumentFactory(DocumentFactory):
 
     # Override
     def create_document(self, identifier: ID, data: Optional[str], signature: Union[bytes, str, None]) -> Document:
-        doc_type = get_type(doc_type=self.__type, identifier=identifier)
+        doc_type = get_doc_type(doc_type=self.__type, identifier=identifier)
         if doc_type == Document.BULLETIN:
             return BaseBulletin(identifier=identifier, data=data, signature=signature)
         elif doc_type == Document.VISA:
@@ -131,7 +151,7 @@ class BaseDocumentFactory(DocumentFactory):
             gf = AccountFactoryManager.general_factory
             doc_type = gf.get_document_type(document=document)
             if doc_type is None:
-                doc_type = get_type(doc_type='*', identifier=identifier)
+                doc_type = get_doc_type(doc_type='*', identifier=identifier)
             # create with document type
             if doc_type == Document.BULLETIN:
                 return BaseBulletin(document=document)
@@ -139,9 +159,11 @@ class BaseDocumentFactory(DocumentFactory):
                 return BaseVisa(document=document)
             else:
                 return BaseDocument(document=document)
+        # else:
+        #     assert False, 'document ID not found: %s' % document
 
 
-def get_type(doc_type: str, identifier: ID) -> str:
+def get_doc_type(doc_type: str, identifier: ID) -> str:
     if doc_type == '*':
         if identifier.is_group:
             return Document.BULLETIN

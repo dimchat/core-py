@@ -55,10 +55,10 @@ class BaseFileContent(BaseContent, FileContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
-                 msg_type: Union[int, ContentType] = 0,
+    def __init__(self, content: Dict[str, Any] = None,
+                 msg_type: Union[int, ContentType] = None,
                  filename: Optional[str] = None, data: Union[bytes, str, None] = None):
-        if content is None and msg_type == 0:
+        if content is None and msg_type is None:
             msg_type = ContentType.FILE
         super().__init__(content=content, msg_type=msg_type)
         # file name
@@ -94,6 +94,7 @@ class BaseFileContent(BaseContent, FileContent):
             base64 = self.get_str(key='data')
             if base64 is not None:
                 self.__attachment = base64_decode(base64)
+                assert self.__attachment is not None, 'file data error: %s' % base64
         return self.__attachment
 
     @data.setter  # Override
@@ -118,16 +119,12 @@ class BaseFileContent(BaseContent, FileContent):
     @property  # Override
     def password(self) -> Optional[SymmetricKey]:
         if self.__password is None:
-            key = self.get(key='password')
-            self.__password = SymmetricKey.parse(key=key)
+            self.__password = SymmetricKey.parse(key=self.get(key='password'))
         return self.__password
 
     @password.setter  # Override
     def password(self, key: SymmetricKey):
-        if key is None:
-            self.pop('password', None)
-        else:
-            self['password'] = key.dictionary
+        self.set_map(key='password', dictionary=key)
         self.__password = key
 
 
@@ -147,9 +144,9 @@ class ImageFileContent(BaseFileContent, ImageContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
+    def __init__(self, content: Dict[str, Any] = None,
                  filename: Optional[str] = None, data: Union[bytes, str, None] = None):
-        msg_type = ContentType.IMAGE if content is None else 0
+        msg_type = ContentType.IMAGE if content is None else None
         super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
         # lazy load
         self.__thumbnail = None
@@ -160,6 +157,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
             base64 = self.get_str(key='thumbnail')
             if base64 is not None:
                 self.__thumbnail = base64_decode(base64)
+                assert self.__thumbnail is not None, 'image thumbnail error: %s' % base64
         return self.__thumbnail
 
     @thumbnail.setter  # Override
@@ -187,9 +185,9 @@ class AudioFileContent(BaseFileContent, AudioContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
+    def __init__(self, content: Dict[str, Any] = None,
                  filename: Optional[str] = None, data: Union[bytes, str, None] = None):
-        msg_type = ContentType.AUDIO if content is None else 0
+        msg_type = ContentType.AUDIO if content is None else None
         super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
 
     @property  # Override
@@ -197,11 +195,8 @@ class AudioFileContent(BaseFileContent, AudioContent):
         return self.get_str(key='text')
 
     @text.setter  # Override
-    def text(self, string: str):
-        if string is None:
-            self.pop('text', None)
-        else:
-            self['text'] = string
+    def text(self, asr: str):
+        self['text'] = asr
 
 
 class VideoFileContent(BaseFileContent, VideoContent):
@@ -220,9 +215,9 @@ class VideoFileContent(BaseFileContent, VideoContent):
         }
     """
 
-    def __init__(self, content: Optional[Dict[str, Any]] = None,
+    def __init__(self, content: Dict[str, Any] = None,
                  filename: Optional[str] = None, data: Union[bytes, str, None] = None):
-        msg_type = ContentType.VIDEO if content is None else 0
+        msg_type = ContentType.VIDEO if content is None else None
         super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
         # lazy load
         self.__snapshot = None
@@ -233,6 +228,7 @@ class VideoFileContent(BaseFileContent, VideoContent):
             base64 = self.get_str(key='snapshot')
             if base64 is not None:
                 self.__snapshot = base64_decode(base64)
+                assert self.__snapshot is not None, 'video snapshot error: %s' % base64
         return self.__snapshot
 
     @snapshot.setter  # Override
