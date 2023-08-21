@@ -42,7 +42,7 @@ from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
 from mkm import EntityType, ID, ANYONE, FOUNDER
-from mkm import Document, Visa, Bulletin
+from mkm import Visa, Bulletin
 
 from .mkm import EntityDelegate, UserDataSource, GroupDataSource
 
@@ -51,7 +51,7 @@ from .mkm import EntityDelegate, UserDataSource, GroupDataSource
 class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
 
     def __visa_key(self, identifier: ID) -> Optional[EncryptKey]:
-        visa = self.document(identifier=identifier, doc_type=Document.VISA)
+        visa = self.document(identifier=identifier)
         if isinstance(visa, Visa):
             if visa.valid:
                 return visa.key
@@ -108,7 +108,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
             # founder of broadcast group
             return broadcast_founder(group=identifier)
         # get from document
-        doc = self.document(identifier=identifier, doc_type='*')
+        doc = self.document(identifier=identifier)
         if isinstance(doc, Bulletin):
             return doc.founder
         # TODO: load founder from database
@@ -136,7 +136,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
 
     # Override
     def assistants(self, identifier: ID) -> List[ID]:
-        doc = self.document(identifier=identifier, doc_type=Document.BULLETIN)
+        doc = self.document(identifier=identifier)
         if isinstance(doc, Bulletin) and doc.valid:
             bots = doc.assistants
             if bots is not None:

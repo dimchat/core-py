@@ -30,7 +30,7 @@
 
 from typing import Optional, List
 
-from mkm import ID, Document, Visa
+from mkm import ID, Visa
 
 from .user import User, UserDataSource
 from .entity_impl import BaseEntity
@@ -48,7 +48,7 @@ class BaseUser(BaseEntity, User):
 
     @property  # Override
     def visa(self) -> Optional[Visa]:
-        doc = self.document(doc_type=Document.VISA)
+        doc = self.document()
         if isinstance(doc, Visa):
             return doc
 

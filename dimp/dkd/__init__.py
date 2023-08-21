@@ -40,6 +40,7 @@ from .receipt import BaseReceiptCommand
 from .groups import BaseHistoryCommand, BaseGroupCommand
 from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
 from .groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
+from .groups import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
 
 __all__ = [
@@ -69,4 +70,5 @@ __all__ = [
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
+    'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 ]

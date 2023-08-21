@@ -49,6 +49,7 @@ from .receipt import ReceiptCommand, ReceiptCommandMixIn
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand
 from .groups import QuitCommand, QueryCommand, ResetCommand
+from .groups import HireCommand, FireCommand, ResignCommand
 
 __all__ = [
 
@@ -88,4 +89,5 @@ __all__ = [
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand',
     'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'HireCommand', 'FireCommand', 'ResignCommand',
 ]

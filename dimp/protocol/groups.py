@@ -163,6 +163,31 @@ class GroupCommand(HistoryCommand, ABC):
         from ..dkd import ResetGroupCommand
         return ResetGroupCommand(group=group, members=members)
 
+    # Administrator
+
+    @classmethod
+    def hire(cls, group: ID,
+             administrator: ID = None, administrators: List[ID] = None,
+             assistant: ID = None, assistants: List[ID] = None):
+        from ..dkd import HireGroupCommand
+        return HireGroupCommand(group=group,
+                                administrator=administrator, administrators=administrators,
+                                assistant=assistant, assistants=assistants)
+
+    @classmethod
+    def fire(cls, group: ID,
+             administrator: ID = None, administrators: List[ID] = None,
+             assistant: ID = None, assistants: List[ID] = None):
+        from ..dkd import FireGroupCommand
+        return FireGroupCommand(group=group,
+                                administrator=administrator, administrators=administrators,
+                                assistant=assistant, assistants=assistants)
+
+    @classmethod
+    def resign(cls, group: ID):
+        from ..dkd import ResignGroupCommand
+        return ResignGroupCommand(group=group)
+
 
 # noinspection PyAbstractClass
 class InviteCommand(GroupCommand, ABC):
@@ -196,4 +221,43 @@ class QueryCommand(GroupCommand, ABC):
 
 # noinspection PyAbstractClass
 class ResetCommand(GroupCommand, ABC):
+    pass
+
+
+"""
+    Administrator
+    ~~~~~~~~~~~~~
+"""
+
+
+# noinspection PyAbstractClass
+class HireCommand(GroupCommand, ABC):
+
+    @property
+    @abstractmethod
+    def administrators(self) -> Optional[List[ID]]:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def assistants(self) -> Optional[List[ID]]:
+        raise NotImplemented
+
+
+# noinspection PyAbstractClass
+class FireCommand(GroupCommand, ABC):
+
+    @property
+    @abstractmethod
+    def administrators(self) -> Optional[List[ID]]:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def assistants(self) -> Optional[List[ID]]:
+        raise NotImplemented
+
+
+# noinspection PyAbstractClass
+class ResignCommand(GroupCommand, ABC):
     pass

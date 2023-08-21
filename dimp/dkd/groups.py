@@ -44,6 +44,7 @@ from mkm import ID
 
 from ..protocol import HistoryCommand, GroupCommand
 from ..protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
+from ..protocol import HireCommand, FireCommand, ResignCommand
 
 from .base import BaseCommand
 
@@ -223,3 +224,75 @@ class ResetGroupCommand(BaseGroupCommand, ResetCommand):
         """
         super().__init__(content=content, cmd=GroupCommand.RESET,
                          group=group, members=members)
+
+
+"""
+    Administrator
+    ~~~~~~~~~~~~~
+"""
+
+
+class HireGroupCommand(BaseGroupCommand, HireCommand):
+
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None,
+                 administrator: ID = None, administrators: List[ID] = None,
+                 assistant: ID = None, assistants: List[ID] = None):
+        super().__init__(content=content, cmd=GroupCommand.HIRE, group=group)
+        # group admins
+        if administrator is not None:
+            self['administrators'] = [str(administrator)]
+        elif administrators is not None:
+            self['administrators'] = ID.revert(array=administrators)
+        # group bots
+        if assistant is not None:
+            self['assistants'] = [str(assistant)]
+        elif assistants is not None:
+            self['assistants'] = ID.revert(array=assistants)
+
+    @property  # Override
+    def administrators(self) -> Optional[List[ID]]:
+        users = self.get('administrators')
+        if users is not None:
+            return ID.convert(array=users)
+
+    @property  # Override
+    def assistants(self) -> Optional[List[ID]]:
+        bots = self.get('assistants')
+        if bots is not None:
+            return ID.convert(array=bots)
+
+
+class FireGroupCommand(BaseGroupCommand, FireCommand):
+
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None,
+                 administrator: ID = None, administrators: List[ID] = None,
+                 assistant: ID = None, assistants: List[ID] = None):
+        super().__init__(content=content, cmd=GroupCommand.FIRE, group=group)
+        # group admins
+        if administrator is not None:
+            self['administrators'] = [str(administrator)]
+        elif administrators is not None:
+            self['administrators'] = ID.revert(array=administrators)
+        # group bots
+        if assistant is not None:
+            self['assistants'] = [str(assistant)]
+        elif assistants is not None:
+            self['assistants'] = ID.revert(array=assistants)
+
+    @property  # Override
+    def administrators(self) -> Optional[List[ID]]:
+        users = self.get('administrators')
+        if users is not None:
+            return ID.convert(array=users)
+
+    @property  # Override
+    def assistants(self) -> Optional[List[ID]]:
+        bots = self.get('assistants')
+        if bots is not None:
+            return ID.convert(array=bots)
+
+
+class ResignGroupCommand(BaseGroupCommand, ResignCommand):
+
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
+        super().__init__(content=content, cmd=GroupCommand.RESIGN, group=group)

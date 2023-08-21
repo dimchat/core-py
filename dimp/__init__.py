@@ -122,6 +122,7 @@ __all__ = [
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand',
     'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'HireCommand', 'FireCommand', 'ResignCommand',
 
     #
     #   DaoKeDao base extends
@@ -139,6 +140,7 @@ __all__ = [
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
+    'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
     # 'MessageEnvelope', 'MessageEnvelopeFactory',
     # 'BaseMessage',

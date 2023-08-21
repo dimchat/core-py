@@ -30,7 +30,7 @@
 
 from typing import Optional, List
 
-from mkm import ID, Document, Bulletin
+from mkm import ID, Bulletin
 
 from .group import Group, GroupDataSource
 from .entity_impl import BaseEntity
@@ -53,7 +53,7 @@ class BaseGroup(BaseEntity, Group):
 
     @property  # Override
     def bulletin(self) -> Optional[Bulletin]:
-        doc = self.document(doc_type=Document.BULLETIN)
+        doc = self.document()
         if isinstance(doc, Bulletin):
             return doc
 
