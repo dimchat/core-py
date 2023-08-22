@@ -69,7 +69,11 @@ class BaseDocument(Dictionary, Document):
                 document = {
                     'ID': str(identifier),
                 }
-                if doc_type is not None:
+                if doc_type is None or len(doc_type) == 0 or doc_type == '*':
+                    properties = {
+                        'created_time': time.time(),
+                    }
+                else:
                     properties = {
                         'type': doc_type,
                         'created_time': time.time(),
@@ -226,7 +230,7 @@ class BaseDocument(Dictionary, Document):
             else:
                 # get properties from data
                 self.__properties = json_decode(string=data)
-                assert isinstance(self.__properties, Dict), 'document data error: %s' % self
+                assert isinstance(self.__properties, Dict), 'document data error: %s' % data
         return self.__properties
 
     # Override

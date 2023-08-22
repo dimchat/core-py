@@ -97,7 +97,7 @@ class BaseBulletin(BaseDocument, Bulletin):
 
     @property  # Override
     def founder(self) -> Optional[ID]:
-        return ID.parse(identifier=self.get('founder'))
+        return ID.parse(identifier=self.get_property(key='founder'))
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
