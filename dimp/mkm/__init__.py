@@ -30,11 +30,9 @@
 
 from mkm import *
 
-from .meta import BaseMeta
+from .meta import BaseMeta, MetaHelper
 from .document import BaseDocument
-from .docs import BaseVisa, BaseBulletin, BaseDocumentFactory
-from .address import BaseAddressFactory
-from .identifier import IdentifierFactory
+from .docs import BaseVisa, BaseBulletin
 
 from .delegate import EntityDelegate
 from .entity import Entity, EntityDataSource
@@ -55,6 +53,7 @@ __all__ = [
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
     'Meta', 'MetaFactory',
+    # 'TAI',
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
 
@@ -63,12 +62,12 @@ __all__ = [
     #
     'BroadcastAddress',
     'Identifier',
+    'AccountGeneralFactory', 'AccountFactoryManager',
+
     'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
 
-    'BaseMeta',
+    'BaseMeta', 'MetaHelper',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
-    'BaseDocumentFactory',
-    'BaseAddressFactory', 'IdentifierFactory',
 
     #
     #   Entity

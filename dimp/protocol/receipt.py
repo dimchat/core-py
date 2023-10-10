@@ -36,9 +36,9 @@
 """
 
 from abc import abstractmethod
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
-from dkd import Envelope, InstantMessage, ReliableMessage
+from dkd import Envelope, Content, InstantMessage
 
 from .commands import Command
 
@@ -90,34 +90,53 @@ class ReceiptCommand(Command):
     def original_signature(self) -> Optional[str]:
         raise NotImplemented
 
+    @abstractmethod
+    def match_message(self, msg: InstantMessage) -> bool:
+        raise NotImplemented
+
     #
     #   Factory method
     #
 
     @classmethod
-    def create(cls, text: str, msg: ReliableMessage = None):
+    def create(cls, text: str, envelope: Envelope = None, content: Content = None):
         """
-        Create receipt with text message and origin message envelope
+        Create base receipt command with text & original message info
 
-        :param text: message text
-        :param msg:  origin message
+        :param text:     message text
+        :param envelope: original message head
+        :param content:  original message body
         :return: ReceiptCommand
         """
-        if msg is None:
-            assert text is not None, 'cannot create empty receipt command'
-            envelope = None
+        # get original info
+        if envelope is None:
+            info = None
+        elif content is None:
+            info = cls.purify(envelope=envelope)
         else:
-            info = msg.copy_dictionary(deep_copy=False)
+            info = cls.purify(envelope=envelope)
+            info['sn'] = content.sn
+        # create receipt with text & original info
+        from ..dkd import BaseReceiptCommand
+        command = BaseReceiptCommand.from_text(text=text, origin=info)
+        # check group in original content
+        if content is not None:
+            group = content.group
+            if group is not None:
+                command.group = group
+        # OK
+        return command
+
+    @classmethod
+    def purify(cls, envelope: Envelope) -> Dict[str, Any]:
+        info = envelope.copy_dictionary(deep_copy=False)
+        if 'data' in info:
             info.pop('data', None)
             info.pop('key', None)
             info.pop('keys', None)
             info.pop('meta', None)
             info.pop('visa', None)
-            assert 'sender' in info, 'message envelope error: %s' % info
-            envelope = Envelope.parse(envelope=info)
-        # create base receipt command with text & original envelope
-        from ..dkd import BaseReceiptCommand
-        return BaseReceiptCommand.from_text(text=text, envelope=envelope)
+        return info
 
 
 # noinspection PyAbstractClass
@@ -131,7 +150,7 @@ class ReceiptCommandMixIn(ReceiptCommand):
         sig1 = self.original_signature
         if sig1 is not None:
             # if contains signature, check it
-            sig2 = msg.get_str(key='signature')
+            sig2 = msg.get_str(key='signature', default=None)
             if sig2 is not None:
                 return match_signatures(sig1, sig2)
         # check envelope

@@ -31,9 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from mkm.crypto import SymmetricKey
-
-from dkd import Content
+from mkm.types import URI
+from mkm.format import TransportableData
+from mkm.crypto import DecryptKey
+from dkd import ContentType, Content
 
 
 class FileContent(Content, ABC):
@@ -45,21 +46,19 @@ class FileContent(Content, ABC):
             type : 0x10,
             sn   : 123,
 
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(fileContent)
-            filename : "..."
+            data     : "...",        // base64_encode(fileContent)
+            filename : "photo.png",
+
+            URL      : "http://...", // download from CDN
+            // before fileContent uploaded to a public CDN,
+            // it should be encrypted by a symmetric key
+            key      : {             // symmetric key to decrypt file content
+                algorithm : "AES",   // "DES", ...
+                data      : "{BASE64_ENCODE}",
+                ...
+            }
         }
     """
-
-    @property
-    @abstractmethod
-    def url(self) -> Optional[str]:
-        raise NotImplemented
-
-    @url.setter
-    @abstractmethod
-    def url(self, string: Optional[str]):
-        raise NotImplemented
 
     @property
     @abstractmethod
@@ -79,42 +78,77 @@ class FileContent(Content, ABC):
 
     @filename.setter
     @abstractmethod
-    def filename(self, string: str):
+    def filename(self, name: str):
         raise NotImplemented
 
     @property
     @abstractmethod
-    def password(self) -> Optional[SymmetricKey]:
-        # password for decrypting the downloaded data from CDN
+    def url(self) -> Optional[URI]:
+        raise NotImplemented
+
+    @url.setter
+    @abstractmethod
+    def url(self, remote: URI):
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def password(self) -> Optional[DecryptKey]:
+        """ symmetric key to decrypt the encrypted data from URL """
         raise NotImplemented
 
     @password.setter
     @abstractmethod
-    def password(self, key: SymmetricKey):
+    def password(self, key: DecryptKey):
         raise NotImplemented
 
     #
     #  Factories
     #
+
     @classmethod
-    def file(cls, filename: str, data: Union[bytes, str, None]):
+    def create(cls, msg_type: Union[int, ContentType, None],
+               data: Optional[TransportableData] = None, filename: Optional[str] = None,
+               url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        if msg_type is None:
+            from ..dkd import BaseFileContent
+            return BaseFileContent(data=data, filename=filename, url=url, password=password)
+        elif msg_type == ContentType.IMAGE.value:
+            from ..dkd import ImageFileContent
+            return ImageFileContent(data=data, filename=filename, url=url, password=password)
+        elif msg_type == ContentType.AUDIO.value:
+            from ..dkd import AudioFileContent
+            return AudioFileContent(data=data, filename=filename, url=url, password=password)
+        elif msg_type == ContentType.VIDEO.value:
+            from ..dkd import VideoFileContent
+            return VideoFileContent(data=data, filename=filename, url=url, password=password)
+        else:
+            from ..dkd import BaseFileContent
+            return BaseFileContent(msg_type=msg_type, data=data, filename=filename, url=url, password=password)
+
+    @classmethod
+    def file(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
+             url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         from ..dkd import BaseFileContent
-        return BaseFileContent(filename=filename, data=data)
+        return BaseFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
-    def image(cls, filename: str, data: Union[bytes, str, None]):
+    def image(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
+              url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         from ..dkd import ImageFileContent
-        return ImageFileContent(filename=filename, data=data)
+        return ImageFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
-    def audio(cls, filename: str, data: Union[bytes, str, None]):
+    def audio(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
+              url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         from ..dkd import AudioFileContent
-        return AudioFileContent(filename=filename, data=data)
+        return AudioFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
-    def video(cls, filename: str, data: Union[bytes, str, None]):
+    def video(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
+              url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         from ..dkd import VideoFileContent
-        return VideoFileContent(filename=filename, data=data)
+        return VideoFileContent(data=data, filename=filename, url=url, password=password)
 
 
 class ImageContent(FileContent, ABC):
@@ -126,10 +160,18 @@ class ImageContent(FileContent, ABC):
             type : 0x12,
             sn   : 123,
 
-            URL       : "http://", // upload to CDN
-            data      : "...",     // if (!URL) base64_encode(image)
-            thumbnail : "...",     // base64_encode(smallImage)
-            filename  : "..."
+            data     : "...",        // base64_encode(fileContent)
+            filename : "photo.png",
+
+            URL      : "http://...", // download from CDN
+            // before fileContent uploaded to a public CDN,
+            // it should be encrypted by a symmetric key
+            key      : {             // symmetric key to decrypt file content
+                algorithm : "AES",   // "DES", ...
+                data      : "{BASE64_ENCODE}",
+                ...
+            },
+            thumbnail : "..."        // base64_encode(smallImage)
         }
     """
 
@@ -141,7 +183,7 @@ class ImageContent(FileContent, ABC):
 
     @thumbnail.setter
     @abstractmethod
-    def thumbnail(self, small_image: bytes):
+    def thumbnail(self, image: bytes):
         raise NotImplemented
 
 
@@ -154,10 +196,18 @@ class AudioContent(FileContent, ABC):
             type : 0x14,
             sn   : 123,
 
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(audio)
-            text     : "...",     // Automatic Speech Recognition
-            filename : "..."
+            data     : "...",        // base64_encode(fileContent)
+            filename : "photo.png",
+
+            URL      : "http://...", // download from CDN
+            // before fileContent uploaded to a public CDN,
+            // it should be encrypted by a symmetric key
+            key      : {             // symmetric key to decrypt file content
+                algorithm : "AES",   // "DES", ...
+                data      : "{BASE64_ENCODE}",
+                ...
+            },
+            text     : "..."         // Automatic Speech Recognition
         }
     """
 
@@ -182,10 +232,18 @@ class VideoContent(FileContent, ABC):
             type : 0x16,
             sn   : 123,
 
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(video)
-            snapshot : "...",     // base64_encode(smallImage)
-            filename : "..."
+            data     : "...",        // base64_encode(fileContent)
+            filename : "photo.png",
+
+            URL      : "http://...", // download from CDN
+            // before fileContent uploaded to a public CDN,
+            // it should be encrypted by a symmetric key
+            key      : {             // symmetric key to decrypt file content
+                algorithm : "AES",   // "DES", ...
+                data      : "{BASE64_ENCODE}",
+                ...
+            },
+            snapshot : "..."        // base64_encode(smallImage)
         }
     """
 
@@ -197,5 +255,5 @@ class VideoContent(FileContent, ABC):
 
     @snapshot.setter
     @abstractmethod
-    def snapshot(self, small_image: bytes):
+    def snapshot(self, image: bytes):
         raise NotImplemented

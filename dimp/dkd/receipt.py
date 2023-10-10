@@ -35,11 +35,10 @@
     As receipt returned to sender to proofing the message's received
 """
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
-from mkm.crypto import base64_encode
-from dkd import ContentType
-from dkd import Envelope
+from mkm.types import Converter
+from dkd import Envelope, InstantMessage
 
 from ..protocol import ReceiptCommand, ReceiptCommandMixIn
 from .commands import BaseCommand
@@ -68,71 +67,66 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
-                 text: str = None,
-                 envelope: Envelope = None, sn: int = 0, signature: Union[str, bytes] = None):
+                 text: str = None, origin: Dict[str, Any] = None):
         if content is None:
-            assert text is not None, 'receipt error: type=%s, text="%s"' % (msg_type, text)
-            super().__init__(msg_type=msg_type, cmd=self.RECEIPT)
+            super().__init__(cmd=self.RECEIPT)
             # text message
             self['text'] = text
-            # original envelope
-            self.__env = envelope
-            # envelope of the message responding to
-            if envelope is None:
-                origin = {}
-            else:
-                origin = envelope.dictionary
-            # sn of the message responding to
-            if sn > 0:
-                origin['sn'] = sn
-            # signature of the message responding to
-            if isinstance(signature, str):
-                origin['signature'] = signature
-            elif isinstance(signature, bytes):
-                origin['signature'] = base64_encode(data=signature)
-            if len(origin) > 0:
+            # original envelope of message responding to,
+            # includes 'sn' and 'signature'
+            if origin is not None:
+                assert not (len(origin) == 0 or
+                            'data' in origin or
+                            'key' in origin or
+                            'keys' in origin or
+                            'meta' in origin or
+                            'visa' in origin), 'impure envelope: %s' % origin
                 self['origin'] = origin
         else:
+            assert text is None and origin is None, 'params error: %s, %s' % (text, origin)
             # create with command content
             super().__init__(content=content)
-            # lazy load
-            self.__env = None
+        # lazy load
+        self.__env = None
 
     # -------- setters/getters
 
-    @property
+    @property  # Override
     def text(self) -> str:
-        return self.get('text', default='')
+        return self.get_str(key='text', default='')
 
     @property  # protected
     def origin(self) -> Optional[Dict]:
         return self.get('origin')
 
-    @property
+    @property  # Override
     def original_envelope(self) -> Optional[Envelope]:
         if self.__env is None:
             # origin: { sender: "...", receiver: "...", time: 0 }
-            info = self.origin
-            if info is not None:  # and 'sender' in info:
-                self.__env = Envelope.parse(envelope=info)
+            self.__env = Envelope.parse(envelope=self.origin)
         return self.__env
 
-    @property
+    @property  # Override
     def original_sn(self) -> Optional[int]:
         origin = self.origin
         if origin is not None:
-            return origin.get('sn')
+            sn = origin.get('sn')
+            return Converter.get_int(value=sn, default=None)
 
-    @property
+    @property  # Override
     def original_signature(self) -> Optional[str]:
         origin = self.origin
         if origin is not None:
-            return origin.get('signature')
+            signature = origin.get('signature')
+            return Converter.get_str(value=signature, default=None)
+
+    # Override
+    def match_message(self, msg: InstantMessage) -> bool:
+        raise NotImplemented
 
 
 class BaseReceiptCommand(BaseReceipt, ReceiptCommandMixIn):
 
     @classmethod
-    def from_text(cls, text: str, envelope: Envelope = None, sn: int = 0, signature: Union[str, bytes] = None):
-        return cls(msg_type=ContentType.COMMAND, text=text, envelope=envelope, sn=sn, signature=signature)
+    def from_text(cls, text: str, origin: Dict[str, Any] = None):
+        return cls(text=text, origin=origin)

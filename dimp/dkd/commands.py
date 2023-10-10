@@ -69,24 +69,32 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
                 cmd = Command.META
             assert identifier is not None, 'ID should not be empty'
         super().__init__(content=content, cmd=cmd)
-        if meta is not None:
-            self['meta'] = meta.dictionary
+        # ID
         if identifier is not None:
             self['ID'] = str(identifier)
+        self.__id = identifier
+        # meta
+        if meta is not None:
+            self['meta'] = meta.dictionary
+        self.__meta = meta
 
     #
     #   ID
     #
     @property  # Override
     def identifier(self) -> ID:
-        return ID.parse(identifier=self.get(key='ID'))
+        if self.__id is None:
+            self.__id = ID.parse(identifier=self.get('ID'))
+        return self.__id
 
     #
     #   Meta
     #
     @property  # Override
     def meta(self) -> Optional[Meta]:
-        return Meta.parse(meta=self.get(key='meta'))
+        if self.__meta is None:
+            self.__meta = Meta.parse(meta=self.get('meta'))
+        return self.__meta
 
 
 class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
@@ -112,11 +120,16 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
                  meta: Optional[Meta] = None,
                  document: Optional[Document] = None,
                  signature: Optional[str] = None):
-        if identifier is None and document is not None:
-            identifier = document.identifier
+        if content is None:
+            if identifier is None:  # and document is not None:
+                identifier = document.identifier
+            assert identifier is not None, 'ID should not be empty'
         super().__init__(content=content, cmd=Command.DOCUMENT, identifier=identifier, meta=meta)
+        # document
         if document is not None:
             self['document'] = document.dictionary
+        self.__doc = document
+        # signature
         if signature is not None:
             self['signature'] = signature
 
@@ -125,7 +138,9 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
     #
     @property  # Override
     def document(self) -> Optional[Document]:
-        return Document.parse(document=self.get(key='document'))
+        if self.__doc is None:
+            self.__doc = Document.parse(document=self.get('document'))
+        return self.__doc
 
     @property  # Override
     def signature(self) -> Optional[str]:
@@ -134,4 +149,4 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
 
         :return: part of signature in current document (base64)
         """
-        return self.get_str(key='signature')
+        return self.get_str(key='signature', default=None)

@@ -56,6 +56,7 @@ class BaseGroup(BaseEntity, Group):
         doc = self.document()
         if isinstance(doc, Bulletin):
             return doc
+        assert doc is None, 'group document error: %s' % doc
 
     @property  # Override
     def founder(self) -> ID:

@@ -28,12 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Delegates
-    ~~~~~~~~~
-
-    Delegates for Transceiver, such as Barrack, KeyStore, FTP, ...
-"""
 
 from abc import ABC, abstractmethod
 from typing import Optional

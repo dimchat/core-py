@@ -31,9 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Dict, Any
 
-from dkd import ContentType
-from dkd import Content, ReliableMessage
+from mkm.types import URI
+from mkm.format import PortableNetworkFile
 from mkm import ID
+from dkd import Content, ReliableMessage
 
 
 class TextContent(Content, ABC):
@@ -111,49 +112,6 @@ class ArrayContent(Content, ABC):
         return array
 
 
-class CustomizedContent(Content, ABC):
-    """
-        Application Customized message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0xCC,
-            sn   : 123,
-
-            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
-            mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
-            act   : "{ACTION}",  // action name (e.g.: "throw")
-            extra : info         // action parameters
-        }
-    """
-
-    @property
-    @abstractmethod
-    def application(self) -> str:
-        """ App ID """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def module(self) -> str:
-        """ Module Name """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def action(self) -> str:
-        """ Action Name """
-        raise NotImplemented
-
-    #
-    #   Factory method
-    #
-    @classmethod
-    def create(cls, app: str, mod: str, act: str):
-        from ..dkd import AppCustomizedContent
-        return AppCustomizedContent(app=app, mod=mod, act=act)
-
-
 class ForwardContent(Content, ABC):
     """
         Top-Secret Message Content
@@ -226,13 +184,13 @@ class PageContent(Content, ABC):
 
     @property
     @abstractmethod
-    def url(self) -> str:
+    def url(self) -> URI:
         """ Web Page URL """
         raise NotImplemented
 
     @url.setter
     @abstractmethod
-    def url(self, string: str):
+    def url(self, string: URI):
         raise NotImplemented
 
     @property
@@ -272,89 +230,45 @@ class PageContent(Content, ABC):
     #   Factory method
     #
     @classmethod
-    def create(cls, url: str, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
+    def create(cls, url: URI, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
         from ..dkd import WebPageContent
         return WebPageContent(url=url, title=title, desc=desc, icon=icon)
 
 
-class MoneyContent(Content, ABC):
+class NameCard(Content, ABC):
     """
-        Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
+        Name Card Content
+        ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x40,
+            type : 0x33,
             sn   : 123,
 
-            currency : "RMB", // USD, USDT, ...
-            amount   : 100.00
+            ID     : "{ID}",        // contact's ID
+            name   : "{nickname}}", // contact's name
+            avatar : "{URL}"        // avatar - PNF(URL)
         }
     """
 
     @property
     @abstractmethod
-    def currency(self) -> str:
+    def identifier(self) -> ID:
         raise NotImplemented
 
     @property
     @abstractmethod
-    def amount(self) -> float:
+    def name(self) -> str:
         raise NotImplemented
 
-    @amount.setter
+    @property
     @abstractmethod
-    def amount(self, value: float):
+    def avatar(self) -> Optional[PortableNetworkFile]:
         raise NotImplemented
 
     #
     #   Factory method
     #
     @classmethod
-    def create(cls, msg_type: Union[int, ContentType], currency: str, amount: float):
-        from ..dkd import BaseMoneyContent
-        return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
-
-
-class TransferContent(MoneyContent, ABC):
-    """
-        Transfer Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x41,
-            sn   : 123,
-
-            currency : "RMB",    // USD, USDT, ...
-            amount   : 100.00,
-            remitter : "{FROM}", // sender ID
-            remittee : "{TO}"    // receiver ID
-        }
-    """
-
-    @property
-    @abstractmethod
-    def remitter(self) -> ID:
-        raise NotImplemented
-
-    @remitter.setter
-    @abstractmethod
-    def remitter(self, sender: ID):
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def remittee(self) -> ID:
-        raise NotImplemented
-
-    @remittee.setter
-    @abstractmethod
-    def remittee(self, receiver: ID):
-        raise NotImplemented
-
-    #
-    #   Factory method
-    #
-    @classmethod
-    def transfer(cls, currency: str, amount: float):
-        from ..dkd import TransferMoneyContent
-        return TransferMoneyContent(currency=currency, amount=amount)
+    def create(cls, identifier: ID, name: str, avatar: Optional[PortableNetworkFile]):
+        from ..dkd import NameCardContent
+        return NameCardContent(identifier=identifier, name=name, avatar=avatar)

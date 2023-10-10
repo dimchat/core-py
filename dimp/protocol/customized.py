@@ -28,21 +28,49 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .envelope import MessageEnvelope
+from abc import ABC, abstractmethod
 
-from .base import BaseMessage
-from .instant import PlainMessage
-from .secure import EncryptedMessage
-from .reliable import NetworkMessage
+from dkd import Content
 
 
-__all__ = [
+class CustomizedContent(Content, ABC):
+    """
+        Application Customized message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    'MessageEnvelope',
+        data format: {
+            type : 0xCC,
+            sn   : 123,
 
-    'BaseMessage',
+            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
+            mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
+            act   : "{ACTION}",  // action name (e.g.: "throw")
+            extra : info         // action parameters
+        }
+    """
 
-    'PlainMessage',
-    'EncryptedMessage',
-    'NetworkMessage',
-]
+    @property
+    @abstractmethod
+    def application(self) -> str:
+        """ App ID """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def module(self) -> str:
+        """ Module Name """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def action(self) -> str:
+        """ Action Name """
+        raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, app: str, mod: str, act: str):
+        from ..dkd import AppCustomizedContent
+        return AppCustomizedContent(app=app, mod=mod, act=act)

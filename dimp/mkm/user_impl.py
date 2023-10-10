@@ -38,6 +38,9 @@ from .entity_impl import BaseEntity
 
 class BaseUser(BaseEntity, User):
 
+    # def __init__(self, identifier: ID):
+    #     super().__init__(identifier=identifier)
+
     @BaseEntity.data_source.getter  # Override
     def data_source(self) -> Optional[UserDataSource]:
         return super().data_source
@@ -51,6 +54,7 @@ class BaseUser(BaseEntity, User):
         doc = self.document()
         if isinstance(doc, Visa):
             return doc
+        assert doc is None, 'user document error: %s' % doc
 
     @property  # Override
     def contacts(self) -> List[ID]:
@@ -60,12 +64,10 @@ class BaseUser(BaseEntity, User):
 
     # Override
     def verify(self, data: bytes, signature: bytes) -> bool:
-        # NOTICE: I suggest using the private key paired with meta.key to sign message,
-        #         so here should return the meta.key
         barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
+        assert barrack is not None, 'user data source not set yet'
         keys = barrack.public_keys_for_verification(identifier=self.identifier)
-        # assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
+        assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
         for key in keys:
             if key.verify(data=data, signature=signature):
                 # matched!
@@ -75,32 +77,30 @@ class BaseUser(BaseEntity, User):
 
     # Override
     def encrypt(self, data: bytes) -> bytes:
+        barrack = self.data_source
+        assert barrack is not None, 'user data source not set yet'
         # NOTICE: meta.key will never changed, so use visa.key to encrypt message
         #         is the better way
-        barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
         key = barrack.public_key_for_encryption(identifier=self.identifier)
-        # assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
+        assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
         return key.encrypt(data=data)
 
     # Override
     def sign(self, data: bytes) -> bytes:
-        # NOTICE: I suggest use the private key which paired to meta.key
-        #         to sign message
         barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
+        assert barrack is not None, 'user data source not set yet'
         key = barrack.private_key_for_signature(identifier=self.identifier)
-        # assert key is not None, 'failed to get sign key for user: %s' % self.identifier
+        assert key is not None, 'failed to get sign key for user: %s' % self.identifier
         return key.sign(data=data)
 
     # Override
     def decrypt(self, data: bytes) -> Optional[bytes]:
+        barrack = self.data_source
+        assert barrack is not None, 'user data source not set yet'
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
-        barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
         keys = barrack.private_keys_for_decryption(identifier=self.identifier)
-        # assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
+        assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
             # try decrypting it with each private key
             plaintext = key.decrypt(data=data)
@@ -112,17 +112,14 @@ class BaseUser(BaseEntity, User):
 
     # Override
     def sign_visa(self, visa: Visa) -> Optional[Visa]:
-        # NOTICE: only sign visa with the private key paired with your meta.key
         assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
         barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
+        assert barrack is not None, 'user data source not set yet'
+        # NOTICE: only sign visa with the private key paired with your meta.key
         key = barrack.private_key_for_visa_signature(identifier=self.identifier)
-        if key is None:
-            # assert False, 'failed to get sign key for visa: %s' % self.identifier
-            return None
-        elif visa.sign(private_key=key) is None:
-            # assert False, 'failed to sign visa: %s, %s' % (self.identifier, visa)
-            return None
+        assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
+        if visa.sign(private_key=key) is None:
+            assert False, 'failed to sign visa: %s, %s' % (self.identifier, visa)
         else:
             return visa
 
@@ -133,7 +130,6 @@ class BaseUser(BaseEntity, User):
         if self.identifier != visa.identifier:
             # visa ID not match
             return False
-        # if meta not exists, user won't be created
-        key = self.meta.key
-        # assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
+        key = self.meta.public_key
+        assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
         return visa.verify(public_key=key)

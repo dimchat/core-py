@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao: Universal Message Module
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2021 by Moky <albert.moky@gmail.com>
 #
@@ -30,10 +30,10 @@
 
 from typing import Optional, Any, Dict
 
+from mkm.format import TransportableData
 from mkm import Meta, Document, Visa
 
-from dkd import SecureMessage, ReliableMessage
-from dkd import ReliableMessageFactory, ReliableMessageDelegate
+from dkd import ReliableMessage
 
 from .secure import EncryptedMessage
 
@@ -50,13 +50,13 @@ from .secure import EncryptedMessage
         receiver : "hulk@yyy",
         time     : 123,
         //-- content data and key/keys
-        data     : "...",  // base64_encode(symmetric)
-        key      : "...",  // base64_encode(asymmetric)
+        data     : "...",  // base64_encode( symmetric_encrypt(content))
+        key      : "...",  // base64_encode(asymmetric_encrypt(password))
         keys     : {
-            "ID1": "key1", // base64_encode(asymmetric)
+            "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
         },
         //-- signature
-        signature: "..."   // base64_encode()
+        signature: "..."   // base64_encode(asymmetric_sign(data))
     }
 """
 
@@ -66,77 +66,43 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def __init__(self, msg: Dict[str, Any]):
         super().__init__(msg=msg)
         # lazy
-        self.__signature = None
-        self.__meta = None
-        self.__visa = None
+        self.__signature: Optional[TransportableData] = None
+        self.__meta: Optional[Meta] = None
+        self.__visa: Optional[Visa] = None
 
     @property  # Override
     def signature(self) -> bytes:
-        if self.__signature is None:
-            base64 = self.get(key='signature')
-            if base64 is not None:
-                delegate = self.delegate
-                assert isinstance(delegate, ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
-                self.__signature = delegate.decode_signature(signature=base64, msg=self)
-                assert self.__signature is not None, 'message signature error: %s' % base64
-            # else:
-            #     assert False, 'signature of reliable message cannot be empty: %s' % self
-        return self.__signature
+        ted = self.__signature
+        if ted is None:
+            base64 = self.get('signature')
+            assert base64 is not None, 'message signature cannot be empty: %s' % self
+            self.__signature = ted = TransportableData.parse(base64)
+            assert ted is not None, 'failed to decode message signature: %s' % base64
+        if ted is not None:
+            return ted.data
 
     @property  # Override
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            self.__meta = Meta.parse(meta=self.get(key='meta'))
+            self.__meta = Meta.parse(meta=self.get('meta'))
         return self.__meta
 
     @meta.setter  # Override
     def meta(self, info: Meta):
-        self.set_map(key='meta', dictionary=info)
+        self.set_map(key='meta', value=info)
         self.__meta = info
 
     @property  # Override
     def visa(self) -> Optional[Visa]:
         if self.__visa is None:
-            doc = Document.parse(document=self.get(key='visa'))
+            doc = Document.parse(document=self.get('visa'))
             if isinstance(doc, Visa):
                 self.__visa = doc
-            # else:
-            #     assert False, 'visa document error: %s' % doc
+            else:
+                assert doc is None, 'visa document error: %s' % doc
         return self.__visa
 
     @visa.setter  # Override
     def visa(self, info: Visa):
-        self.set_map(key='visa', dictionary=info)
+        self.set_map(key='visa', value=info)
         self.__visa = info
-
-    # Override
-    def verify(self) -> Optional[SecureMessage]:
-        data = self.data
-        if data is None:
-            raise ValueError('failed to decode content data: %s' % self)
-        signature = self.signature
-        if signature is None:
-            raise ValueError('failed to decode message signature: %s' % self)
-        # 1. verify data signature
-        delegate = self.delegate
-        assert isinstance(delegate, ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
-        if delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
-            # 2. pack message
-            msg = self.copy_dictionary()
-            msg.pop('signature')  # remove 'signature'
-            return SecureMessage.parse(msg=msg)
-        # else:
-        #     # TODO: check whether visa is expired, query new document for this contact
-        #     raise ValueError('Signature error: %s' % self)
-
-
-class NetworkMessageFactory(ReliableMessageFactory):
-
-    # Override
-    def parse_reliable_message(self, msg: Dict[str, Any]) -> Optional[ReliableMessage]:
-        # check 'sender', 'data', 'signature'
-        if 'sender' in msg and 'data' in msg and 'signature' in msg:
-            return NetworkMessage(msg=msg)
-        # msg.sender should not be empty
-        # msg.data should not be empty
-        # msg.signature should not be empty

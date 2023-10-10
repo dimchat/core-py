@@ -81,7 +81,7 @@ class GroupCommand(HistoryCommand, ABC):
             time    : 0,                // timestamp
             group   : "{GROUP_ID}",     // group ID
             member  : "{MEMBER_ID}",    // member ID
-            members : ["{MEMBER_ID}",], // member ID list
+            members : ["{MEMBER_ID}",]  // member ID list
         }
     """
 
@@ -91,7 +91,7 @@ class GroupCommand(HistoryCommand, ABC):
     ABDICATE = "abdicate"
     # member
     INVITE = "invite"
-    EXPEL = "expel"
+    EXPEL = "expel"  # Deprecated (use 'reset' instead)
     JOIN = "join"
     QUIT = "quit"
     RESET = "reset"
@@ -116,7 +116,7 @@ class GroupCommand(HistoryCommand, ABC):
 
     @member.setter
     @abstractmethod
-    def member(self, user: ID):
+    def member(self, user: Optional[ID]):
         raise NotImplemented
 
     @property
@@ -126,12 +126,17 @@ class GroupCommand(HistoryCommand, ABC):
 
     @members.setter
     @abstractmethod
-    def members(self, users: List[ID]):
+    def members(self, users: Optional[List[ID]]):
         raise NotImplemented
 
     #
     #   Factory methods
     #
+
+    @classmethod
+    def create(cls, cmd: str, group: ID, member: ID = None, members: List[ID] = None):
+        from ..dkd import BaseGroupCommand
+        return BaseGroupCommand(cmd=cmd, group=group, member=member, members=members)
 
     @classmethod
     def invite(cls, group: ID, member: ID = None, members: List[ID] = None):
@@ -140,6 +145,7 @@ class GroupCommand(HistoryCommand, ABC):
 
     @classmethod
     def expel(cls, group: ID, member: ID = None, members: List[ID] = None):
+        """ Deprecated (use 'reset' instead) """
         from ..dkd import ExpelGroupCommand
         return ExpelGroupCommand(group=group, member=member, members=members)
 
@@ -163,25 +169,17 @@ class GroupCommand(HistoryCommand, ABC):
         from ..dkd import ResetGroupCommand
         return ResetGroupCommand(group=group, members=members)
 
-    # Administrator
+    # Administrators, Assistants
 
     @classmethod
-    def hire(cls, group: ID,
-             administrator: ID = None, administrators: List[ID] = None,
-             assistant: ID = None, assistants: List[ID] = None):
+    def hire(cls, group: ID, administrators: List[ID] = None, assistants: List[ID] = None):
         from ..dkd import HireGroupCommand
-        return HireGroupCommand(group=group,
-                                administrator=administrator, administrators=administrators,
-                                assistant=assistant, assistants=assistants)
+        return HireGroupCommand(group=group, administrators=administrators, assistants=assistants)
 
     @classmethod
-    def fire(cls, group: ID,
-             administrator: ID = None, administrators: List[ID] = None,
-             assistant: ID = None, assistants: List[ID] = None):
+    def fire(cls, group: ID, administrators: List[ID] = None, assistants: List[ID] = None):
         from ..dkd import FireGroupCommand
-        return FireGroupCommand(group=group,
-                                administrator=administrator, administrators=administrators,
-                                assistant=assistant, assistants=assistants)
+        return FireGroupCommand(group=group, administrators=administrators, assistants=assistants)
 
     @classmethod
     def resign(cls, group: ID):
@@ -196,6 +194,7 @@ class InviteCommand(GroupCommand, ABC):
 
 # noinspection PyAbstractClass
 class ExpelCommand(GroupCommand, ABC):
+    """ Deprecated (use 'reset' instead) """
     pass
 
 

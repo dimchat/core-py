@@ -31,8 +31,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from mkm import ID
-from dkd import Content
 from dkd import InstantMessage, SecureMessage, ReliableMessage
 
 
@@ -40,16 +38,6 @@ from dkd import InstantMessage, SecureMessage, ReliableMessage
 #   Message Packer
 #
 class Packer(ABC):
-
-    @abstractmethod
-    def overt_group(self, content: Content) -> Optional[ID]:
-        """
-        Get group ID which should be exposed to public network
-
-        :param content: message content
-        :return: exposed group ID
-        """
-        raise NotImplemented
 
     #
     #   InstantMessage -> SecureMessage -> ReliableMessage -> Data

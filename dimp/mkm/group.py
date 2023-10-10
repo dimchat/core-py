@@ -98,18 +98,18 @@ class Group(Entity, ABC):
                 owner
                 members
                 administrators - Optional
-                assistants     - Optional
+                assistants     - group bots
     """
 
-    @property
-    @abstractmethod
-    def data_source(self) -> Optional[GroupDataSource]:
-        raise NotImplemented
-
-    @data_source.setter
-    @abstractmethod
-    def data_source(self, delegate: GroupDataSource):
-        raise NotImplemented
+    # @property
+    # @abstractmethod
+    # def data_source(self) -> Optional[GroupDataSource]:
+    #     raise NotImplemented
+    #
+    # @data_source.setter
+    # @abstractmethod
+    # def data_source(self, delegate: GroupDataSource):
+    #     raise NotImplemented
 
     @property
     @abstractmethod

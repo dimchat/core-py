@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao: Universal Message Module
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -28,15 +28,16 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict, List
+from typing import Optional, Any, Dict, List
 
-from mkm.crypto import base64_encode, base64_decode
+from mkm.format import TransportableData, PortableNetworkFile
+from mkm.types import URI
 from mkm import ID
 from dkd import ContentType, Content
 from dkd import ReliableMessage
 
-from ..protocol import TextContent, ArrayContent, ForwardContent, CustomizedContent
-from ..protocol import PageContent, MoneyContent, TransferContent
+from ..protocol import TextContent, ArrayContent, ForwardContent
+from ..protocol import PageContent, NameCard
 
 from .base import BaseContent
 
@@ -90,64 +91,20 @@ class ListContent(BaseContent, ArrayContent):
             super().__init__(msg_type=ContentType.ARRAY)
         else:
             super().__init__(content=content)
-        self.__list = contents
+        # contents
         if contents is not None:
             self['contents'] = ArrayContent.revert(contents=contents)
+        self.__list = contents
 
     @property  # Override
     def contents(self) -> List[Content]:
         if self.__list is None:
-            array = self.get(key='contents')
+            array = self.get('contents')
             if array is None:
                 self.__list = []
             else:
                 self.__list = ArrayContent.convert(contents=array)
         return self.__list
-
-
-class AppCustomizedContent(BaseContent, CustomizedContent):
-    """
-        Application Customized message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0xCC,
-            sn   : 123,
-
-            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
-            mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
-            act   : "{ACTION}",  // action name (e.g.: "throw")
-            extra : info         // action parameters
-        }
-    """
-
-    def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
-                 app: str = None, mod: str = None, act: str = None):
-        if content is None:
-            if msg_type is None:
-                msg_type = ContentType.CUSTOMIZED
-            super().__init__(msg_type=msg_type)
-        else:
-            super().__init__(content=content)
-        if app is not None:
-            self['app'] = app
-        if mod is not None:
-            self['mod'] = mod
-        if act is not None:
-            self['act'] = act
-
-    @property  # Override
-    def application(self) -> str:
-        return self.get_str(key='app', default='')
-
-    @property  # Override
-    def module(self) -> str:
-        return self.get_str(key='mod', default='')
-
-    @property  # Override
-    def action(self) -> str:
-        return self.get_str(key='act', default='')
 
 
 class SecretContent(BaseContent, ForwardContent):
@@ -171,12 +128,14 @@ class SecretContent(BaseContent, ForwardContent):
             super().__init__(msg_type=ContentType.FORWARD)
         else:
             super().__init__(content=content)
-        self.__forward = message
-        self.__secrets = messages
+        # forward
         if message is not None:
             self['forward'] = message.dictionary
+        self.__forward = message
+        # secrets
         if messages is not None:
             self['secrets'] = ForwardContent.revert(messages=messages)
+        self.__secrets = messages
 
     #
     #   forward (top-secret message)
@@ -184,7 +143,7 @@ class SecretContent(BaseContent, ForwardContent):
     @property  # Override
     def forward(self) -> ReliableMessage:
         if self.__forward is None:
-            msg = self.get(key='forward')
+            msg = self.get('forward')
             self.__forward = ReliableMessage.parse(msg=msg)
             # assert msg is not None, 'forward message not found: %s' % self.dictionary
         return self.__forward
@@ -192,7 +151,7 @@ class SecretContent(BaseContent, ForwardContent):
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:
         if self.__secrets is None:
-            messages = self.get(key='secrets')
+            messages = self.get('secrets')
             if messages is None:
                 # get from 'forward'
                 msg = self.forward
@@ -223,34 +182,30 @@ class WebPageContent(BaseContent, PageContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 url: str = None, title: str = None,
-                 desc: Optional[str] = None, icon: Union[bytes, str, None] = None):
+                 url: URI = None, title: str = None,
+                 desc: Optional[str] = None, icon: Optional[TransportableData] = None):
         if content is None:
             super().__init__(msg_type=ContentType.PAGE)
+            self['URL'] = url
+            self['title'] = title
+            if desc is not None:
+                self['desc'] = desc
+            self.__icon = None
+            if icon is not None:
+                self.set_icon(icon)
         else:
             super().__init__(content=content)
-        if url is not None:
-            self['URL'] = url
-        if title is not None:
-            self['title'] = title
-        if desc is not None:
-            self['desc'] = desc
-        if icon is None:
-            self.__icon = None
-        elif isinstance(icon, bytes):
-            self['icon'] = base64_encode(data=icon)
-            self.__icon = icon
-        else:
-            assert isinstance(icon, str), 'Page icon error: %s' % icon
-            self['icon'] = icon
-            self.__icon = None
+            # lazy
+            self.__icon: Optional[TransportableData] = None
 
     @property  # Override
-    def url(self) -> str:
-        return self.get_str(key='URL')
+    def url(self) -> URI:
+        # TODO: convert str to URI
+        return self.get_str(key='URL', default=None)
 
     @url.setter  # Override
-    def url(self, string: str):
+    def url(self, string: URI):
+        # TODO: convert URI to str
         self['URL'] = string
 
     @property  # Override
@@ -263,7 +218,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def desc(self) -> Optional[str]:
-        return self.get_str(key='desc')
+        return self.get_str(key='desc', default=None)
 
     @desc.setter  # Override
     def desc(self, string: Optional[str]):
@@ -274,94 +229,76 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def icon(self) -> Optional[bytes]:
-        if self.__icon is None:
-            base64 = self.get_str(key='icon')
-            if base64 is not None:
-                self.__icon = base64_decode(string=base64)
-        return self.__icon
+        ted = self.__icon
+        if ted is None:
+            base64 = self.get('icon')
+            self.__icon = ted = TransportableData.parse(base64)
+        if ted is not None:
+            return ted.data
 
     @icon.setter
     def icon(self, image: Optional[bytes]):
-        if image is None:
-            self.pop('icon', None)
+        if image is None or len(image) == 0:
+            ted = None
         else:
-            self['icon'] = base64_encode(data=image)
-        self.__icon = image
+            ted = TransportableData.create(data=image)
+        self.set_icon(ted)
+
+    def set_icon(self, ted: Optional[TransportableData]):
+        if ted is None:
+            self.pop('icon')
+        else:
+            self['icon'] = ted.object
+        self.__icon = ted
 
 
-class BaseMoneyContent(BaseContent, MoneyContent):
+class NameCardContent(BaseContent, NameCard):
     """
-        Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
+        Name Card Content
+        ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x40,
+            type : 0x33,
             sn   : 123,
 
-            currency : "RMB", // USD, USDT, ...
-            amount   : 100.00
+            ID     : "{ID}",        // contact's ID
+            name   : "{nickname}}", // contact's name
+            avatar : "{URL}"        // avatar - PNF(URL)
         }
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
-                 currency: str = None, amount: float = 0.0):
-        if content is None and msg_type is None:
-            msg_type = ContentType.MONEY
-        super().__init__(content=content, msg_type=msg_type)
-        # set values to inner dictionary
-        if currency is not None:
-            self['currency'] = currency
-        if amount > 0:
-            self['amount'] = amount
+                 identifier: ID = None,
+                 name: str = None, avatar: Optional[PortableNetworkFile] = None):
+        if content is None:
+            super().__init__(msg_type=ContentType.NAME_CARD)
+            # ID
+            self.set_string(key='ID', value=identifier)
+            self.__id = identifier
+            # name
+            self['name'] = name
+            if avatar is not None:
+                self['avatar'] = avatar.object
+            self.__avatar = avatar
+        else:
+            super().__init__(content=content)
+            # lazy load
+            self.__id = None
+            self.__avatar = None
 
     @property  # Override
-    def currency(self) -> str:
-        return self.get_str(key='currency', default='')
+    def identifier(self) -> ID:
+        if self.__id is None:
+            self.__id = ID.parse(identifier=self.get('ID'))
+        return self.__id
 
     @property  # Override
-    def amount(self) -> float:
-        return self.get_float(key='amount')
-
-    @amount.setter  # Override
-    def amount(self, value: float):
-        self['amount'] = value
-
-
-class TransferMoneyContent(BaseMoneyContent, TransferContent):
-    """
-        Transfer Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x41,
-            sn   : 123,
-
-            currency : "RMB",    // USD, USDT, ...
-            amount   : 100.00,
-            remitter : "{FROM}", // sender ID
-            remittee : "{TO}"    // receiver ID
-        }
-    """
-
-    def __init__(self, content: Dict[str, Any] = None,
-                 currency: str = None, amount: float = 0.0):
-        super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
+    def name(self) -> str:
+        return self.get_str(key='name', default='')
 
     @property  # Override
-    def remitter(self) -> Optional[ID]:
-        sender = self.get(key='remitter')
-        return ID.parse(identifier=sender)
-
-    @remitter.setter  # Override
-    def remitter(self, sender: Optional[ID]):
-        self.set_string(key='remitter', string=sender)
-
-    @property  # Override
-    def remittee(self) -> Optional[ID]:
-        receiver = self.get(key='remittee')
-        return ID.parse(identifier=receiver)
-
-    @remittee.setter  # Override
-    def remittee(self, receiver: Optional[ID]):
-        self.set_string(key='remittee', string=receiver)
+    def avatar(self) -> Optional[PortableNetworkFile]:
+        if self.__avatar is None:
+            url = self.get('avatar')
+            self.__avatar = PortableNetworkFile.parse(url)
+        return self.__avatar

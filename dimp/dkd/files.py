@@ -30,11 +30,13 @@
 
 from typing import Optional, Union, Any, Dict
 
-from mkm.crypto import base64_encode, base64_decode
-from mkm.crypto import SymmetricKey
+from mkm.format import TransportableData
+from mkm.types import URI
+from mkm.crypto import DecryptKey
 
 from dkd import ContentType
 
+from ..crypto import BaseFileWrapper
 from ..protocol import FileContent, ImageContent, AudioContent, VideoContent
 
 from .contents import BaseContent
@@ -57,75 +59,60 @@ class BaseFileContent(BaseContent, FileContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  msg_type: Union[int, ContentType] = None,
-                 filename: Optional[str] = None, data: Union[bytes, str, None] = None):
-        if content is None and msg_type is None:
-            msg_type = ContentType.FILE
-        super().__init__(content=content, msg_type=msg_type)
-        # file name
-        if filename is not None:
-            self['filename'] = filename
-        # file data (encoded or binary)
-        if data is None:
-            self.__attachment = None
-        elif isinstance(data, bytes):
-            self.__attachment = data
-            self['data'] = base64_encode(data=data)
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        if content is None:
+            if msg_type is None:
+                msg_type = ContentType.FILE
+            super().__init__(msg_type=msg_type)
+            # access via the wrapper
+            wrapper = BaseFileWrapper(dictionary=self.dictionary)
+            if data is not None:
+                wrapper.data = data
+            if filename is not None:
+                wrapper.filename = filename
+            if url is not None:
+                wrapper.url = url
+            if password is not None:
+                wrapper.password = password
+            self.__wrapper = wrapper
         else:
-            assert isinstance(data, str), 'encode file data error: %s' % data
-            self.__attachment = None
-            self['data'] = data
-        # symmetric key for decryption
-        self.__password = None
-
-    @property  # Override
-    def url(self) -> Optional[str]:
-        return self.get_str(key='URL')
-
-    @url.setter  # Override
-    def url(self, string: str):
-        if string is None:
-            self.pop('URL', None)
-        else:
-            self['URL'] = string
+            super().__init__(content=content)
+            self.__wrapper = BaseFileWrapper(dictionary=self.dictionary)
 
     @property  # Override
     def data(self) -> Optional[bytes]:
-        if self.__attachment is None:
-            base64 = self.get_str(key='data')
-            if base64 is not None:
-                self.__attachment = base64_decode(base64)
-                assert self.__attachment is not None, 'file data error: %s' % base64
-        return self.__attachment
+        ted = self.__wrapper.data
+        if ted is not None:
+            return ted.data
 
     @data.setter  # Override
     def data(self, attachment: bytes):
-        if attachment is None:
-            self.pop('data', None)
-        else:
-            self['data'] = base64_encode(attachment)
-        self.__attachment = attachment
+        self.__wrapper.set_data(attachment)
 
     @property  # Override
     def filename(self) -> Optional[str]:
-        return self.get_str(key='filename')
+        return self.__wrapper.filename
 
     @filename.setter  # Override
-    def filename(self, string: str):
-        if string is None:
-            self.pop('filename', None)
-        else:
-            self['filename'] = string
+    def filename(self, name: str):
+        self.__wrapper.filename = name
 
     @property  # Override
-    def password(self) -> Optional[SymmetricKey]:
-        if self.__password is None:
-            self.__password = SymmetricKey.parse(key=self.get(key='password'))
-        return self.__password
+    def url(self) -> Optional[URI]:
+        return self.__wrapper.url
+
+    @url.setter  # Override
+    def url(self, remote: str):
+        self.__wrapper.url = remote
+
+    @property  # Override
+    def password(self) -> Optional[DecryptKey]:
+        return self.__wrapper.password
 
     @password.setter  # Override
-    def password(self, key: SymmetricKey):
-        self.set_map(key='password', dictionary=key)
-        self.__password = key
+    def password(self, key: DecryptKey):
+        self.__wrapper.password = key
 
 
 class ImageFileContent(BaseFileContent, ImageContent):
@@ -145,28 +132,33 @@ class ImageFileContent(BaseFileContent, ImageContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 filename: Optional[str] = None, data: Union[bytes, str, None] = None):
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.IMAGE if content is None else None
-        super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
+        super().__init__(content=content, msg_type=msg_type,
+                         data=data, filename=filename,
+                         url=url, password=password)
         # lazy load
-        self.__thumbnail = None
+        self.__thumbnail: Optional[TransportableData] = None
 
     @property  # Override
     def thumbnail(self) -> Optional[bytes]:
-        if self.__thumbnail is None:
-            base64 = self.get_str(key='thumbnail')
-            if base64 is not None:
-                self.__thumbnail = base64_decode(base64)
-                assert self.__thumbnail is not None, 'image thumbnail error: %s' % base64
-        return self.__thumbnail
+        ted = self.__thumbnail
+        if ted is None:
+            base64 = self.get('thumbnail')
+            self.__thumbnail = ted = TransportableData.parse(base64)
+        if ted is not None:
+            return ted.data
 
     @thumbnail.setter  # Override
-    def thumbnail(self, small_image: bytes):
-        if small_image is None:
+    def thumbnail(self, image: bytes):
+        if image is None:  # or len(image) == 0:
             self.pop('thumbnail', None)
+            ted = None
         else:
-            self['thumbnail'] = base64_encode(small_image)
-        self.__thumbnail = small_image
+            ted = TransportableData.create(data=image)
+            self['thumbnail'] = ted.object
+        self.__thumbnail = ted
 
 
 class AudioFileContent(BaseFileContent, AudioContent):
@@ -186,13 +178,16 @@ class AudioFileContent(BaseFileContent, AudioContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 filename: Optional[str] = None, data: Union[bytes, str, None] = None):
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.AUDIO if content is None else None
-        super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
+        super().__init__(content=content, msg_type=msg_type,
+                         data=data, filename=filename,
+                         url=url, password=password)
 
     @property  # Override
     def text(self) -> Optional[str]:
-        return self.get_str(key='text')
+        return self.get_str(key='text', default=None)
 
     @text.setter  # Override
     def text(self, asr: str):
@@ -216,25 +211,30 @@ class VideoFileContent(BaseFileContent, VideoContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 filename: Optional[str] = None, data: Union[bytes, str, None] = None):
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.VIDEO if content is None else None
-        super().__init__(content=content, msg_type=msg_type, filename=filename, data=data)
+        super().__init__(content=content, msg_type=msg_type,
+                         data=data, filename=filename,
+                         url=url, password=password)
         # lazy load
-        self.__snapshot = None
+        self.__snapshot: Optional[TransportableData] = None
 
     @property  # Override
     def snapshot(self) -> Optional[bytes]:
-        if self.__snapshot is None:
-            base64 = self.get_str(key='snapshot')
-            if base64 is not None:
-                self.__snapshot = base64_decode(base64)
-                assert self.__snapshot is not None, 'video snapshot error: %s' % base64
-        return self.__snapshot
+        ted = self.__snapshot
+        if ted is None:
+            base64 = self.get('snapshot')
+            self.__snapshot = ted = TransportableData.parse(base64)
+        if ted is not None:
+            return ted.data
 
     @snapshot.setter  # Override
-    def snapshot(self, small_image: bytes):
-        if small_image is None:
+    def snapshot(self, image: bytes):
+        if image is None:  # or len(image) == 0:
             self.pop('snapshot', None)
+            ted = None
         else:
-            self['snapshot'] = base64_encode(small_image)
-        self.__snapshot = small_image
+            ted = TransportableData.create(data=image)
+            self['snapshot'] = ted.object
+        self.__snapshot = ted

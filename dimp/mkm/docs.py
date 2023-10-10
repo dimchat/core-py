@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Ming-Ke-Ming : Decentralized User Identity Authentication
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -28,13 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict, List
+from typing import Optional, Any, Dict, List
 
-from mkm.crypto import PublicKey, EncryptKey, VerifyKey
-from mkm.factory import AccountFactoryManager
-from mkm.types import Converter
+from mkm.crypto import PublicKey, EncryptKey
+from mkm.format import TransportableData
+from mkm.format import PortableNetworkFile
 from mkm import ID
-from mkm import Document, DocumentFactory
+from mkm import Document
 from mkm import Visa, Bulletin
 
 from .document import BaseDocument
@@ -44,10 +44,11 @@ class BaseVisa(BaseDocument, Visa):
 
     def __init__(self, document: Optional[Dict[str, Any]] = None,
                  identifier: Optional[ID] = None,
-                 data: Optional[str] = None, signature: Union[bytes, str, None] = None):
+                 data: Optional[str] = None, signature: Optional[TransportableData] = None):
         super().__init__(document, doc_type=Document.VISA, identifier=identifier, data=data, signature=signature)
         # lazy
-        self.__key = None
+        self.__key: Optional[EncryptKey] = None
+        self.__avatar: Optional[PortableNetworkFile] = None
 
     """
         Public Key for encryption
@@ -57,20 +58,22 @@ class BaseVisa(BaseDocument, Visa):
     """
 
     @property  # Override
-    def key(self) -> Union[EncryptKey, VerifyKey, None]:
+    def public_key(self) -> Optional[EncryptKey]:
         if self.__key is None:
             info = self.get_property(key='key')
-            if info is not None:
-                pub = PublicKey.parse(key=info)
-                if isinstance(pub, EncryptKey):
-                    self.__key = pub
-                assert self.__key is not None, 'visa key error: %s' % info
+            # assert info is not None, 'visa key not found: %s' % self.dictionary
+            pub = PublicKey.parse(key=info)
+            if isinstance(pub, EncryptKey):
+                self.__key = pub
+            else:
+                assert info is None, 'visa key error: %s' % info
         return self.__key
 
-    @key.setter  # Override
-    def key(self, value: Union[EncryptKey, VerifyKey]):
-        self.set_property(key='key', value=value.dictionary)
-        self.__key = value
+    @public_key.setter  # Override
+    def public_key(self, key: EncryptKey):
+        info = None if key is None else key.dictionary
+        self.set_property(key='key', value=info)
+        self.__key = key
 
     """
         Avatar
@@ -78,22 +81,27 @@ class BaseVisa(BaseDocument, Visa):
     """
 
     @property  # Override
-    def avatar(self) -> Optional[str]:
-        return self.get_property(key='avatar')
+    def avatar(self) -> Optional[PortableNetworkFile]:
+        if self.__avatar is None:
+            url = self.get_property(key='avatar')
+            self.__avatar = PortableNetworkFile.parse(url)
+        return self.__avatar
 
     @avatar.setter  # Override
-    def avatar(self, value: str):
-        self.set_property(key='avatar', value=value)
+    def avatar(self, url: PortableNetworkFile):
+        info = None if url is None else url.object
+        self.set_property(key='avatar', value=info)
+        self.__avatar = url
 
 
 class BaseBulletin(BaseDocument, Bulletin):
 
     def __init__(self, document: Optional[Dict[str, Any]] = None,
                  identifier: Optional[ID] = None,
-                 data: Optional[str] = None, signature: Union[bytes, str, None] = None):
+                 data: Optional[str] = None, signature: Optional[TransportableData] = None):
         super().__init__(document, doc_type=Document.BULLETIN, identifier=identifier, data=data, signature=signature)
         # lazy
-        self.__bots = None
+        self.__bots: Optional[List[ID]] = None
 
     @property  # Override
     def founder(self) -> Optional[ID]:
@@ -103,73 +111,18 @@ class BaseBulletin(BaseDocument, Bulletin):
     def assistants(self) -> Optional[List[ID]]:
         if self.__bots is None:
             bots = self.get_property(key='assistants')
-            if bots is not None:
-                self.__bots = ID.convert(array=bots)
+            if bots is None:
+                # get from 'assistant'
+                ass = self.get_property(key='assistant')
+                bot = ID.parse(identifier=ass)
+                self.__bots = [] if bot is None else [bot]
+            else:
+                self.__bots = ID.convert(bots)
         return self.__bots
 
     @assistants.setter  # Override
     def assistants(self, bots: List[ID]):
-        if bots is not None and len(bots) > 0:
-            bots = ID.revert(array=bots)
-        self.set_property(key='assistants', value=bots)
+        array = None if bots is None else ID.revert(bots)
+        self.set_property(key='assistants', value=array)
+        self.set_property(key='assistant', value=None)
         self.__bots = bots
-
-    @property  # Override
-    def created_time(self) -> Optional[float]:
-        timestamp = self.get_property(key='created_time')
-        return Converter.get_time(value=timestamp)
-
-    @property  # Override
-    def modified_time(self) -> Optional[float]:
-        timestamp = self.get_property(key='modified_time')
-        if timestamp is None:
-            return self.time
-        return Converter.get_time(value=timestamp)
-
-
-class BaseDocumentFactory(DocumentFactory):
-
-    def __init__(self, doc_type: str):
-        super().__init__()
-        self.__type = doc_type
-
-    # Override
-    def create_document(self, identifier: ID, data: Optional[str], signature: Union[bytes, str, None]) -> Document:
-        doc_type = get_doc_type(doc_type=self.__type, identifier=identifier)
-        if doc_type == Document.BULLETIN:
-            return BaseBulletin(identifier=identifier, data=data, signature=signature)
-        elif doc_type == Document.VISA:
-            return BaseVisa(identifier=identifier, data=data, signature=signature)
-        else:
-            return BaseDocument(doc_type=doc_type, identifier=identifier, data=data, signature=signature)
-
-    # Override
-    def parse_document(self, document: Dict[str, Any]) -> Optional[Document]:
-        identifier = ID.parse(identifier=document.get('ID'))
-        if identifier is not None:
-            # check document type
-            gf = AccountFactoryManager.general_factory
-            doc_type = gf.get_document_type(document=document)
-            if doc_type is None:
-                doc_type = get_doc_type(doc_type='*', identifier=identifier)
-            # create with document type
-            if doc_type == Document.BULLETIN:
-                return BaseBulletin(document=document)
-            elif doc_type == Document.VISA:
-                return BaseVisa(document=document)
-            else:
-                return BaseDocument(document=document)
-        # else:
-        #     assert False, 'document ID not found: %s' % document
-
-
-def get_doc_type(doc_type: str, identifier: ID) -> str:
-    if doc_type == '*':
-        if identifier.is_group:
-            return Document.BULLETIN
-        elif identifier.is_user:
-            return Document.VISA
-        else:
-            return Document.PROFILE
-    else:
-        return doc_type

@@ -37,29 +37,107 @@
        2nd, if they were updated, we can refresh them immediately here
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
 from mkm import EntityType, ID, ANYONE, FOUNDER
 from mkm import Visa, Bulletin
 
+from .mkm import User, Group
 from .mkm import EntityDelegate, UserDataSource, GroupDataSource
 
 
-# noinspection PyAbstractClass
 class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
 
-    def __visa_key(self, identifier: ID) -> Optional[EncryptKey]:
+    def __init__(self):
+        super().__init__()
+        # memory caches
+        self.__users = {}   # ID -> User
+        self.__groups = {}  # ID -> Group
+
+    # protected
+    def cache_user(self, user: User):
+        if user.data_source is None:
+            user.data_source = self
+        self.__users[user.identifier] = user
+
+    # protected
+    def cache_group(self, group: Group):
+        if group.data_source is None:
+            group.data_source = self
+        self.__groups[group.identifier] = group
+
+    def reduce_memory(self) -> int:
+        """
+        Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+        this will remove 50% of cached objects
+
+        :return: number of survivors
+        """
+        finger = 0
+        finger = thanos(self.__users, finger)
+        finger = thanos(self.__groups, finger)
+        return finger >> 1
+
+    @abstractmethod  # protected
+    def create_user(self, identifier: ID) -> Optional[User]:
+        """
+        Create user when visa.key exists
+
+        :param identifier: user ID
+        :return: user, None on not ready
+        """
+        raise NotImplemented
+
+    @abstractmethod  # protected
+    def create_group(self, identifier: ID) -> Optional[Group]:
+        """
+        Create group when members exist
+
+        :param identifier: group ID
+        :return: group, None on not ready
+        """
+        raise NotImplemented
+
+    # protected
+    def visa_key(self, identifier: ID) -> Optional[EncryptKey]:
         visa = self.document(identifier=identifier)
         if isinstance(visa, Visa):
             if visa.valid:
-                return visa.key
+                return visa.public_key
 
-    def __meta_key(self, identifier: ID) -> Optional[VerifyKey]:
+    # protected
+    def meta_key(self, identifier: ID) -> Optional[VerifyKey]:
         meta = self.meta(identifier=identifier)
         if meta is not None:
-            return meta.key
+            return meta.public_key
+
+    #
+    #   Entity Delegate
+    #
+
+    # Override
+    def user(self, identifier: ID) -> Optional[User]:
+        # 1. get from user cache
+        usr = self.__users.get(identifier)
+        if usr is None:
+            # 2. create and cache it
+            usr = self.create_user(identifier=identifier)
+            if usr is not None:
+                self.cache_user(user=usr)
+        return usr
+
+    # Override
+    def group(self, identifier: ID) -> Optional[Group]:
+        # 1. get from group cache
+        grp = self.__groups.get(identifier)
+        if grp is None:
+            # 2. create and cache it
+            grp = self.create_group(identifier=identifier)
+            if grp is not None:
+                self.cache_group(group=grp)
+        return grp
 
     #
     #   UserDataSource
@@ -68,12 +146,12 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
     # Override
     def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
         # 1. get key from visa
-        key = self.__visa_key(identifier=identifier)
+        key = self.visa_key(identifier=identifier)
         if key is not None:
             # if visa.key exists, use it for encryption
             return key
         # 2. get key from meta
-        key = self.__meta_key(identifier=identifier)
+        key = self.meta_key(identifier=identifier)
         if isinstance(key, EncryptKey):
             # if visa.key not exists and meta.key is encrypt key,
             # use it for encryption
@@ -82,17 +160,17 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
     # Override
     def public_keys_for_verification(self, identifier: ID) -> List[VerifyKey]:
         keys = []
-        # 1. get key from visa
-        key = self.__visa_key(identifier=identifier)
-        if isinstance(key, VerifyKey):
-            # the sender may use communication key to sign message.data,
-            # so try to verify it with visa.key here
-            keys.append(key)
-        # 2. get key from meta
-        key = self.__meta_key(identifier=identifier)
+        # 1. get key from meta
+        key = self.meta_key(identifier=identifier)
         if key is not None:
             # the sender may use identity key to sign message.data,
             # try to verify it with meta.key
+            keys.append(key)
+        # 2. get key from visa
+        key = self.visa_key(identifier=identifier)
+        if isinstance(key, VerifyKey):
+            # the sender may use communication key to sign message.data,
+            # so try to verify it with visa.key here
             keys.append(key)
         assert len(keys) > 0, 'failed to get verify key for user: %s' % identifier
         return keys
@@ -149,7 +227,7 @@ def group_seed(group: ID) -> Optional[str]:
     name = group.name
     if name is not None:
         length = len(name)
-        if length > 0 and (length != 8 or name != 'everyone'):
+        if length > 0 and (length != 8 or name.lower() != 'everyone'):
             return name
 
 
@@ -189,3 +267,13 @@ def broadcast_members(group: ID) -> List[ID]:
         owner = ID.parse(identifier=name + '.owner@anywhere')
         member = ID.parse(identifier=name + '.member@anywhere')
         return [owner, member]
+
+
+def thanos(planet: dict, finger: int) -> int:
+    """ Thanos can kill half lives of a world with a snap of the finger """
+    people = planet.keys()
+    for anybody in people:
+        if (++finger & 1) == 1:
+            # kill it
+            planet.pop(anybody)
+    return finger

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao: Universal Message Module
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -50,9 +50,9 @@
 """
 
 
-import weakref
 from typing import Optional, Any, Dict
 
+from mkm.types import DateTime
 from mkm.types import Dictionary
 from mkm import ID
 
@@ -71,15 +71,6 @@ class BaseMessage(Dictionary, Message):
         self.__delegate = None
 
     @property  # Override
-    def delegate(self):  # -> Optional[Delegate]:
-        if self.__delegate is not None:
-            return self.__delegate()
-
-    @delegate.setter  # Override
-    def delegate(self, handler):
-        self.__delegate = weakref.ref(handler)
-
-    @property  # Override
     def envelope(self) -> Envelope:
         if self.__envelope is None:
             # let envelope share the same dictionary with message
@@ -95,7 +86,7 @@ class BaseMessage(Dictionary, Message):
         return self.envelope.receiver
 
     @property  # Override
-    def time(self) -> float:
+    def time(self) -> Optional[DateTime]:
         return self.envelope.time
 
     @property  # Override
@@ -105,3 +96,14 @@ class BaseMessage(Dictionary, Message):
     @property  # Override
     def type(self) -> Optional[int]:
         return self.envelope.type
+
+    @classmethod
+    def is_broadcast(cls, msg: Message) -> bool:
+        if msg.receiver.is_broadcast:
+            return True
+        # check exposed group
+        overt_group = msg.get('group')
+        if overt_group is None:
+            return False
+        group = ID.parse(identifier=overt_group)
+        return group is not None and group.is_broadcast

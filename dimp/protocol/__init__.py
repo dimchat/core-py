@@ -38,17 +38,18 @@
 from mkm.protocol import *
 from dkd.protocol import *
 
-from .contents import TextContent, ArrayContent, ForwardContent, CustomizedContent
-from .contents import PageContent, MoneyContent, TransferContent
+from .contents import TextContent, ArrayContent, ForwardContent
+from .contents import PageContent, NameCard
 from .files import FileContent, ImageContent, AudioContent, VideoContent
+from .money import MoneyContent, TransferContent
+from .customized import CustomizedContent
 
 from .commands import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
 from .receipt import ReceiptCommand, ReceiptCommandMixIn
 
 from .groups import HistoryCommand, GroupCommand
-from .groups import InviteCommand, ExpelCommand, JoinCommand
-from .groups import QuitCommand, QueryCommand, ResetCommand
+from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 from .groups import HireCommand, FireCommand, ResignCommand
 
 __all__ = [
@@ -61,6 +62,7 @@ __all__ = [
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
     'Meta', 'MetaFactory',
+    # 'TAI',
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
 
@@ -72,22 +74,21 @@ __all__ = [
 
     'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
     #   DaoKeDao protocol extends
     #
-    'TextContent', 'ForwardContent', 'ArrayContent',
-    'MoneyContent', 'TransferContent',
+    'TextContent', 'ArrayContent', 'ForwardContent',
+    'PageContent', 'NameCard',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
-    'PageContent', 'CustomizedContent',
+    'MoneyContent', 'TransferContent',
+    'CustomizedContent',
 
     'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand', 'ReceiptCommandMixIn',
 
     'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand',
-    'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
 ]

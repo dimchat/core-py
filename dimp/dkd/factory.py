@@ -30,9 +30,8 @@
 
 from typing import Optional, Any, Dict
 
-from mkm.types import Wrapper
-
-from dkd.factory import MessageFactoryManager
+from mkm.types import Wrapper, Converter
+from dkd import MessageFactoryManager
 
 from ..protocol import Command, CommandFactory
 
@@ -50,8 +49,8 @@ class CommandGeneralFactory:
         return self.__command_factories.get(cmd)
 
     # noinspection PyMethodMayBeStatic
-    def get_cmd(self, content: Dict[str, Any]) -> Optional[str]:
-        return content.get('command')
+    def get_cmd(self, content: Dict[str, Any], default: Optional[str]) -> Optional[str]:
+        return Converter.get_str(value=content.get('command'), default=default)
 
     def parse_command(self, content: Any) -> Optional[Command]:
         if content is None:
@@ -63,21 +62,24 @@ class CommandGeneralFactory:
             # assert False, 'command content error: %s' % content
             return None
         # get factory by command name
-        cmd = self.get_cmd(content=info)
-        factory = None if cmd is None else self.get_command_factory(cmd=cmd)
+        cmd = self.get_cmd(content=info, default='')
+        assert len(cmd) > 0, 'command name not found: %s' % content
+        factory = self.get_command_factory(cmd=cmd)
         if factory is None:
             # unknown command name, get base command factory
-            gf = MessageFactoryManager.general_factory
-            msg_type = gf.get_content_type(content=info)
-            if msg_type is not None:
-                fact = gf.get_content_factory(msg_type=msg_type)
-                if isinstance(fact, CommandFactory):
-                    factory = fact
-                else:
-                    assert False, 'cannot parse command: %s' % info
-            else:
-                assert False, 'content type not found: %s' % info
-        return factory.parse_command(content=info)
+            factory = default_factory(info=info)
+            assert factory is not None, 'cannot parse command: %s' % content
+        if factory is not None:
+            return factory.parse_command(content=info)
+
+
+def default_factory(info: Dict[str, Any]) -> Optional[CommandFactory]:
+    gf = MessageFactoryManager.general_factory
+    msg_type = gf.get_content_type(content=info, default=0)
+    fact = gf.get_content_factory(msg_type=msg_type)
+    if isinstance(fact, CommandFactory):
+        return fact
+    # assert False, 'cannot parse command: %s' % info
 
 
 # Singleton

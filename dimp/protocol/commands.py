@@ -212,7 +212,7 @@ class DocumentCommand(MetaCommand, ABC):
         return BaseDocumentCommand(identifier=identifier, signature=signature)
 
     @classmethod
-    def response(cls, document: Document, meta: Meta = None, identifier: ID = None):
+    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: ID = None):
         """
         1. Send Meta and Document to new friend
         2. Response Entity Document

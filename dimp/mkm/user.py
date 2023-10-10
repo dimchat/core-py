@@ -142,15 +142,15 @@ class User(Entity, ABC):
             4. decrypt(data) - decrypt (symmetric key) data
     """
 
-    @property
-    @abstractmethod
-    def data_source(self) -> Optional[UserDataSource]:
-        raise NotImplemented
-
-    @data_source.setter
-    @abstractmethod
-    def data_source(self, delegate: UserDataSource):
-        raise NotImplemented
+    # @property
+    # @abstractmethod
+    # def data_source(self) -> Optional[UserDataSource]:
+    #     raise NotImplemented
+    #
+    # @data_source.setter
+    # @abstractmethod
+    # def data_source(self, delegate: UserDataSource):
+    #     raise NotImplemented
 
     @property
     @abstractmethod
@@ -182,7 +182,8 @@ class User(Entity, ABC):
 
     @abstractmethod
     def encrypt(self, data: bytes) -> bytes:
-        """Encrypt data, try visa.key first, if not found, use meta.key
+        """
+        Encrypt data, try visa.key first, if not found, use meta.key
 
         :param data: plaintext
         :return: encrypted data

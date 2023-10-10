@@ -45,8 +45,8 @@ class BaseEntity(Entity):
         :param identifier: User/Group ID
         """
         super().__init__()
-        self.__identifier = identifier
-        self.__data_source = None
+        self.__id = identifier
+        self.__barrack = None
 
     # Override
     def __str__(self):
@@ -65,7 +65,7 @@ class BaseEntity(Entity):
                 return True
             other = other.identifier
         # check with ID
-        return self.__identifier.__eq__(other)
+        return self.__id.__eq__(other)
 
     # Override
     def __ne__(self, other) -> bool:
@@ -76,34 +76,34 @@ class BaseEntity(Entity):
                 return False
             other = other.identifier
         # check with ID
-        return self.__identifier.__ne__(other)
+        return self.__id.__ne__(other)
 
     @property  # Override
     def data_source(self) -> Optional[EntityDataSource]:
-        if self.__data_source is not None:
-            return self.__data_source()
+        if self.__barrack is not None:
+            return self.__barrack()
 
     @data_source.setter  # Override
-    def data_source(self, delegate: EntityDataSource):
-        self.__data_source = weakref.ref(delegate)
+    def data_source(self, barrack: EntityDataSource):
+        self.__barrack = weakref.ref(barrack)
 
     @property  # Override
     def identifier(self) -> ID:
-        return self.__identifier
+        return self.__id
 
     @property  # Override
     def type(self) -> int:
         """ Entity type """
-        return self.__identifier.type
+        return self.__id.type
 
     @property  # Override
     def meta(self) -> Meta:
         delegate = self.data_source
         # assert delegate is not None, 'entity delegate not set yet'
-        return delegate.meta(identifier=self.identifier)
+        return delegate.meta(identifier=self.__id)
 
     # Override
     def document(self, doc_type: str = '*') -> Optional[Document]:
         delegate = self.data_source
         # assert delegate is not None, 'entity delegate not set yet'
-        return delegate.document(identifier=self.identifier, doc_type=doc_type)
+        return delegate.document(identifier=self.__id, doc_type=doc_type)

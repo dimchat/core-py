@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao: Universal Message Module
+#   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -28,14 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-import time as time_lib
 from typing import Optional, Union, Any, Dict
 
+from mkm.types import DateTime
 from mkm.types import Dictionary
 from mkm import ID, ANYONE
 
 from dkd import ContentType
-from dkd import Envelope, EnvelopeFactory
+from dkd import Envelope
 
 
 """
@@ -55,17 +55,17 @@ from dkd import Envelope, EnvelopeFactory
 class MessageEnvelope(Dictionary, Envelope):
 
     def __init__(self, envelope: Dict[str, Any] = None,
-                 sender: ID = None, receiver: ID = None, time: float = None):
+                 sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
         if envelope is None:
             assert sender is not None, 'sender should not be empty'
             if receiver is None:
                 receiver = ANYONE
-            if time is None:
-                time = time_lib.time()
+            if time is None:  # or time <= 0:
+                time = DateTime.now()
             envelope = {
                 'sender': str(sender),
                 'receiver': str(receiver),
-                'time': time,
+                'time': time.timestamp,
             }
         # initialize with envelope info
         super().__init__(dictionary=envelope)
@@ -79,14 +79,14 @@ class MessageEnvelope(Dictionary, Envelope):
     @property  # Override
     def sender(self) -> ID:
         if self.__sender is None:
-            identifier = self.get(key='sender')
+            identifier = self.get('sender')
             self.__sender = ID.parse(identifier=identifier)
         return self.__sender
 
     @property  # Override
     def receiver(self) -> ID:
         if self.__receiver is None:
-            identifier = self.get(key='receiver')
+            identifier = self.get('receiver')
             if identifier is None:
                 self.__receiver = ANYONE
             else:
@@ -94,30 +94,27 @@ class MessageEnvelope(Dictionary, Envelope):
         return self.__receiver
 
     @property  # Override
-    def time(self) -> float:
+    def time(self) -> DateTime:
         if self.__time is None:
-            self.__time = self.get_time(key='time')
+            self.__time = self.get_datetime(key='time', default=None)
         return self.__time
 
     @property  # Override
     def group(self) -> Optional[ID]:
         if self.__group is None:
-            identifier = self.get(key='group')
+            identifier = self.get('group')
             self.__group = ID.parse(identifier=identifier)
         return self.__group
 
     @group.setter  # Override
     def group(self, value: ID):
-        if value is None:
-            self.pop('group', None)
-        else:
-            self['group'] = str(value)
+        self.set_string(key='group', value=value)
         self.__group = value
 
     @property  # Override
     def type(self) -> Optional[int]:
         if self.__type is None:
-            self.__type = self.get_int('type')
+            self.__type = self.get_int(key='type', default=None)
         return self.__type
 
     @type.setter  # Override
@@ -129,17 +126,3 @@ class MessageEnvelope(Dictionary, Envelope):
         else:
             self['type'] = value
         self.__type = value
-
-
-class MessageEnvelopeFactory(EnvelopeFactory):
-
-    # Override
-    def create_envelope(self, sender: ID, receiver: ID, time: float) -> Envelope:
-        return MessageEnvelope(sender=sender, receiver=receiver, time=time)
-
-    # Override
-    def parse_envelope(self, envelope: Dict[str, Any]) -> Optional[Envelope]:
-        # check 'sender'
-        if 'sender' in envelope:
-            return MessageEnvelope(envelope=envelope)
-        # env.sender should not be empty
