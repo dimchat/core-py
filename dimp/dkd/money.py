@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from dkd import ContentType
 from mkm import ID
@@ -53,16 +53,22 @@ class BaseMoneyContent(BaseContent, MoneyContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
-                 currency: str = None, amount: float = 0.0):
+                 msg_type: int = None,
+                 currency: str = None, amount: float = None):
         if content is None:
+            # 1. new content with type, currency & amount
+            assert currency is not None and amount is not None, \
+                'money content error: %s, %s, %s' % (msg_type, currency, amount)
             if msg_type is None:
-                msg_type = ContentType.MONEY
-            super().__init__(msg_type=msg_type)
+                msg_type = ContentType.MONEY.value
+            super().__init__(None, msg_type)
             # set values to inner dictionary
             self['currency'] = currency
             self['amount'] = amount
         else:
+            # 2. content info from network
+            assert msg_type is None and currency is None and amount is None,\
+                'params error: %s, %s, %s, %s' % (content, msg_type, currency, amount)
             super().__init__(content=content)
 
     @property  # Override
@@ -95,8 +101,9 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 currency: str = None, amount: float = 0.0):
-        super().__init__(content=content, msg_type=ContentType.TRANSFER, currency=currency, amount=amount)
+                 currency: str = None, amount: float = None):
+        msg_type = ContentType.TRANSFER.value if content is None else None
+        super().__init__(content, msg_type, currency=currency, amount=amount)
 
     @property  # Override
     def remitter(self) -> Optional[ID]:

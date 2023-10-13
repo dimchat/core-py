@@ -65,17 +65,21 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
                  identifier: ID = None,
                  meta: Optional[Meta] = None):
         if content is None:
+            # 1. new command with name, ID & meta
+            assert identifier is not None, 'meta command error: %s, %s, %s' % (cmd, identifier, meta)
             if cmd is None:
                 cmd = Command.META
-            assert identifier is not None, 'ID should not be empty'
-        super().__init__(content=content, cmd=cmd)
-        # ID
-        if identifier is not None:
-            self['ID'] = str(identifier)
+            super().__init__(cmd=cmd)
+            self.set_string(key='ID', value=identifier)
+            if meta is not None:
+                self.set_map(key='meta', value=meta)
+        else:
+            # 2. command info from network
+            assert cmd is None and identifier is None and meta is None, \
+                'params error: %s, %s, %s, %s' % (content, cmd, identifier, meta)
+            super().__init__(content)
+        # lazy load
         self.__id = identifier
-        # meta
-        if meta is not None:
-            self['meta'] = meta.dictionary
         self.__meta = meta
 
     #
@@ -121,17 +125,24 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
                  document: Optional[Document] = None,
                  signature: Optional[str] = None):
         if content is None:
-            if identifier is None:  # and document is not None:
+            # 1. new command with ID, meta, document & signature
+            if identifier is None:
+                assert document is not None, 'document command error: %s, %s' % (meta, signature)
                 identifier = document.identifier
-            assert identifier is not None, 'ID should not be empty'
-        super().__init__(content=content, cmd=Command.DOCUMENT, identifier=identifier, meta=meta)
-        # document
-        if document is not None:
-            self['document'] = document.dictionary
+            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, document, signature)
+            cmd = Command.DOCUMENT
+            super().__init__(cmd=cmd, identifier=identifier, meta=meta)
+            if document is not None:
+                self['document'] = document.dictionary
+            if signature is not None:
+                self['signature'] = signature
+        else:
+            # 2. command info from network
+            assert identifier is None and meta is None and document is None and signature is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, document, signature)
+            super().__init__(content)
+        # lazy load
         self.__doc = document
-        # signature
-        if signature is not None:
-            self['signature'] = signature
 
     #
     #   document

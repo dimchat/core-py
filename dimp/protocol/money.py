@@ -69,7 +69,13 @@ class MoneyContent(Content, ABC):
     #   Factory method
     #
     @classmethod
-    def create(cls, msg_type: Union[int, ContentType, None], currency: str, amount: float):
+    def create(cls, currency: str, amount: float, msg_type: Union[int, ContentType] = None):
+        # convert type value
+        if msg_type is None:
+            msg_type = ContentType.MONEY.value
+        elif isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
+        # create with type value
         from ..dkd import BaseMoneyContent
         return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
 

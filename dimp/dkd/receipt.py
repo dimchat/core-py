@@ -40,6 +40,7 @@ from typing import Optional, Any, Dict
 from mkm.types import Converter
 from dkd import Envelope, InstantMessage
 
+from ..protocol import Command
 from ..protocol import ReceiptCommand, ReceiptCommandMixIn
 from .commands import BaseCommand
 
@@ -69,7 +70,10 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
     def __init__(self, content: Dict[str, Any] = None,
                  text: str = None, origin: Dict[str, Any] = None):
         if content is None:
-            super().__init__(cmd=self.RECEIPT)
+            # 1. new command with text & origin info
+            assert text is not None, 'receipt text should not be None, %s' % origin
+            cmd = Command.RECEIPT
+            super().__init__(cmd=cmd)
             # text message
             self['text'] = text
             # original envelope of message responding to,
@@ -83,7 +87,8 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
                             'visa' in origin), 'impure envelope: %s' % origin
                 self['origin'] = origin
         else:
-            assert text is None and origin is None, 'params error: %s, %s' % (text, origin)
+            # 2. command info from network
+            assert text is None and origin is None, 'params error: %s, %s, %s' % (content, text, origin)
             # create with command content
             super().__init__(content=content)
         # lazy load

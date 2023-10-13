@@ -53,7 +53,6 @@ __all__ = [
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
     'Meta', 'MetaFactory',
-    # 'TAI',
     'Document', 'DocumentFactory',
     'Visa', 'Bulletin',
 
@@ -73,8 +72,8 @@ __all__ = [
     #   Entity
     #
     'EntityDelegate',
-    'EntityDataSource', 'UserDataSource', 'GroupDataSource',
-    'Entity', 'User', 'Group',
+    'Entity', 'EntityDataSource', 'BaseEntity',
+    'User', 'UserDataSource', 'BaseUser',
+    'Group', 'GroupDataSource', 'BaseGroup',
 
-    'BaseEntity', 'BaseUser', 'BaseGroup',
 ]

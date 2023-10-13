@@ -76,7 +76,7 @@ class CommandGeneralFactory:
 def default_factory(info: Dict[str, Any]) -> Optional[CommandFactory]:
     gf = MessageFactoryManager.general_factory
     msg_type = gf.get_content_type(content=info, default=0)
-    fact = gf.get_content_factory(msg_type=msg_type)
+    fact = gf.get_content_factory(msg_type)
     if isinstance(fact, CommandFactory):
         return fact
     # assert False, 'cannot parse command: %s' % info

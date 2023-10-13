@@ -57,16 +57,21 @@ class MessageEnvelope(Dictionary, Envelope):
     def __init__(self, envelope: Dict[str, Any] = None,
                  sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
         if envelope is None:
-            assert sender is not None, 'sender should not be empty'
+            # 1. new envelope with sender, receiver & time
+            assert sender is not None, 'envelope error: %s, %s' % (receiver, time)
             if receiver is None:
                 receiver = ANYONE
-            if time is None:  # or time <= 0:
+            if time is None:
                 time = DateTime.now()
             envelope = {
                 'sender': str(sender),
                 'receiver': str(receiver),
                 'time': time.timestamp,
             }
+        else:
+            # 2. envelope info from network
+            assert sender is None and receiver is None and time is None, \
+                'params error: %s, %s, %s, %s' % (envelope, sender, receiver, time)
         # initialize with envelope info
         super().__init__(dictionary=envelope)
         # lazy load
@@ -121,7 +126,7 @@ class MessageEnvelope(Dictionary, Envelope):
     def type(self, value: Union[int, ContentType]):
         if isinstance(value, ContentType):
             value = value.value
-        if value is None or value == 0:
+        if value is None:  # or value == 0:
             self.pop('type', None)
         else:
             self['type'] = value

@@ -52,28 +52,46 @@ class BaseDocument(Dictionary, Document):
     def __init__(self, document: Dict[str, Any] = None,
                  doc_type: str = None, identifier: ID = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
-        properties = None
-        status = 0
-        if document is None:
-            assert identifier is not None, 'doc ID should not be empty'
-            assert doc_type is not None and doc_type != '*', 'doc type error: %s' % doc_type
+        # check parameters
+        if document is not None:
+            # 0. document info from network
+            assert doc_type is None and identifier is None and data is None and signature is None, \
+                'params error: %s, %s, %s, %s, %s' % (document, doc_type, identifier, data, signature)
+            properties = None  # lazy
+            # waiting to verify
+            # all documents must be verified before saving into local storage
+            status = 0
+        elif data is None or signature is None:
+            # 1. new empty document
+            assert doc_type is not None and doc_type != '*' and identifier is not None, \
+                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
+            assert data is None and signature is None, \
+                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
             document = {
                 'ID': str(identifier),
                 'type': doc_type,
             }
-            if data is None or signature is None:
-                assert data is None and signature is None, 'document data/signature error'
-                # 1. Create a new empty document
-                properties = {
-                    'type': doc_type,  # deprecated
-                    'created_time': DateTime.current_timestamp(),
-                }
-            else:
-                # 2. Create entity document with data and signature loaded from local storage
-                document['data'] = data
-                document['signature'] = signature.object
-                # all documents must be verified before saving into local storage
-                status = 1
+            # new properties with created time
+            properties = {
+                'type': doc_type,  # deprecated
+                'created_time': DateTime.current_timestamp(),
+            }
+            # waiting to sign
+            status = 0
+        else:
+            # 2. document with data and signature loaded from local storage
+            assert doc_type is not None and doc_type != '*' and identifier is not None, \
+                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
+            document = {
+                'ID': str(identifier),
+                'type': doc_type,
+                'data': data,
+                'signature': signature.object,
+            }
+            properties = None  # lazy
+            # document loaded from local storage,
+            # no need to verify again.
+            status = 1
         # initialize with document info
         super().__init__(dictionary=document)
         # lazy load

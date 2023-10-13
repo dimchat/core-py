@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -52,12 +52,11 @@ from .factory import CommandFactoryManager
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None):
+    def __init__(self, content: Dict[str, Any] = None, msg_type: int = None):
+        # check parameters
         if content is None:
-            if isinstance(msg_type, ContentType):
-                msg_type = msg_type.value
-            assert msg_type > 0, 'content type error: %d' % msg_type
+            # 1. new content with type
+            assert msg_type is not None and msg_type > 0, 'content type error: %s' % msg_type
             time = DateTime.now()
             sn = InstantMessage.generate_serial_number(msg_type, time)
             content = {
@@ -66,6 +65,7 @@ class BaseContent(Dictionary, Content):
                 'time': time.timestamp,
             }
         else:
+            # 2. content info from network
             assert msg_type is None, 'params error: %s, %s' % (content, msg_type)
             # lazy load
             sn = None
@@ -114,13 +114,19 @@ class BaseContent(Dictionary, Content):
 
 class BaseCommand(BaseContent, Command):
 
-    def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None, cmd: str = None):
-        if content is None and msg_type is None:
-            msg_type = ContentType.COMMAND
-        super().__init__(content=content, msg_type=msg_type)
-        if cmd is not None:
+    def __init__(self, content: Dict[str, Any] = None, msg_type: int = None, cmd: str = None):
+        # check parameters
+        if content is None:
+            # 1. new command with type & name
+            if msg_type is None:
+                msg_type = ContentType.COMMAND.value
+            assert cmd is not None and len(cmd) > 0, 'command name should not empty'
+            super().__init__(None, msg_type)
             self['command'] = cmd
+        else:
+            # 2. command info from network
+            assert msg_type is None and cmd is None, 'params error: %d, %s' % (msg_type, cmd)
+            super().__init__(content)
 
     @property  # Override
     def cmd(self) -> str:

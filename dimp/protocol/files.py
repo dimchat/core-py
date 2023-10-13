@@ -107,13 +107,16 @@ class FileContent(Content, ABC):
     #
 
     @classmethod
-    def create(cls, msg_type: Union[int, ContentType, None],
+    def create(cls, msg_type: Union[int, ContentType] = None,
                data: Optional[TransportableData] = None, filename: Optional[str] = None,
                url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        # convert type value
         if msg_type is None:
-            from ..dkd import BaseFileContent
-            return BaseFileContent(data=data, filename=filename, url=url, password=password)
-        elif msg_type == ContentType.IMAGE.value:
+            msg_type = ContentType.FILE.value
+        elif isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
+        # check type value
+        if msg_type == ContentType.IMAGE.value:
             from ..dkd import ImageFileContent
             return ImageFileContent(data=data, filename=filename, url=url, password=password)
         elif msg_type == ContentType.AUDIO.value:

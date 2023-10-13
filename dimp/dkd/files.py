@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.format import TransportableData
 from mkm.types import URI
@@ -58,13 +58,14 @@ class BaseFileContent(BaseContent, FileContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
+                 msg_type: int = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         if content is None:
+            # 1. new content with type, data, filename, url & password
             if msg_type is None:
-                msg_type = ContentType.FILE
-            super().__init__(msg_type=msg_type)
+                msg_type = ContentType.FILE.value
+            super().__init__(None, msg_type)
             # access via the wrapper
             wrapper = BaseFileWrapper(dictionary=self.dictionary)
             if data is not None:
@@ -75,10 +76,13 @@ class BaseFileContent(BaseContent, FileContent):
                 wrapper.url = url
             if password is not None:
                 wrapper.password = password
-            self.__wrapper = wrapper
         else:
-            super().__init__(content=content)
-            self.__wrapper = BaseFileWrapper(dictionary=self.dictionary)
+            # 2. content from network
+            assert msg_type is None and data is None and filename is None and url is None and password is None, \
+                'params error: %s, %s, %s, %s, %s, %s' % (content, msg_type, data, filename, url, password)
+            super().__init__(content)
+            wrapper = BaseFileWrapper(dictionary=self.dictionary)
+        self.__wrapper = wrapper
 
     @property  # Override
     def data(self) -> Optional[bytes]:
@@ -134,10 +138,8 @@ class ImageFileContent(BaseFileContent, ImageContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.IMAGE if content is None else None
-        super().__init__(content=content, msg_type=msg_type,
-                         data=data, filename=filename,
-                         url=url, password=password)
+        msg_type = ContentType.IMAGE.value if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # lazy load
         self.__thumbnail: Optional[TransportableData] = None
 
@@ -180,10 +182,8 @@ class AudioFileContent(BaseFileContent, AudioContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.AUDIO if content is None else None
-        super().__init__(content=content, msg_type=msg_type,
-                         data=data, filename=filename,
-                         url=url, password=password)
+        msg_type = ContentType.AUDIO.value if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
 
     @property  # Override
     def text(self) -> Optional[str]:
@@ -213,10 +213,8 @@ class VideoFileContent(BaseFileContent, VideoContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.VIDEO if content is None else None
-        super().__init__(content=content, msg_type=msg_type,
-                         data=data, filename=filename,
-                         url=url, password=password)
+        msg_type = ContentType.VIDEO.value if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # lazy load
         self.__snapshot: Optional[TransportableData] = None
 

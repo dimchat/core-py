@@ -37,7 +37,7 @@
     3. member quit
 """
 
-from typing import Optional, Union, Any, Dict, List
+from typing import Optional, Any, Dict, List
 
 from dkd import ContentType
 from mkm import ID
@@ -65,13 +65,12 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
-                 cmd: str = None):
+                 msg_type: int = None, cmd: str = None):
         if content is None:
             if msg_type is None:
-                msg_type = ContentType.HISTORY
+                msg_type = ContentType.HISTORY.value
             assert cmd is not None, 'command name should not empty'
-        super().__init__(content=content, msg_type=msg_type, cmd=cmd)
+        super().__init__(content, msg_type, cmd=cmd)
 
 
 class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
@@ -94,7 +93,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
     def __init__(self, content: Dict[str, Any] = None,
                  cmd: str = None, group: ID = None,
                  member: ID = None, members: List[ID] = None):
-        super().__init__(content=content, cmd=cmd)
+        super().__init__(content, None, cmd=cmd)
         if group is not None:
             self.group = group
         if member is not None:
@@ -150,8 +149,8 @@ class InviteGroupCommand(BaseGroupCommand, InviteCommand):
         :param members: member list
         :return: InviteCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.INVITE,
-                         group=group, member=member, members=members)
+        cmd = GroupCommand.INVITE if content is None else None
+        super().__init__(content, cmd=cmd, group=group, member=member, members=members)
 
 
 class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
@@ -167,8 +166,8 @@ class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
         :param members: member list
         :return: ExpelCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.EXPEL,
-                         group=group, member=member, members=members)
+        cmd = GroupCommand.EXPEL if content is None else None
+        super().__init__(content, cmd=cmd, group=group, member=member, members=members)
 
 
 class JoinGroupCommand(BaseGroupCommand, JoinCommand):
@@ -181,8 +180,8 @@ class JoinGroupCommand(BaseGroupCommand, JoinCommand):
         :param group:   group ID
         :return: JoinCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.JOIN,
-                         group=group)
+        cmd = GroupCommand.JOIN if content is None else None
+        super().__init__(content, cmd=cmd, group=group)
 
 
 class QuitGroupCommand(BaseGroupCommand, QuitCommand):
@@ -195,8 +194,8 @@ class QuitGroupCommand(BaseGroupCommand, QuitCommand):
         :param group:   group ID
         :return: QuitCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.QUIT,
-                         group=group)
+        cmd = GroupCommand.QUIT if content is None else None
+        super().__init__(content, cmd=cmd, group=group)
 
 
 class QueryGroupCommand(BaseGroupCommand, QueryCommand):
@@ -209,8 +208,8 @@ class QueryGroupCommand(BaseGroupCommand, QueryCommand):
         :param group:   group ID
         :return: QueryCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.QUERY,
-                         group=group)
+        cmd = GroupCommand.QUERY if content is None else None
+        super().__init__(content, cmd=cmd, group=group)
 
 
 class ResetGroupCommand(BaseGroupCommand, ResetCommand):
@@ -224,8 +223,8 @@ class ResetGroupCommand(BaseGroupCommand, ResetCommand):
         :param members: member list
         :return: ResetCommand object
         """
-        super().__init__(content=content, cmd=GroupCommand.RESET,
-                         group=group, members=members)
+        cmd = GroupCommand.RESET if content is None else None
+        super().__init__(content, cmd=cmd, group=group, members=members)
 
 
 """
@@ -239,7 +238,8 @@ class HireGroupCommand(BaseGroupCommand, HireCommand):
     def __init__(self, content: Dict[str, Any] = None, group: ID = None,
                  administrators: List[ID] = None,
                  assistants: List[ID] = None):
-        super().__init__(content=content, cmd=GroupCommand.HIRE, group=group)
+        cmd = GroupCommand.HIRE if content is None else None
+        super().__init__(content, cmd=cmd, group=group)
         # group admins
         if administrators is not None:
             self['administrators'] = ID.revert(administrators)
@@ -265,7 +265,8 @@ class FireGroupCommand(BaseGroupCommand, FireCommand):
     def __init__(self, content: Dict[str, Any] = None, group: ID = None,
                  administrators: List[ID] = None,
                  assistants: List[ID] = None):
-        super().__init__(content=content, cmd=GroupCommand.FIRE, group=group)
+        cmd = GroupCommand.FIRE if content is None else None
+        super().__init__(content=content, cmd=cmd, group=group)
         # group admins
         if administrators is not None:
             self['administrators'] = ID.revert(administrators)
@@ -289,4 +290,5 @@ class FireGroupCommand(BaseGroupCommand, FireCommand):
 class ResignGroupCommand(BaseGroupCommand, ResignCommand):
 
     def __init__(self, content: Dict[str, Any] = None, group: ID = None):
-        super().__init__(content=content, cmd=GroupCommand.RESIGN, group=group)
+        cmd = GroupCommand.RESIGN if content is None else None
+        super().__init__(content=content, cmd=cmd, group=group)

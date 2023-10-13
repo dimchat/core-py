@@ -55,14 +55,17 @@ class BaseTextContent(BaseContent, TextContent):
         }
     """
 
-    def __init__(self, content: Dict[str, Any] = None,
-                 text: str = None):
+    def __init__(self, content: Dict[str, Any] = None, text: str = None):
         if content is None:
-            super().__init__(msg_type=ContentType.TEXT)
-            assert text is not None, 'text should not be empty'
+            # 1. new content with text string
+            assert text is not None, 'text should not be None'
+            msg_type = ContentType.TEXT.value
+            super().__init__(None, msg_type)
             self['text'] = text
         else:
-            super().__init__(content=content)
+            # 2. content info from network
+            assert text is None, 'params error: %s, %s' % (content, text)
+            super().__init__(content)
 
     #
     #   text
@@ -88,12 +91,16 @@ class ListContent(BaseContent, ArrayContent):
     def __init__(self, content: Dict[str, Any] = None,
                  contents: List[Content] = None):
         if content is None:
-            super().__init__(msg_type=ContentType.ARRAY)
-        else:
-            super().__init__(content=content)
-        # contents
-        if contents is not None:
+            # 1. new content with a list
+            assert contents is not None, 'content list should no be None'
+            msg_type = ContentType.ARRAY.value
+            super().__init__(None, msg_type)
             self['contents'] = ArrayContent.revert(contents=contents)
+        else:
+            # 2. content info from network
+            assert contents is None, 'params error: %s, %s' % (content, contents)
+            super().__init__(content)
+        # lazy
         self.__list = contents
 
     @property  # Override
@@ -125,16 +132,19 @@ class SecretContent(BaseContent, ForwardContent):
                  message: ReliableMessage = None,
                  messages: List[ReliableMessage] = None):
         if content is None:
-            super().__init__(msg_type=ContentType.FORWARD)
+            # 1. new content with message(s)
+            msg_type = ContentType.FORWARD.value
+            super().__init__(None, msg_type)
+            if message is not None:
+                self['forward'] = message.dictionary
+            if messages is not None:
+                self['secrets'] = ForwardContent.revert(messages=messages)
         else:
-            super().__init__(content=content)
-        # forward
-        if message is not None:
-            self['forward'] = message.dictionary
+            # 2. content info from network
+            assert message is None and messages is None, 'params error: %s, %s, %s' % (content, message, messages)
+            super().__init__(content)
+        # lazy
         self.__forward = message
-        # secrets
-        if messages is not None:
-            self['secrets'] = ForwardContent.revert(messages=messages)
         self.__secrets = messages
 
     #
@@ -185,18 +195,23 @@ class WebPageContent(BaseContent, PageContent):
                  url: URI = None, title: str = None,
                  desc: Optional[str] = None, icon: Optional[TransportableData] = None):
         if content is None:
-            super().__init__(msg_type=ContentType.PAGE)
+            # 1. new content with url, title, desc & icon
+            assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
+            msg_type = ContentType.PAGE.value
+            super().__init__(None, msg_type)
             self['URL'] = url
             self['title'] = title
             if desc is not None:
                 self['desc'] = desc
-            self.__icon = None
             if icon is not None:
                 self.set_icon(icon)
         else:
-            super().__init__(content=content)
-            # lazy
-            self.__icon: Optional[TransportableData] = None
+            # 2. content info from network
+            assert url is None and title is None and desc is None and icon is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, url, title, desc, icon)
+            super().__init__(content)
+        # lazy
+        self.__icon = icon
 
     @property  # Override
     def url(self) -> URI:
@@ -271,20 +286,23 @@ class NameCardContent(BaseContent, NameCard):
                  identifier: ID = None,
                  name: str = None, avatar: Optional[PortableNetworkFile] = None):
         if content is None:
-            super().__init__(msg_type=ContentType.NAME_CARD)
-            # ID
+            # 1. new content with ID, name & avatar
+            assert identifier is not None and name is not None, \
+                'name card info error: %s, %s, %s' % (identifier, name, avatar)
+            msg_type = ContentType.NAME_CARD.value
+            super().__init__(None, msg_type)
             self.set_string(key='ID', value=identifier)
-            self.__id = identifier
-            # name
             self['name'] = name
             if avatar is not None:
                 self['avatar'] = avatar.object
-            self.__avatar = avatar
         else:
+            # 2. content info from network
+            assert identifier is None and name is None and avatar is None, \
+                'params error: %s, %s, %s, %s' % (content, identifier, name, avatar)
             super().__init__(content=content)
-            # lazy load
-            self.__id = None
-            self.__avatar = None
+        # lazy load
+        self.__id = identifier
+        self.__avatar = avatar
 
     @property  # Override
     def identifier(self) -> ID:

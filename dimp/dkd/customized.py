@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Union, Any, Dict
+from typing import Any, Dict
 
 from dkd import ContentType
 
@@ -54,17 +54,23 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: Union[int, ContentType] = None,
+                 msg_type: int = None,
                  app: str = None, mod: str = None, act: str = None):
         if content is None:
+            # 1. new content with type, application, module & action
+            assert app is not None and mod is not None and act is not None, \
+                'customized content error: %s, %s, %s, %s' % (msg_type, app, mod, act)
             if msg_type is None:
-                msg_type = ContentType.CUSTOMIZED
-            super().__init__(msg_type=msg_type)
+                msg_type = ContentType.CUSTOMIZED.value
+            super().__init__(None, msg_type)
             self['app'] = app
             self['mod'] = mod
             self['act'] = act
         else:
-            super().__init__(content=content)
+            # 2. content info from network
+            assert msg_type is None and app is None and mod is None and act is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, msg_type, app, mod, act)
+            super().__init__(content)
 
     @property  # Override
     def application(self) -> str:

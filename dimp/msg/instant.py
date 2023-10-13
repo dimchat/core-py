@@ -59,10 +59,17 @@ class PlainMessage(BaseMessage, InstantMessage):
 
     def __init__(self, msg: Dict[str, Any] = None,
                  head: Envelope = None, body: Content = None):
-        super().__init__(msg=msg, head=head)
-        self.__content = body
-        if body is not None:
+        if msg is None:
+            # 1. new instant message with envelope & content
+            assert head is not None and body is not None, 'instant message error: %s, %s' % (head, body)
+            super().__init__(None, head)
             self['content'] = body.dictionary
+        else:
+            # 2. message info from network
+            assert head is None and body is None, 'params error: %s, %s, %s' % (msg, head, body)
+            super().__init__(msg, head)
+        # lazy
+        self.__content = body
 
     @property  # Override
     def content(self) -> Content:

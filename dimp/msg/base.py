@@ -61,12 +61,16 @@ from dkd import Envelope, Message
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: Dict[str, Any] = None,
-                 head: Envelope = None):
+    def __init__(self, msg: Dict[str, Any] = None, head: Envelope = None):
         if msg is None:
+            # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'
             msg = head.dictionary
+        else:
+            # 2. message info from network
+            assert head is None, 'params error: %s, %s' % (msg, head)
         super().__init__(dictionary=msg)
+        # lazy
         self.__envelope = head
         self.__delegate = None
 

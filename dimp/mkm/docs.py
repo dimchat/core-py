@@ -43,9 +43,17 @@ from .document import BaseDocument
 class BaseVisa(BaseDocument, Visa):
 
     def __init__(self, document: Optional[Dict[str, Any]] = None,
-                 identifier: Optional[ID] = None,
-                 data: Optional[str] = None, signature: Optional[TransportableData] = None):
-        super().__init__(document, doc_type=Document.VISA, identifier=identifier, data=data, signature=signature)
+                 identifier: ID = None, data: Optional[str] = None, signature: Optional[TransportableData] = None):
+        if document is None:
+            # 1. document from local
+            assert identifier is not None, 'visa info error: %s, %s' % (data, signature)
+            doc_type = Document.VISA
+            super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
+        else:
+            # 2. document from network
+            assert identifier is None and data is None and signature is None, \
+                'params error: %s, %s, %s, %s' % (document, identifier, data, signature)
+            super().__init__(document)
         # lazy
         self.__key: Optional[EncryptKey] = None
         self.__avatar: Optional[PortableNetworkFile] = None
@@ -97,9 +105,18 @@ class BaseVisa(BaseDocument, Visa):
 class BaseBulletin(BaseDocument, Bulletin):
 
     def __init__(self, document: Optional[Dict[str, Any]] = None,
-                 identifier: Optional[ID] = None,
+                 identifier: ID = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
-        super().__init__(document, doc_type=Document.BULLETIN, identifier=identifier, data=data, signature=signature)
+        if document is None:
+            # 1. document from local
+            assert identifier is not None, 'bulletin info error: %s, %s' % (data, signature)
+            doc_type = Document.BULLETIN
+            super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
+        else:
+            # 2. document from network
+            assert identifier is None and data is None and signature is None, \
+                'params error: %s, %s, %s, %s' % (document, identifier, data, signature)
+            super().__init__(document)
         # lazy
         self.__bots: Optional[List[ID]] = None
 
