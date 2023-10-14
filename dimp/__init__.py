@@ -132,6 +132,8 @@ __all__ = [
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
     'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
+    'CommandGeneralFactory', 'CommandFactoryManager',
+
     'MessageEnvelope', 'BaseMessage',
     'PlainMessage', 'EncryptedMessage', 'NetworkMessage',
 

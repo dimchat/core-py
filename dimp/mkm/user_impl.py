@@ -78,12 +78,12 @@ class BaseUser(BaseEntity, User):
     # Override
     def encrypt(self, data: bytes) -> bytes:
         barrack = self.data_source
-        assert barrack is not None, 'user data source not set yet'
+        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
         # NOTICE: meta.key will never changed, so use visa.key to encrypt message
         #         is the better way
         key = barrack.public_key_for_encryption(identifier=self.identifier)
         assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
-        return key.encrypt(data=data)
+        return key.encrypt(data=data, extra={})
 
     # Override
     def sign(self, data: bytes) -> bytes:
@@ -96,14 +96,14 @@ class BaseUser(BaseEntity, User):
     # Override
     def decrypt(self, data: bytes) -> Optional[bytes]:
         barrack = self.data_source
-        assert barrack is not None, 'user data source not set yet'
+        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
         keys = barrack.private_keys_for_decryption(identifier=self.identifier)
         assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
             # try decrypting it with each private key
-            plaintext = key.decrypt(data=data)
+            plaintext = key.decrypt(data=data, params={})
             if plaintext is not None:
                 # OK!
                 return plaintext

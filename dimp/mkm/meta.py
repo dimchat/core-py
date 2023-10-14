@@ -64,35 +64,35 @@ from mkm import Meta, MetaType
 class BaseMeta(Dictionary, Meta, ABC):
 
     def __init__(self, meta: Dict[str, Any] = None,
-                 version: int = None, key: VerifyKey = None,
+                 version: int = None, public_key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Optional[TransportableData] = None):
         # check parameters
         if meta is not None:
             # 0. meta info from network
-            assert version is None and key is None and seed is None and fingerprint is None, \
-                'params error: %s, %s, %s, %s, %s' % (meta, version, key, seed, fingerprint)
+            assert version is None and public_key is None and seed is None and fingerprint is None, \
+                'params error: %s, %s, %s, %s, %s' % (meta, version, public_key, seed, fingerprint)
             # waiting to verify
             # all metas must be verified before saving into local storage
             status = 0
         elif seed is None or fingerprint is None:
             # 1. new meta with type & public key only
-            assert version is not None and version > 0 and key is not None and not MetaType.has_seed(version), \
-                'meta info error: %s, %s, %s, %s' % (version, key, seed, fingerprint)
+            assert version is not None and version > 0 and public_key is not None and not MetaType.has_seed(version), \
+                'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
             assert seed is None and fingerprint is None, 'meta seed/fingerprint error'
             meta = {
                 'type': version,
-                'key': key.dictionary,
+                'key': public_key.dictionary,
             }
             # generated meta, or loaded from local storage,
             # no need to verify again.
             status = 1
         else:
             # 2. new meta with type, public key, seed & fingerprint
-            assert version is not None and version > 0 and key is not None and MetaType.has_seed(version), \
-                'meta info error: %s, %s, %s, %s' % (version, key, seed, fingerprint)
+            assert version is not None and version > 0 and public_key is not None and MetaType.has_seed(version), \
+                'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
             meta = {
                 'type': version,
-                'key': key.dictionary,
+                'key': public_key.dictionary,
                 'seed': seed,
                 'fingerprint': fingerprint.object,
             }
@@ -103,7 +103,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         super().__init__(dictionary=meta)
         # lazy load
         self.__type = version
-        self.__key = key
+        self.__key = public_key
         self.__seed = seed
         self.__fingerprint = fingerprint
         self.__status = status
