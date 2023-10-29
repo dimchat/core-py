@@ -88,6 +88,8 @@ __all__ = [
     'User', 'UserDataSource', 'BaseUser',
     'Group', 'GroupDataSource', 'BaseGroup',
 
+    'DocumentHelper', 'BroadcastHelper',  # 'thanos',
+
     #
     #   DaoKeDao
     #
@@ -141,4 +143,5 @@ __all__ = [
     #   Core
     #
     'Barrack', 'Transceiver', 'Packer', 'Processor',
+
 ]

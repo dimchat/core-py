@@ -28,8 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
+import weakref
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm import ID, Meta, Document
 
@@ -49,21 +50,20 @@ class EntityDataSource(ABC):
     @abstractmethod
     def meta(self, identifier: ID) -> Optional[Meta]:
         """
-        Get meta for entity ID
+        Get meta for entity
 
         :param identifier: entity ID
-        :return:           Meta
+        :return: Meta object
         """
         raise NotImplemented
 
     @abstractmethod
-    def document(self, identifier: ID, doc_type: str = '*') -> Optional[Document]:
+    def documents(self, identifier: ID) -> List[Document]:
         """
-        Get document for entity ID
+        Get documents for entity ID
 
         :param identifier: entity ID
-        :param doc_type:   document type
-        :return:           Document
+        :return: Document list
         """
         raise NotImplemented
 
@@ -108,7 +108,81 @@ class Entity(ABC):
         """ Get meta """
         raise NotImplemented
 
+    @property
     @abstractmethod
-    def document(self, doc_type: str = '*') -> Optional[Document]:
-        """ Get document with type """
+    def documents(self) -> List[Document]:
+        """ Get documents """
         raise NotImplemented
+
+
+class BaseEntity(Entity):
+
+    def __init__(self, identifier: ID):
+        """
+        Create Entity with ID
+
+        :param identifier: User/Group ID
+        """
+        super().__init__()
+        self.__id = identifier
+        self.__barrack = None
+
+    # Override
+    def __str__(self):
+        """ Return str(self). """
+        clazz = self.__class__.__name__
+        identifier = self.identifier
+        network = identifier.address.type
+        return '<%s id="%s" network=%d />' % (clazz, identifier, network)
+
+    # Override
+    def __eq__(self, other) -> bool:
+        """ Return self==value. """
+        if isinstance(other, Entity):
+            if self is other:
+                # same object
+                return True
+            other = other.identifier
+        # check with ID
+        return self.__id.__eq__(other)
+
+    # Override
+    def __ne__(self, other) -> bool:
+        """ Return self!=value. """
+        if isinstance(other, Entity):
+            if self is other:
+                # same object
+                return False
+            other = other.identifier
+        # check with ID
+        return self.__id.__ne__(other)
+
+    @property  # Override
+    def data_source(self) -> Optional[EntityDataSource]:
+        if self.__barrack is not None:
+            return self.__barrack()
+
+    @data_source.setter  # Override
+    def data_source(self, barrack: EntityDataSource):
+        self.__barrack = weakref.ref(barrack)
+
+    @property  # Override
+    def identifier(self) -> ID:
+        return self.__id
+
+    @property  # Override
+    def type(self) -> int:
+        """ Entity type """
+        return self.__id.type
+
+    @property  # Override
+    def meta(self) -> Meta:
+        delegate = self.data_source
+        # assert delegate is not None, 'entity delegate not set yet'
+        return delegate.meta(identifier=self.__id)
+
+    @property  # Override
+    def documents(self) -> List[Document]:
+        delegate = self.data_source
+        # assert delegate is not None, 'entity delegate not set yet'
+        return delegate.documents(identifier=self.__id)

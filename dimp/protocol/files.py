@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional
 
 from mkm.types import URI
 from mkm.format import TransportableData
@@ -107,15 +107,10 @@ class FileContent(Content, ABC):
     #
 
     @classmethod
-    def create(cls, msg_type: Union[int, ContentType] = None,
+    def create(cls, msg_type: int,
                data: Optional[TransportableData] = None, filename: Optional[str] = None,
                url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        # convert type value
-        if msg_type is None:
-            msg_type = ContentType.FILE.value
-        elif isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
-        # check type value
+        assert msg_type > 0, 'file type error: %d' % msg_type
         if msg_type == ContentType.IMAGE.value:
             from ..dkd import ImageFileContent
             return ImageFileContent(data=data, filename=filename, url=url, password=password)

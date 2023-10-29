@@ -28,13 +28,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
 from mkm import ID, ANYONE
 
-from dkd import ContentType
 from dkd import Envelope
 
 
@@ -78,8 +77,6 @@ class MessageEnvelope(Dictionary, Envelope):
         self.__sender = sender
         self.__receiver = receiver
         self.__time = time
-        self.__group = None
-        self.__type = None
 
     @property  # Override
     def sender(self) -> ID:
@@ -92,42 +89,32 @@ class MessageEnvelope(Dictionary, Envelope):
     def receiver(self) -> ID:
         if self.__receiver is None:
             identifier = self.get('receiver')
+            identifier = ID.parse(identifier=identifier)
             if identifier is None:
                 self.__receiver = ANYONE
             else:
-                self.__receiver = ID.parse(identifier=identifier)
+                self.__receiver = identifier
         return self.__receiver
 
     @property  # Override
-    def time(self) -> DateTime:
+    def time(self) -> Optional[DateTime]:
         if self.__time is None:
             self.__time = self.get_datetime(key='time', default=None)
         return self.__time
 
     @property  # Override
     def group(self) -> Optional[ID]:
-        if self.__group is None:
-            identifier = self.get('group')
-            self.__group = ID.parse(identifier=identifier)
-        return self.__group
+        identifier = self.get('group')
+        return ID.parse(identifier=identifier)
 
     @group.setter  # Override
     def group(self, value: ID):
         self.set_string(key='group', value=value)
-        self.__group = value
 
     @property  # Override
     def type(self) -> Optional[int]:
-        if self.__type is None:
-            self.__type = self.get_int(key='type', default=None)
-        return self.__type
+        return self.get_int(key='type', default=None)
 
     @type.setter  # Override
-    def type(self, value: Union[int, ContentType]):
-        if isinstance(value, ContentType):
-            value = value.value
-        if value is None:  # or value == 0:
-            self.pop('type', None)
-        else:
-            self['type'] = value
-        self.__type = value
+    def type(self, value: int):
+        self['type'] = value

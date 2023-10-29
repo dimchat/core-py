@@ -75,8 +75,9 @@ class PlainMessage(BaseMessage, InstantMessage):
     def content(self) -> Content:
         if self.__content is None:
             content = self.get('content')
+            content = Content.parse(content=content)
             assert content is not None, 'message content not found: %s' % self
-            self.__content = Content.parse(content=content)
+            self.__content = content
         return self.__content
 
     @content.setter  # Override

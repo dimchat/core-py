@@ -50,7 +50,8 @@ class CommandGeneralFactory:
 
     # noinspection PyMethodMayBeStatic
     def get_cmd(self, content: Dict[str, Any], default: Optional[str]) -> Optional[str]:
-        return Converter.get_str(value=content.get('command'), default=default)
+        cmd = content.get('command')
+        return Converter.get_str(value=cmd, default=default)
 
     def parse_command(self, content: Any) -> Optional[Command]:
         if content is None:

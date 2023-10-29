@@ -32,9 +32,12 @@ from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, DecryptKey, SignKey, VerifyKey
-from mkm import ID, Visa
+from mkm import ID
 
-from .entity import EntityDataSource, Entity
+from ..protocol import Visa
+
+from .helper import DocumentHelper
+from .entity import EntityDataSource, Entity, BaseEntity
 
 
 class UserDataSource(EntityDataSource, ABC):
@@ -228,3 +231,99 @@ class User(Entity, ABC):
         # NOTICE: only verify visa with meta.key
         #         (if meta not exists, user won't be created)
         raise NotImplemented
+
+
+class BaseUser(BaseEntity, User):
+
+    # def __init__(self, identifier: ID):
+    #     super().__init__(identifier=identifier)
+
+    @BaseEntity.data_source.getter  # Override
+    def data_source(self) -> Optional[UserDataSource]:
+        return super().data_source
+
+    # @data_source.setter  # Override
+    # def data_source(self, barrack: UserDataSource):
+    #     super(BaseUser, BaseUser).data_source.__set__(self, barrack)
+
+    @property  # Override
+    def visa(self) -> Optional[Visa]:
+        return DocumentHelper.last_visa(documents=self.documents)
+
+    @property  # Override
+    def contacts(self) -> List[ID]:
+        barrack = self.data_source
+        # assert barrack is not None, 'user delegate not set yet'
+        return barrack.contacts(identifier=self.identifier)
+
+    # Override
+    def verify(self, data: bytes, signature: bytes) -> bool:
+        barrack = self.data_source
+        assert barrack is not None, 'user data source not set yet'
+        keys = barrack.public_keys_for_verification(identifier=self.identifier)
+        assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
+        for key in keys:
+            if key.verify(data=data, signature=signature):
+                # matched!
+                return True
+        # signature not match
+        # TODO: check whether visa is expired, query new document for this contact
+
+    # Override
+    def encrypt(self, data: bytes) -> bytes:
+        barrack = self.data_source
+        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
+        # NOTICE: meta.key will never changed, so use visa.key to encrypt message
+        #         is the better way
+        key = barrack.public_key_for_encryption(identifier=self.identifier)
+        assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
+        return key.encrypt(data=data, extra={})
+
+    # Override
+    def sign(self, data: bytes) -> bytes:
+        barrack = self.data_source
+        assert barrack is not None, 'user data source not set yet'
+        key = barrack.private_key_for_signature(identifier=self.identifier)
+        assert key is not None, 'failed to get sign key for user: %s' % self.identifier
+        return key.sign(data=data)
+
+    # Override
+    def decrypt(self, data: bytes) -> Optional[bytes]:
+        barrack = self.data_source
+        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
+        # NOTICE: if you provide a public key in visa document for encryption,
+        #         here you should return the private key paired with visa.key
+        keys = barrack.private_keys_for_decryption(identifier=self.identifier)
+        assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
+        for key in keys:
+            # try decrypting it with each private key
+            plaintext = key.decrypt(data=data, params={})
+            if plaintext is not None:
+                # OK!
+                return plaintext
+        # decryption failed
+        # TODO: check whether my visa key is changed, push new visa to this contact
+
+    # Override
+    def sign_visa(self, visa: Visa) -> Optional[Visa]:
+        assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
+        barrack = self.data_source
+        assert barrack is not None, 'user data source not set yet'
+        # NOTICE: only sign visa with the private key paired with your meta.key
+        key = barrack.private_key_for_visa_signature(identifier=self.identifier)
+        assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
+        if visa.sign(private_key=key) is None:
+            assert False, 'failed to sign visa: %s, %s' % (self.identifier, visa)
+        else:
+            return visa
+
+    # Override
+    def verify_visa(self, visa: Visa) -> bool:
+        # NOTICE: only verify visa with meta.key
+        #         (if meta not exists, user won't be created)
+        if self.identifier != visa.identifier:
+            # visa ID not match
+            return False
+        key = self.meta.public_key
+        assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
+        return visa.verify(public_key=key)

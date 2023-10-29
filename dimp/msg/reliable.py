@@ -31,7 +31,6 @@
 from typing import Optional, Any, Dict
 
 from mkm.format import TransportableData
-from mkm import Meta, Document, Visa
 
 from dkd import ReliableMessage
 
@@ -67,8 +66,6 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
         super().__init__(msg=msg)
         # lazy
         self.__signature: Optional[TransportableData] = None
-        self.__meta: Optional[Meta] = None
-        self.__visa: Optional[Visa] = None
 
     @property  # Override
     def signature(self) -> bytes:
@@ -80,29 +77,3 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
             assert ted is not None, 'failed to decode message signature: %s' % base64
         if ted is not None:
             return ted.data
-
-    @property  # Override
-    def meta(self) -> Optional[Meta]:
-        if self.__meta is None:
-            self.__meta = Meta.parse(meta=self.get('meta'))
-        return self.__meta
-
-    @meta.setter  # Override
-    def meta(self, info: Meta):
-        self.set_map(key='meta', value=info)
-        self.__meta = info
-
-    @property  # Override
-    def visa(self) -> Optional[Visa]:
-        if self.__visa is None:
-            doc = Document.parse(document=self.get('visa'))
-            if isinstance(doc, Visa):
-                self.__visa = doc
-            else:
-                assert doc is None, 'visa document error: %s' % doc
-        return self.__visa
-
-    @visa.setter  # Override
-    def visa(self, info: Visa):
-        self.set_map(key='visa', value=info)
-        self.__visa = info

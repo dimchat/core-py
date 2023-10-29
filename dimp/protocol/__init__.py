@@ -48,6 +48,8 @@ from dkd.protocol import *
 from mkm import ANYWHERE, EVERYWHERE, ANYONE, EVERYONE, FOUNDER
 # from dkd import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 
+from .docs import Visa, Bulletin
+
 from .contents import TextContent, ArrayContent, ForwardContent
 from .contents import PageContent, NameCard
 from .files import FileContent, ImageContent, AudioContent, VideoContent
@@ -61,6 +63,7 @@ from .receipt import ReceiptCommand, ReceiptCommandMixIn
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 from .groups import HireCommand, FireCommand, ResignCommand
+
 
 __all__ = [
 

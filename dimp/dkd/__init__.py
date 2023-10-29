@@ -44,7 +44,7 @@ from .receipt import BaseReceipt, BaseReceiptCommand
 from .groups import BaseHistoryCommand, BaseGroupCommand
 from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
 from .groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
-from .groups import HireGroupCommand, FireGroupCommand, ResignGroupCommand
+from .group_admins import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
 from .factory import CommandGeneralFactory, CommandFactoryManager
 

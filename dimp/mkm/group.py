@@ -31,9 +31,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from mkm import ID, Bulletin
+from mkm import ID
 
-from .entity import EntityDataSource, Entity
+from ..protocol import Bulletin
+
+from .helper import DocumentHelper
+from .entity import EntityDataSource, Entity, BaseEntity
 
 
 class GroupDataSource(EntityDataSource, ABC):
@@ -139,3 +142,49 @@ class Group(Entity, ABC):
     @abstractmethod
     def assistants(self) -> List[ID]:
         raise NotImplemented
+
+
+class BaseGroup(BaseEntity, Group):
+
+    def __init__(self, identifier: ID):
+        super().__init__(identifier=identifier)
+        # once the group founder is set, it will never change
+        self.__founder = None
+
+    @BaseEntity.data_source.getter  # Override
+    def data_source(self) -> Optional[GroupDataSource]:
+        return super().data_source
+
+    # @data_source.setter  # Override
+    # def data_source(self, delegate: GroupDataSource):
+    #     super(BaseGroup, BaseGroup).data_source.__set__(self, delegate)
+
+    @property  # Override
+    def bulletin(self) -> Optional[Bulletin]:
+        return DocumentHelper.last_bulletin(documents=self.documents)
+
+    @property  # Override
+    def founder(self) -> ID:
+        if self.__founder is None:
+            delegate = self.data_source
+            # assert delegate is not None, 'group delegate not set yet'
+            self.__founder = delegate.founder(identifier=self.identifier)
+        return self.__founder
+
+    @property  # Override
+    def owner(self) -> ID:
+        delegate = self.data_source
+        # assert delegate is not None, 'group delegate not set yet'
+        return delegate.owner(identifier=self.identifier)
+
+    @property  # Override
+    def members(self) -> List[ID]:
+        delegate = self.data_source
+        # assert delegate is not None, 'group delegate not set yet'
+        return delegate.members(identifier=self.identifier)
+
+    @property  # Override
+    def assistants(self) -> List[ID]:
+        delegate = self.data_source
+        # assert delegate is not None, 'group delegate not set yet'
+        return delegate.assistants(identifier=self.identifier)

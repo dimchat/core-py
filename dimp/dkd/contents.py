@@ -318,5 +318,9 @@ class NameCardContent(BaseContent, NameCard):
     def avatar(self) -> Optional[PortableNetworkFile]:
         if self.__avatar is None:
             url = self.get('avatar')
-            self.__avatar = PortableNetworkFile.parse(url)
+            if isinstance(url, str) and len(url) == 0:
+                # ignore empty URL
+                pass
+            else:
+                self.__avatar = PortableNetworkFile.parse(url)
         return self.__avatar

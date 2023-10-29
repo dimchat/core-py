@@ -59,6 +59,14 @@ class BaseDataWrapper(Dictionary):
         self.__data: Optional[bytes] = None
 
     # Override
+    def __len__(self) -> int:
+        """ return len(self) """
+        # if super().__len__() == 0:
+        #     return 0
+        data = self.data
+        return 0 if data is None else len(data)
+
+    # Override
     def __str__(self) -> str:
         text = self.get_str(key='data', default='')
         if len(text) == 0:

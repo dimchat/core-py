@@ -30,18 +30,18 @@
 
 from mkm import *
 
+from ..protocol import Visa, Bulletin
+
 from .meta import BaseMeta, MetaHelper
 from .document import BaseDocument
 from .docs import BaseVisa, BaseBulletin
 
 from .delegate import EntityDelegate
-from .entity import Entity, EntityDataSource
-from .user import User, UserDataSource
-from .group import Group, GroupDataSource
+from .entity import Entity, EntityDataSource, BaseEntity
+from .user import User, UserDataSource, BaseUser
+from .group import Group, GroupDataSource, BaseGroup
 
-from .entity_impl import BaseEntity
-from .user_impl import BaseUser
-from .group_impl import BaseGroup
+from .helper import DocumentHelper, BroadcastHelper  # , thanos
 
 
 __all__ = [
@@ -75,5 +75,7 @@ __all__ = [
     'Entity', 'EntityDataSource', 'BaseEntity',
     'User', 'UserDataSource', 'BaseUser',
     'Group', 'GroupDataSource', 'BaseGroup',
+
+    'DocumentHelper', 'BroadcastHelper',  # 'thanos',
 
 ]

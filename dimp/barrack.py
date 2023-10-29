@@ -41,8 +41,12 @@ from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import EncryptKey, VerifyKey
-from mkm import EntityType, ID, ANYONE, FOUNDER
-from mkm import Visa, Bulletin
+from mkm import EntityType, ID
+
+from .protocol import Visa, Bulletin
+
+from .mkm.helper import thanos
+from .mkm.helper import DocumentHelper, BroadcastHelper
 
 from .mkm import User, Group
 from .mkm import EntityDelegate, UserDataSource, GroupDataSource
@@ -102,16 +106,25 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
 
     # protected
     def visa_key(self, identifier: ID) -> Optional[EncryptKey]:
-        visa = self.document(identifier=identifier)
-        if isinstance(visa, Visa):
-            if visa.valid:
-                return visa.public_key
+        visa = self.visa(identifier=identifier)
+        if visa is not None:  # and visa.valid:
+            return visa.public_key
 
     # protected
     def meta_key(self, identifier: ID) -> Optional[VerifyKey]:
         meta = self.meta(identifier=identifier)
-        if meta is not None:
+        if meta is not None:  # and meta.valid:
             return meta.public_key
+
+    def visa(self, identifier: ID) -> Optional[Visa]:
+        """ Get last visa document """
+        documents = self.documents(identifier=identifier)
+        return DocumentHelper.last_visa(documents=documents)
+
+    def bulletin(self, identifier: ID) -> Optional[Bulletin]:
+        """ get last bulletin document """
+        documents = self.documents(identifier=identifier)
+        return DocumentHelper.last_bulletin(documents=documents)
 
     #
     #   Entity Delegate
@@ -184,10 +197,10 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
         # check for broadcast
         if identifier.is_broadcast:
             # founder of broadcast group
-            return broadcast_founder(group=identifier)
+            return BroadcastHelper.broadcast_founder(group=identifier)
         # get from document
-        doc = self.document(identifier=identifier)
-        if isinstance(doc, Bulletin):
+        doc = self.bulletin(identifier=identifier)
+        if doc is not None:  # and doc.valid:
             return doc.founder
         # TODO: load founder from database
 
@@ -196,7 +209,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
         # check for broadcast
         if identifier.is_broadcast:
             # owner of broadcast group
-            return broadcast_owner(group=identifier)
+            return BroadcastHelper.broadcast_owner(group=identifier)
         # check group type
         if identifier.type == EntityType.GROUP:
             # Polylogue's owner is its founder
@@ -208,72 +221,16 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
         # check for broadcast
         if identifier.is_broadcast:
             # members of broadcast group
-            return broadcast_members(group=identifier)
+            return BroadcastHelper.broadcast_members(group=identifier)
         # TODO: load members from database
         return []
 
     # Override
     def assistants(self, identifier: ID) -> List[ID]:
-        doc = self.document(identifier=identifier)
-        if isinstance(doc, Bulletin) and doc.valid:
+        doc = self.bulletin(identifier=identifier)
+        if doc is not None:  # and doc.valid:
             bots = doc.assistants
             if bots is not None:
                 return bots
         # TODO: get group bots from SP configuration
         return []
-
-
-def group_seed(group: ID) -> Optional[str]:
-    name = group.name
-    if name is not None:
-        length = len(name)
-        if length > 0 and (length != 8 or name.lower() != 'everyone'):
-            return name
-
-
-def broadcast_founder(group: ID) -> Optional[ID]:
-    name = group_seed(group=group)
-    if name is None:
-        # Consensus: the founder of group 'everyone@everywhere'
-        #            'Albert Moky'
-        return FOUNDER
-    else:
-        # DISCUSS: who should be the founder of group 'xxx@everywhere'?
-        #          'anyone@anywhere', or 'xxx.founder@anywhere'
-        return ID.parse(identifier=name + '.founder@anywhere')
-
-
-def broadcast_owner(group: ID) -> Optional[ID]:
-    name = group_seed(group=group)
-    if name is None:
-        # Consensus: the owner of group 'everyone@everywhere'
-        #            'anyone@anywhere'
-        return ANYONE
-    else:
-        # DISCUSS: who should be the owner of group 'xxx@everywhere'?
-        #          'anyone@anywhere', or 'xxx.owner@anywhere'
-        return ID.parse(identifier=name + '.owner@anywhere')
-
-
-def broadcast_members(group: ID) -> List[ID]:
-    name = group_seed(group=group)
-    if name is None:
-        # Consensus: the member of group 'everyone@everywhere'
-        #            'anyone@anywhere'
-        return [ANYONE]
-    else:
-        # DISCUSS: who should be the member of group 'xxx@everywhere'?
-        #          'anyone@anywhere', or 'xxx.member@anywhere'
-        owner = ID.parse(identifier=name + '.owner@anywhere')
-        member = ID.parse(identifier=name + '.member@anywhere')
-        return [owner, member]
-
-
-def thanos(planet: dict, finger: int) -> int:
-    """ Thanos can kill half lives of a world with a snap of the finger """
-    people = planet.keys()
-    for anybody in people:
-        if (++finger & 1) == 1:
-            # kill it
-            planet.pop(anybody)
-    return finger

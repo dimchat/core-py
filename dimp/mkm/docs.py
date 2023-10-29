@@ -35,7 +35,8 @@ from mkm.format import TransportableData
 from mkm.format import PortableNetworkFile
 from mkm import ID
 from mkm import Document
-from mkm import Visa, Bulletin
+
+from ..protocol import Visa, Bulletin
 
 from .document import BaseDocument
 
@@ -92,7 +93,11 @@ class BaseVisa(BaseDocument, Visa):
     def avatar(self) -> Optional[PortableNetworkFile]:
         if self.__avatar is None:
             url = self.get_property(key='avatar')
-            self.__avatar = PortableNetworkFile.parse(url)
+            if isinstance(url, str) and len(url) == 0:
+                # ignore empty URL
+                pass
+            else:
+                self.__avatar = PortableNetworkFile.parse(url)
         return self.__avatar
 
     @avatar.setter  # Override
@@ -122,7 +127,8 @@ class BaseBulletin(BaseDocument, Bulletin):
 
     @property  # Override
     def founder(self) -> Optional[ID]:
-        return ID.parse(identifier=self.get_property(key='founder'))
+        identifier = self.get_property(key='founder')
+        return ID.parse(identifier=identifier)
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
@@ -130,9 +136,9 @@ class BaseBulletin(BaseDocument, Bulletin):
             bots = self.get_property(key='assistants')
             if bots is None:
                 # get from 'assistant'
-                ass = self.get_property(key='assistant')
-                bot = ID.parse(identifier=ass)
-                self.__bots = [] if bot is None else [bot]
+                single = self.get_property(key='assistant')
+                single = ID.parse(identifier=single)
+                self.__bots = [] if single is None else [single]
             else:
                 self.__bots = ID.convert(bots)
         return self.__bots

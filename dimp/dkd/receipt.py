@@ -35,17 +35,19 @@
     As receipt returned to sender to proofing the message's received
 """
 
+from abc import ABC
 from typing import Optional, Any, Dict
 
 from mkm.types import Converter
-from dkd import Envelope, InstantMessage
+from dkd import Envelope
 
 from ..protocol import Command
 from ..protocol import ReceiptCommand, ReceiptCommandMixIn
 from .commands import BaseCommand
 
 
-class BaseReceipt(BaseCommand, ReceiptCommand):
+# noinspection PyAbstractClass
+class BaseReceipt(BaseCommand, ReceiptCommand, ABC):
     """
         Receipt Command
         ~~~~~~~~~~~~~~~
@@ -124,10 +126,6 @@ class BaseReceipt(BaseCommand, ReceiptCommand):
         if origin is not None:
             signature = origin.get('signature')
             return Converter.get_str(value=signature, default=None)
-
-    # Override
-    def match_message(self, msg: InstantMessage) -> bool:
-        raise NotImplemented
 
 
 class BaseReceiptCommand(BaseReceipt, ReceiptCommandMixIn):

@@ -64,16 +64,19 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
 
     @classmethod
     def keys_match(cls, encrypt_key: EncryptKey, decrypt_key: DecryptKey) -> bool:
+        """ match encrypt key """
         gf = CryptographyKeyFactoryManager.general_factory
         return gf.keys_match(encrypt_key=encrypt_key, decrypt_key=decrypt_key)
 
     @classmethod
     def asymmetric_keys_match(cls, sign_key: SignKey, verify_key: VerifyKey) -> bool:
+        """ match sign key """
         gf = CryptographyKeyFactoryManager.general_factory
         return gf.asymmetric_keys_match(sign_key=sign_key, verify_key=verify_key)
 
     @classmethod
     def keys_equal(cls, a: SymmetricKey, b: SymmetricKey) -> bool:
+        """ symmetric key equals """
         if a is b:
             # same object
             return True
@@ -82,6 +85,7 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
 
     @classmethod
     def private_keys_equal(cls, a: PrivateKey, b: PrivateKey) -> bool:
+        """ asymmetric key equals """
         if a is b:
             # same object
             return True

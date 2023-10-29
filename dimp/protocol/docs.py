@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   DIMP : Decentralized Instant Messaging Protocol
+#   Ming-Ke-Ming : Decentralized User Identity Authentication
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -29,95 +29,96 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
+
+from mkm.crypto import EncryptKey
+from mkm.format import PortableNetworkFile
 
 from mkm import ID
-from dkd import ContentType
-from dkd import Content
+from mkm import Document
 
 
-class MoneyContent(Content, ABC):
+class Visa(Document, ABC):
     """
-        Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x40,
-            sn   : 123,
-
-            currency : "RMB", // USD, USDT, ...
-            amount   : 100.00
-        }
+        User Document
+        ~~~~~~~~~~~~~
+        This interface is defined for authorizing other apps to login,
+        which can generate a temporary asymmetric key pair for messaging.
     """
 
     @property
     @abstractmethod
-    def currency(self) -> str:
+    def public_key(self) -> Optional[EncryptKey]:
+        """
+        Get public key to encrypt message for user
+
+        :return: public key
+        """
+        raise NotImplemented
+
+    @public_key.setter
+    @abstractmethod
+    def public_key(self, key: EncryptKey):
+        """
+        Set public key for other user to encrypt message
+
+        :param key: public key as visa.key
+        """
         raise NotImplemented
 
     @property
     @abstractmethod
-    def amount(self) -> float:
+    def avatar(self) -> Optional[PortableNetworkFile]:
+        """
+        Get avatar URL
+
+        :return: PNF(URL)
+        """
         raise NotImplemented
 
-    @amount.setter
+    @avatar.setter
     @abstractmethod
-    def amount(self, value: float):
+    def avatar(self, url: PortableNetworkFile):
+        """
+        Set avatar URL
+
+        :param url: PNF(URL)
+        """
         raise NotImplemented
 
-    #
-    #   Factory method
-    #
-    @classmethod
-    def create(cls, currency: str, amount: float, msg_type: int = None):
-        # convert type value
-        if msg_type is None:
-            msg_type = ContentType.MONEY.value
-        # create with type value
-        from ..dkd import BaseMoneyContent
-        return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
 
-
-class TransferContent(MoneyContent, ABC):
+class Bulletin(Document, ABC):
     """
-        Transfer Money Message Content
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x41,
-            sn   : 123,
-
-            currency : "RMB",    // USD, USDT, ...
-            amount   : 100.00,
-            remitter : "{FROM}", // sender ID
-            remittee : "{TO}"    // receiver ID
-        }
+        Group Document
+        ~~~~~~~~~~~~~~
     """
 
     @property
     @abstractmethod
-    def remitter(self) -> Optional[ID]:
-        raise NotImplemented
+    def founder(self) -> Optional[ID]:
+        """
+        Get group founder
 
-    @remitter.setter
-    @abstractmethod
-    def remitter(self, sender: ID):
+        :return: user ID
+        """
         raise NotImplemented
 
     @property
     @abstractmethod
-    def remittee(self) -> Optional[ID]:
+    def assistants(self) -> Optional[List[ID]]:
+        """
+        Get group assistants
+
+        :return: bot ID list
+        """
         raise NotImplemented
 
-    @remittee.setter
+    @assistants.setter
     @abstractmethod
-    def remittee(self, receiver: ID):
-        raise NotImplemented
+    def assistants(self, bots: List[ID]):
+        """
+        Set group assistants
 
-    #
-    #   Factory method
-    #
-    @classmethod
-    def transfer(cls, currency: str, amount: float):
-        from ..dkd import TransferMoneyContent
-        return TransferMoneyContent(currency=currency, amount=amount)
+        :param bots: bot ID list
+        """
+        raise NotImplemented

@@ -72,7 +72,6 @@ class BaseMessage(Dictionary, Message):
         super().__init__(dictionary=msg)
         # lazy
         self.__envelope = head
-        self.__delegate = None
 
     @property  # Override
     def envelope(self) -> Envelope:

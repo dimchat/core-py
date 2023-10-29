@@ -44,7 +44,6 @@ from mkm import ID
 
 from ..protocol import HistoryCommand, GroupCommand
 from ..protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
-from ..protocol import HireCommand, FireCommand, ResignCommand
 
 from .base import BaseCommand
 
@@ -154,6 +153,7 @@ class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 
 
 class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
+    """ Deprecated, use 'reset' instead """
 
     def __init__(self, content: Dict[str, Any] = None,
                  group: ID = None, member: ID = None, members: List[ID] = None):
@@ -225,70 +225,3 @@ class ResetGroupCommand(BaseGroupCommand, ResetCommand):
         """
         cmd = GroupCommand.RESET if content is None else None
         super().__init__(content, cmd=cmd, group=group, members=members)
-
-
-"""
-    Administrator
-    ~~~~~~~~~~~~~
-"""
-
-
-class HireGroupCommand(BaseGroupCommand, HireCommand):
-
-    def __init__(self, content: Dict[str, Any] = None, group: ID = None,
-                 administrators: List[ID] = None,
-                 assistants: List[ID] = None):
-        cmd = GroupCommand.HIRE if content is None else None
-        super().__init__(content, cmd=cmd, group=group)
-        # group admins
-        if administrators is not None:
-            self['administrators'] = ID.revert(administrators)
-        # group bots
-        if assistants is not None:
-            self['assistants'] = ID.revert(assistants)
-
-    @property  # Override
-    def administrators(self) -> Optional[List[ID]]:
-        users = self.get('administrators')
-        if users is not None:
-            return ID.convert(users)
-
-    @property  # Override
-    def assistants(self) -> Optional[List[ID]]:
-        bots = self.get('assistants')
-        if bots is not None:
-            return ID.convert(bots)
-
-
-class FireGroupCommand(BaseGroupCommand, FireCommand):
-
-    def __init__(self, content: Dict[str, Any] = None, group: ID = None,
-                 administrators: List[ID] = None,
-                 assistants: List[ID] = None):
-        cmd = GroupCommand.FIRE if content is None else None
-        super().__init__(content=content, cmd=cmd, group=group)
-        # group admins
-        if administrators is not None:
-            self['administrators'] = ID.revert(administrators)
-        # group bots
-        if assistants is not None:
-            self['assistants'] = ID.revert(assistants)
-
-    @property  # Override
-    def administrators(self) -> Optional[List[ID]]:
-        users = self.get('administrators')
-        if users is not None:
-            return ID.convert(users)
-
-    @property  # Override
-    def assistants(self) -> Optional[List[ID]]:
-        bots = self.get('assistants')
-        if bots is not None:
-            return ID.convert(bots)
-
-
-class ResignGroupCommand(BaseGroupCommand, ResignCommand):
-
-    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
-        cmd = GroupCommand.RESIGN if content is None else None
-        super().__init__(content=content, cmd=cmd, group=group)

@@ -70,10 +70,11 @@ class BaseFileWrapper(Dictionary):
 
     @property
     def data(self) -> Optional[TransportableData]:
-        if self.__attachment is None:
+        ted = self.__attachment
+        if ted is None:
             base64 = self.get('data')
-            self.__attachment = TransportableData.parse(base64)
-        return self.__attachment
+            self.__attachment = ted = TransportableData.parse(base64)
+        return ted
 
     @data.setter
     def data(self, ted: Optional[TransportableData]):
@@ -103,7 +104,7 @@ class BaseFileWrapper(Dictionary):
 
     @filename.setter
     def filename(self, name: Optional[str]):
-        if name is None:
+        if name is None:  # or len(name) == 0:
             self.pop('filename', None)
         else:
             self['filename'] = name
@@ -125,7 +126,7 @@ class BaseFileWrapper(Dictionary):
         if remote is None:
             self.pop('URL', None)
         else:
-            # TODO: convert URI to str
+            # convert URI to str
             self['URL'] = remote
         self.__url = remote
 
