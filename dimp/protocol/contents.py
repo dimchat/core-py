@@ -32,7 +32,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Dict, Any
 
 from mkm.types import URI
-from mkm.format import PortableNetworkFile
+from mkm.format import PortableNetworkFile, TransportableData
 from mkm import ID
 from dkd import Content, ReliableMessage
 
@@ -175,28 +175,26 @@ class PageContent(Content, ABC):
             type : 0x20,
             sn   : 123,
 
-            URL   : "https://github.com/moky/dimp",  // Page URL
-            icon  : "...",                           // base64_encode(icon)
-            title : "...",
-            desc  : "..."
+            title : "...",                // Web title
+            icon  : "...",                // base64_encode(icon)
+            desc  : "...",
+
+            URL   : "https://github.com/moky/dimp",
+
+            HTML      : "...",            // Web content
+            mime_type : "text/html",      // Content-Type
+            encoding  : "utf8",
+            base      : "about:blank"     // Base URL
         }
     """
 
-    @property
-    @abstractmethod
-    def url(self) -> URI:
-        """ Web Page URL """
-        raise NotImplemented
-
-    @url.setter
-    @abstractmethod
-    def url(self, string: URI):
-        raise NotImplemented
+    #
+    #   Web Title
+    #
 
     @property
     @abstractmethod
     def title(self) -> str:
-        """ Document Title """
         raise NotImplemented
 
     @title.setter
@@ -204,21 +202,13 @@ class PageContent(Content, ABC):
     def title(self, string: str):
         raise NotImplemented
 
-    @property
-    @abstractmethod
-    def desc(self) -> Optional[str]:
-        """ Description """
-        raise NotImplemented
-
-    @desc.setter
-    @abstractmethod
-    def desc(self, string: str):
-        raise NotImplemented
+    #
+    #   Fav Icon
+    #
 
     @property
     @abstractmethod
     def icon(self) -> Optional[bytes]:
-        """ Image data """
         raise NotImplemented
 
     @icon.setter
@@ -227,12 +217,75 @@ class PageContent(Content, ABC):
         raise NotImplemented
 
     #
-    #   Factory method
+    #   Description
+    #
+
+    @property
+    @abstractmethod
+    def desc(self) -> Optional[str]:
+        raise NotImplemented
+
+    @desc.setter
+    @abstractmethod
+    def desc(self, text: str):
+        raise NotImplemented
+
+    #
+    #   Page URL
+    #
+
+    @property
+    @abstractmethod
+    def url(self) -> Optional[URI]:
+        raise NotImplemented
+
+    @url.setter
+    @abstractmethod
+    def url(self, locator: URI):
+        raise NotImplemented
+
+    #
+    #   Page content
+    #
+
+    @property
+    @abstractmethod
+    def html(self) -> Optional[str]:
+        raise NotImplemented
+
+    @html.setter
+    @abstractmethod
+    def html(self, content: str):
+        raise NotImplemented
+
+    #
+    #   Factory methods
     #
     @classmethod
-    def create(cls, url: URI, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
+    def create(cls, url: Optional[URI], html: Optional[str], title: str,
+               desc: Optional[str], icon: Optional[TransportableData]):
         from ..dkd import WebPageContent
-        return WebPageContent(url=url, title=title, desc=desc, icon=icon)
+        return WebPageContent(url=url, html=html, title=title, desc=desc, icon=icon)
+
+    @classmethod
+    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
+        if isinstance(icon, bytes):
+            ted = TransportableData.create(data=icon)
+        elif isinstance(icon, str):
+            ted = TransportableData.parse(icon)
+        else:
+            ted = None
+        return cls.create(url=url, html=None, title=title, desc=desc, icon=ted)
+
+    @classmethod
+    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
+        if isinstance(icon, bytes):
+            ted = TransportableData.create(data=icon)
+        elif isinstance(icon, str):
+            ted = TransportableData.parse(icon)
+        else:
+            ted = None
+        return cls.create(url=None, html=html, title=title, desc=desc, icon=ted)
 
 
 class NameCard(Content, ABC):

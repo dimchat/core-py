@@ -184,25 +184,36 @@ class WebPageContent(BaseContent, PageContent):
             type : 0x20,
             sn   : 123,
 
-            URL   : "https://github.com/moky/dimp",  // Page URL
-            icon  : "...",                           // base64_encode(icon)
-            title : "...",
-            desc  : "..."
+            title : "...",                // Web title
+            icon  : "...",                // base64_encode(icon)
+            desc  : "...",
+
+            URL   : "https://github.com/moky/dimp",
+
+            HTML      : "...",            // Web content
+            mime_type : "text/html",      // Content-Type
+            encoding  : "utf8",
+            base      : "about:blank"     // Base URL
         }
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 url: URI = None, title: str = None,
+                 url: URI = None, html: str = None, title: str = None,
                  desc: Optional[str] = None, icon: Optional[TransportableData] = None):
         if content is None:
             # 1. new content with url, title, desc & icon
             assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
             msg_type = ContentType.PAGE.value
             super().__init__(None, msg_type)
-            self['URL'] = url
-            self['title'] = title
+            # URL or HTML
+            if url is not None:
+                self.url = url
+            if html is not None:
+                self.html = html
+            # title, icon, description
+            self.title = title
             if desc is not None:
-                self['desc'] = desc
+                self.desc = desc
             if icon is not None:
                 self.set_icon(icon)
         else:
@@ -213,15 +224,9 @@ class WebPageContent(BaseContent, PageContent):
         # lazy
         self.__icon = icon
 
-    @property  # Override
-    def url(self) -> URI:
-        # TODO: convert str to URI
-        return self.get_str(key='URL', default=None)
-
-    @url.setter  # Override
-    def url(self, string: URI):
-        # TODO: convert URI to str
-        self['URL'] = string
+    #
+    #   Web Title
+    #
 
     @property  # Override
     def title(self) -> str:
@@ -231,16 +236,9 @@ class WebPageContent(BaseContent, PageContent):
     def title(self, string: str):
         self['title'] = string
 
-    @property  # Override
-    def desc(self) -> Optional[str]:
-        return self.get_str(key='desc', default=None)
-
-    @desc.setter  # Override
-    def desc(self, string: Optional[str]):
-        if string is None:
-            self.pop('desc', None)
-        else:
-            self['desc'] = string
+    #
+    #   Fav Icon
+    #
 
     @property  # Override
     def icon(self) -> Optional[bytes]:
@@ -251,7 +249,7 @@ class WebPageContent(BaseContent, PageContent):
         if ted is not None:
             return ted.data
 
-    @icon.setter
+    @icon.setter  # Override
     def icon(self, image: Optional[bytes]):
         if image is None or len(image) == 0:
             ted = None
@@ -265,6 +263,50 @@ class WebPageContent(BaseContent, PageContent):
         else:
             self['icon'] = ted.object
         self.__icon = ted
+
+    #
+    #   Description
+    #
+
+    @property  # Override
+    def desc(self) -> Optional[str]:
+        return self.get_str(key='desc', default=None)
+
+    @desc.setter  # Override
+    def desc(self, text: Optional[str]):
+        if text is None:
+            self.pop('desc', None)
+        else:
+            self['desc'] = text
+
+    #
+    #   Page URL
+    #
+
+    @property  # Override
+    def url(self) -> URI:
+        # TODO: convert str to URI
+        return self.get_str(key='URL', default=None)
+
+    @url.setter  # Override
+    def url(self, locator: URI):
+        # TODO: convert URI to str
+        self['URL'] = locator
+
+    #
+    #   Page content
+    #
+
+    @property  # Override
+    def html(self) -> Optional[str]:
+        return self.get_str(key='desc', default=None)
+
+    @html.setter  # Override
+    def html(self, content: Optional[str]):
+        if content is None:
+            self.pop('HTML', None)
+        else:
+            self['HTML'] = content
 
 
 class NameCardContent(BaseContent, NameCard):

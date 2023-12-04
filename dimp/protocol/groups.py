@@ -40,6 +40,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
+from mkm.types import DateTime
 from mkm import ID
 
 from .commands import Command
@@ -160,9 +161,9 @@ class GroupCommand(HistoryCommand, ABC):
         return QuitGroupCommand(group=group)
 
     @classmethod
-    def query(cls, group: ID):
+    def query(cls, group: ID, last_time: DateTime = None):
         from ..dkd import QueryGroupCommand
-        return QueryGroupCommand(group=group)
+        return QueryGroupCommand(group=group, last_time=last_time)
 
     @classmethod
     def reset(cls, group: ID, members: List[ID]):
@@ -215,7 +216,12 @@ class QueryCommand(GroupCommand, ABC):
         This command is just for querying group info,
         should not be saved in group history
     """
-    pass
+
+    @property
+    @abstractmethod
+    def last_time(self) -> Optional[DateTime]:
+        """ Last group history time for querying """
+        raise NotImplemented
 
 
 # noinspection PyAbstractClass

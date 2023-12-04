@@ -38,6 +38,7 @@
 
 from typing import Optional, Any, Dict
 
+from mkm.types import DateTime
 from mkm import ID, Meta, Document
 
 from ..protocol import MetaCommand, DocumentCommand
@@ -123,23 +124,25 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
                  identifier: ID = None,
                  meta: Optional[Meta] = None,
                  document: Optional[Document] = None,
-                 signature: Optional[str] = None):
+                 last_time: Optional[DateTime] = None):
         if content is None:
             # 1. new command with ID, meta, document & signature
             if identifier is None:
-                assert document is not None, 'document command error: %s, %s' % (meta, signature)
+                assert document is not None, 'document command error: %s, %s' % (meta, last_time)
                 identifier = document.identifier
-            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, document, signature)
+            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, document, last_time)
             cmd = Command.DOCUMENT
             super().__init__(cmd=cmd, identifier=identifier, meta=meta)
+            # respond with document info
             if document is not None:
                 self['document'] = document.dictionary
-            if signature is not None:
-                self['signature'] = signature
+            # query with last document time
+            if last_time is not None:
+                self.set_datetime(key='last_time', value=last_time)
         else:
             # 2. command info from network
-            assert identifier is None and meta is None and document is None and signature is None, \
-                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, document, signature)
+            assert identifier is None and meta is None and document is None and last_time is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, document, last_time)
             super().__init__(content)
         # lazy load
         self.__doc = document
@@ -154,10 +157,5 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
         return self.__doc
 
     @property  # Override
-    def signature(self) -> Optional[str]:
-        """
-        signature for checking new document
-
-        :return: part of signature in current document (base64)
-        """
-        return self.get_str(key='signature', default=None)
+    def last_time(self) -> Optional[DateTime]:
+        return self.get_datetime(key='last_time', default=None)

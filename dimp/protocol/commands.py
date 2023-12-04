@@ -31,6 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm.types import DateTime
 from mkm import ID, Meta, Document
 from dkd import Content
 
@@ -171,7 +172,7 @@ class DocumentCommand(MetaCommand, ABC):
             ID        : "{ID}",     // entity ID
             meta      : {...},      // only for handshaking with new friend
             document  : {...},      // when document is empty, means query for ID
-            signature : "..."       // old document's signature for querying
+            last_time : 12345       // old document time for querying
         }
 
     """
@@ -186,12 +187,8 @@ class DocumentCommand(MetaCommand, ABC):
 
     @property
     @abstractmethod
-    def signature(self) -> Optional[str]:
-        """
-        Document's signature (just for querying new document)
-
-        :return: part of signature in current document (base64)
-        """
+    def last_time(self) -> Optional[DateTime]:
+        """ Last document time for querying """
         raise NotImplemented
 
     #
@@ -199,17 +196,17 @@ class DocumentCommand(MetaCommand, ABC):
     #
 
     @classmethod
-    def query(cls, identifier: ID, signature: str = None):  # -> DocumentCommand:
+    def query(cls, identifier: ID, last_time: str = None):  # -> DocumentCommand:
         """
         1. Query Entity Document
-        2. Query Entity Document for updating with current signature
+        2. Query Entity Document for updating with last time
 
         :param identifier: entity ID
-        :param signature:  document signature
+        :param last_time:  last document time
         :return: DocumentCommand
         """
         from ..dkd import BaseDocumentCommand
-        return BaseDocumentCommand(identifier=identifier, signature=signature)
+        return BaseDocumentCommand(identifier=identifier, last_time=last_time)
 
     @classmethod
     def response(cls, document: Document, meta: Optional[Meta] = None, identifier: ID = None):

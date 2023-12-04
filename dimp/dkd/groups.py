@@ -39,8 +39,9 @@
 
 from typing import Optional, Any, Dict, List
 
-from dkd import ContentType
+from mkm.types import DateTime
 from mkm import ID
+from dkd import ContentType
 
 from ..protocol import HistoryCommand, GroupCommand
 from ..protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
@@ -200,7 +201,7 @@ class QuitGroupCommand(BaseGroupCommand, QuitCommand):
 
 class QueryGroupCommand(BaseGroupCommand, QueryCommand):
 
-    def __init__(self, content: Dict[str, Any] = None, group: ID = None):
+    def __init__(self, content: Dict[str, Any] = None, group: ID = None, last_time: DateTime = None):
         """
         Create query group members command (not history command)
 
@@ -210,6 +211,12 @@ class QueryGroupCommand(BaseGroupCommand, QueryCommand):
         """
         cmd = GroupCommand.QUERY if content is None else None
         super().__init__(content, cmd=cmd, group=group)
+        if last_time is not None:
+            self.set_datetime(key='last_time', value=last_time)
+
+    @property  # Override
+    def last_time(self) -> Optional[DateTime]:
+        return self.get_datetime(key='last_time', default=None)
 
 
 class ResetGroupCommand(BaseGroupCommand, ResetCommand):
