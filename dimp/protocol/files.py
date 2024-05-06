@@ -169,19 +169,19 @@ class ImageContent(FileContent, ABC):
                 data      : "{BASE64_ENCODE}",
                 ...
             },
-            thumbnail : "..."        // base64_encode(smallImage)
+            thumbnail : "data:image/jpeg;base64,..."
         }
     """
 
     @property
     @abstractmethod
-    def thumbnail(self) -> Optional[bytes]:
+    def thumbnail(self) -> Optional[URI]:
         # thumbnail of image
         raise NotImplemented
 
     @thumbnail.setter
     @abstractmethod
-    def thumbnail(self, image: bytes):
+    def thumbnail(self, base64: URI):
         raise NotImplemented
 
 
@@ -241,17 +241,17 @@ class VideoContent(FileContent, ABC):
                 data      : "{BASE64_ENCODE}",
                 ...
             },
-            snapshot : "..."        // base64_encode(smallImage)
+            snapshot : "data:image/jpeg;base64,..."
         }
     """
 
     @property
     @abstractmethod
-    def snapshot(self) -> Optional[bytes]:
+    def snapshot(self) -> Optional[URI]:
         # snapshot of video
         raise NotImplemented
 
     @snapshot.setter
     @abstractmethod
-    def snapshot(self, image: bytes):
+    def snapshot(self, base64: URI):
         raise NotImplemented

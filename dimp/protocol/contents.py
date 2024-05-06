@@ -29,10 +29,10 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, List, Dict, Any
 
 from mkm.types import URI
-from mkm.format import PortableNetworkFile, TransportableData
+from mkm.format import PortableNetworkFile
 from mkm import ID
 from dkd import Content, ReliableMessage
 
@@ -176,8 +176,8 @@ class PageContent(Content, ABC):
             sn   : 123,
 
             title : "...",                // Web title
-            icon  : "...",                // base64_encode(icon)
             desc  : "...",
+            icon  : "data:image/x-icon;base64,...",
 
             URL   : "https://github.com/moky/dimp",
 
@@ -208,12 +208,12 @@ class PageContent(Content, ABC):
 
     @property
     @abstractmethod
-    def icon(self) -> Optional[bytes]:
+    def icon(self) -> Optional[URI]:
         raise NotImplemented
 
     @icon.setter
     @abstractmethod
-    def icon(self, image: bytes):
+    def icon(self, base64: URI):
         raise NotImplemented
 
     #
@@ -263,29 +263,17 @@ class PageContent(Content, ABC):
     #
     @classmethod
     def create(cls, url: Optional[URI], html: Optional[str], title: str,
-               desc: Optional[str], icon: Optional[TransportableData]):
+               desc: Optional[str], icon: Optional[URI]):
         from ..dkd import WebPageContent
         return WebPageContent(url=url, html=html, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
-        if isinstance(icon, bytes):
-            ted = TransportableData.create(data=icon)
-        elif isinstance(icon, str):
-            ted = TransportableData.parse(icon)
-        else:
-            ted = None
-        return cls.create(url=url, html=None, title=title, desc=desc, icon=ted)
+    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Optional[URI]):
+        return cls.create(url=url, html=None, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Union[bytes, str, None]):
-        if isinstance(icon, bytes):
-            ted = TransportableData.create(data=icon)
-        elif isinstance(icon, str):
-            ted = TransportableData.parse(icon)
-        else:
-            ted = None
-        return cls.create(url=None, html=html, title=title, desc=desc, icon=ted)
+    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Optional[URI]):
+        return cls.create(url=None, html=html, title=title, desc=desc, icon=icon)
 
 
 class NameCard(Content, ABC):

@@ -43,19 +43,7 @@ from .contents import BaseContent
 
 
 class BaseFileContent(BaseContent, FileContent):
-    """
-        File Message Content
-        ~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x10,
-            sn   : 123,
-
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(fileContent)
-            filename : "..."
-        }
-    """
+    """ File Message Content """
 
     def __init__(self, content: Dict[str, Any] = None,
                  msg_type: int = None,
@@ -120,64 +108,27 @@ class BaseFileContent(BaseContent, FileContent):
 
 
 class ImageFileContent(BaseFileContent, ImageContent):
-    """
-        Image Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x12,
-            sn   : 123,
-
-            URL       : "http://", // upload to CDN
-            data      : "...",     // if (!URL) base64_encode(image)
-            thumbnail : "...",     // base64_encode(smallImage)
-            filename  : "..."
-        }
-    """
+    """ Image Message Content """
 
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.IMAGE.value if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
-        # lazy load
-        self.__thumbnail: Optional[TransportableData] = None
 
     @property  # Override
-    def thumbnail(self) -> Optional[bytes]:
-        ted = self.__thumbnail
-        if ted is None:
-            base64 = self.get('thumbnail')
-            self.__thumbnail = ted = TransportableData.parse(base64)
-        if ted is not None:
-            return ted.data
+    def thumbnail(self) -> Optional[URI]:
+        base64 = self.get_str(key='thumbnail', default=None)
+        # TODO: convert 'data:' URI
+        return base64
 
     @thumbnail.setter  # Override
-    def thumbnail(self, image: bytes):
-        if image is None:  # or len(image) == 0:
-            self.pop('thumbnail', None)
-            ted = None
-        else:
-            ted = TransportableData.create(data=image)
-            self['thumbnail'] = ted.object
-        self.__thumbnail = ted
+    def thumbnail(self, base64: URI):
+        self['thumbnail'] = base64
 
 
 class AudioFileContent(BaseFileContent, AudioContent):
-    """
-        Audio Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x14,
-            sn   : 123,
-
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(audio)
-            text     : "...",     // Automatic Speech Recognition
-            filename : "..."
-        }
-    """
+    """ Audio Message Content """
 
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
@@ -195,44 +146,20 @@ class AudioFileContent(BaseFileContent, AudioContent):
 
 
 class VideoFileContent(BaseFileContent, VideoContent):
-    """
-        Video Message Content
-        ~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0x16,
-            sn   : 123,
-
-            URL      : "http://", // upload to CDN
-            data     : "...",     // if (!URL) base64_encode(video)
-            snapshot : "...",     // base64_encode(smallImage)
-            filename : "..."
-        }
-    """
+    """ Video Message Content """
 
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.VIDEO.value if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
-        # lazy load
-        self.__snapshot: Optional[TransportableData] = None
 
     @property  # Override
-    def snapshot(self) -> Optional[bytes]:
-        ted = self.__snapshot
-        if ted is None:
-            base64 = self.get('snapshot')
-            self.__snapshot = ted = TransportableData.parse(base64)
-        if ted is not None:
-            return ted.data
+    def snapshot(self) -> Optional[URI]:
+        base64 = self.get_str(key='thumbnail', default=None)
+        # TODO: convert 'data:' URI
+        return base64
 
     @snapshot.setter  # Override
-    def snapshot(self, image: bytes):
-        if image is None:  # or len(image) == 0:
-            self.pop('snapshot', None)
-            ted = None
-        else:
-            ted = TransportableData.create(data=image)
-            self['snapshot'] = ted.object
-        self.__snapshot = ted
+    def snapshot(self, base64: URI):
+        self['snapshot'] = base64

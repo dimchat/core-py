@@ -30,7 +30,7 @@
 
 from typing import Optional, Any, Dict, List
 
-from mkm.format import TransportableData, PortableNetworkFile
+from mkm.format import PortableNetworkFile
 from mkm.types import URI
 from mkm import ID
 from dkd import ContentType, Content
@@ -199,30 +199,26 @@ class WebPageContent(BaseContent, PageContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  url: URI = None, html: str = None, title: str = None,
-                 desc: Optional[str] = None, icon: Optional[TransportableData] = None):
+                 desc: Optional[str] = None, icon: Optional[URI] = None):
         if content is None:
             # 1. new content with url, title, desc & icon
             assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
             msg_type = ContentType.PAGE.value
             super().__init__(None, msg_type)
-            # URL or HTML
-            if url is not None:
-                self.url = url
-            if html is not None:
-                self.html = html
-            # title, icon, description
-            self.title = title
-            if desc is not None:
-                self.desc = desc
-            if icon is not None:
-                self.set_icon(icon)
         else:
             # 2. content info from network
-            assert url is None and title is None and desc is None and icon is None, \
-                'params error: %s, %s, %s, %s, %s' % (content, url, title, desc, icon)
             super().__init__(content)
-        # lazy
-        self.__icon = icon
+        # URL or HTML
+        if url is not None:
+            self.url = url
+        if html is not None:
+            self.html = html
+        # title, icon, description
+        self.title = title
+        if desc is not None:
+            self.desc = desc
+        if icon is not None:
+            self.icon = icon
 
     #
     #   Web Title
@@ -241,28 +237,14 @@ class WebPageContent(BaseContent, PageContent):
     #
 
     @property  # Override
-    def icon(self) -> Optional[bytes]:
-        ted = self.__icon
-        if ted is None:
-            base64 = self.get('icon')
-            self.__icon = ted = TransportableData.parse(base64)
-        if ted is not None:
-            return ted.data
+    def icon(self) -> Optional[URI]:
+        base64 = self.get_str(key='icon', default=None)
+        # TODO: convert 'data:' URI
+        return base64
 
     @icon.setter  # Override
-    def icon(self, image: Optional[bytes]):
-        if image is None or len(image) == 0:
-            ted = None
-        else:
-            ted = TransportableData.create(data=image)
-        self.set_icon(ted)
-
-    def set_icon(self, ted: Optional[TransportableData]):
-        if ted is None:
-            self.pop('icon')
-        else:
-            self['icon'] = ted.object
-        self.__icon = ted
+    def icon(self, base64: URI):
+        self['icon'] = base64
 
     #
     #   Description
