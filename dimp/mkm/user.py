@@ -66,7 +66,7 @@ class UserDataSource(EntityDataSource, ABC):
     """
 
     @abstractmethod
-    async def contacts(self, identifier: ID) -> List[ID]:
+    async def get_contacts(self, identifier: ID) -> List[ID]:
         """
         Get user's contacts list
 
@@ -255,7 +255,7 @@ class BaseUser(BaseEntity, User):
     async def contacts(self) -> List[ID]:
         barrack = self.data_source
         # assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
-        return await barrack.contacts(identifier=self.identifier)
+        return await barrack.get_contacts(identifier=self.identifier)
 
     # Override
     async def verify(self, data: bytes, signature: bytes) -> bool:

@@ -50,7 +50,7 @@ class GroupDataSource(EntityDataSource, ABC):
     """
 
     @abstractmethod
-    async def founder(self, identifier: ID) -> Optional[ID]:
+    async def get_founder(self, identifier: ID) -> Optional[ID]:
         """
         Get founder of the group
 
@@ -60,7 +60,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    async def owner(self, identifier: ID) -> Optional[ID]:
+    async def get_owner(self, identifier: ID) -> Optional[ID]:
         """
         Get current owner of the group
 
@@ -70,7 +70,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    async def members(self, identifier: ID) -> List[ID]:
+    async def get_members(self, identifier: ID) -> List[ID]:
         """
         Get all members in the group
 
@@ -80,7 +80,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    async def assistants(self, identifier: ID) -> List[ID]:
+    async def get_assistants(self, identifier: ID) -> List[ID]:
         """
         Get assistants for this group
 
@@ -169,23 +169,23 @@ class BaseGroup(BaseEntity, Group):
         if self.__founder is None:
             barrack = self.data_source
             # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
-            self.__founder = await barrack.founder(identifier=self.identifier)
+            self.__founder = await barrack.get_founder(identifier=self.identifier)
         return self.__founder
 
     @property  # Override
     async def owner(self) -> ID:
         barrack = self.data_source
         # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
-        return await barrack.owner(identifier=self.identifier)
+        return await barrack.get_owner(identifier=self.identifier)
 
     @property  # Override
     async def members(self) -> List[ID]:
         barrack = self.data_source
         # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
-        return await barrack.members(identifier=self.identifier)
+        return await barrack.get_members(identifier=self.identifier)
 
     @property  # Override
     async def assistants(self) -> List[ID]:
         barrack = self.data_source
         # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
-        return await barrack.assistants(identifier=self.identifier)
+        return await barrack.get_assistants(identifier=self.identifier)

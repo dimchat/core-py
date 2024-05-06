@@ -97,7 +97,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         assert receiver.is_user, 'receiver error: %s' % receiver
         # TODO: make sure the receiver's public key exists
-        contact = await self.barrack.user(identifier=receiver)
+        contact = await self.barrack.get_user(identifier=receiver)
         if contact is None:
             assert False, 'failed to encrypt message key for receiver: %s' % receiver
         else:
@@ -126,7 +126,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         #         if it's a group message
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key'
         assert receiver.is_user, 'receiver error: %s' % receiver
-        user = await self.barrack.user(identifier=receiver)
+        user = await self.barrack.get_user(identifier=receiver)
         if user is None:
             assert False, 'failed to create local user: %s' % msg.receiver
         else:
@@ -190,7 +190,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     # noinspection PyUnusedLocal
     async def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
         sender = msg.sender
-        user = await self.barrack.user(identifier=sender)
+        user = await self.barrack.get_user(identifier=sender)
         if user is None:
             assert False, 'failed to sign message data for sender: %s' % sender
         else:
@@ -211,7 +211,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     # Override
     async def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
         sender = msg.sender
-        contact = await self.barrack.user(identifier=sender)
+        contact = await self.barrack.get_user(identifier=sender)
         if contact is None:
             assert False, 'failed to verify signature for sender: %s' % sender
         else:
