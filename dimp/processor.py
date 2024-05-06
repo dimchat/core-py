@@ -40,7 +40,7 @@ from dkd import Content, InstantMessage, SecureMessage, ReliableMessage
 class Processor(ABC):
 
     @abstractmethod
-    def process_package(self, data: bytes) -> List[bytes]:
+    async def process_package(self, data: bytes) -> List[bytes]:
         """
         Process data package
 
@@ -50,7 +50,7 @@ class Processor(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def process_reliable_message(self, msg: ReliableMessage) -> List[ReliableMessage]:
+    async def process_reliable_message(self, msg: ReliableMessage) -> List[ReliableMessage]:
         """
         Process network message
 
@@ -60,7 +60,7 @@ class Processor(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> List[SecureMessage]:
+    async def process_secure_message(self, msg: SecureMessage, r_msg: ReliableMessage) -> List[SecureMessage]:
         """
         Process encrypted message
 
@@ -71,7 +71,7 @@ class Processor(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
+    async def process_instant_message(self, msg: InstantMessage, r_msg: ReliableMessage) -> List[InstantMessage]:
         """
         Process plain message
 
@@ -82,7 +82,7 @@ class Processor(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def process_content(self, content: Content, r_msg: ReliableMessage) -> List[Content]:
+    async def process_content(self, content: Content, r_msg: ReliableMessage) -> List[Content]:
         """
         Process message content
 

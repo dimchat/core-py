@@ -41,7 +41,7 @@ from .group import Group
 class EntityDelegate(ABC):
 
     @abstractmethod
-    def user(self, identifier: ID) -> Optional[User]:
+    async def user(self, identifier: ID) -> Optional[User]:
         """
         Create user with ID
 
@@ -51,7 +51,7 @@ class EntityDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def group(self, identifier: ID) -> Optional[Group]:
+    async def group(self, identifier: ID) -> Optional[Group]:
         """
         Create group with ID
 

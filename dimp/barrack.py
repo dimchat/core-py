@@ -131,7 +131,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
     #
 
     # Override
-    def user(self, identifier: ID) -> Optional[User]:
+    async def user(self, identifier: ID) -> Optional[User]:
         # 1. get from user cache
         usr = self.__users.get(identifier)
         if usr is None:
@@ -142,7 +142,7 @@ class Barrack(EntityDelegate, UserDataSource, GroupDataSource, ABC):
         return usr
 
     # Override
-    def group(self, identifier: ID) -> Optional[Group]:
+    async def group(self, identifier: ID) -> Optional[Group]:
         # 1. get from group cache
         grp = self.__groups.get(identifier)
         if grp is None:

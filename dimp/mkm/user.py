@@ -66,7 +66,7 @@ class UserDataSource(EntityDataSource, ABC):
     """
 
     @abstractmethod
-    def contacts(self, identifier: ID) -> List[ID]:
+    async def contacts(self, identifier: ID) -> List[ID]:
         """
         Get user's contacts list
 
@@ -76,7 +76,7 @@ class UserDataSource(EntityDataSource, ABC):
         pass
 
     @abstractmethod
-    def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
+    async def public_key_for_encryption(self, identifier: ID) -> Optional[EncryptKey]:
         """
         Get user's public key for encryption
         (visa.key or meta.key)
@@ -87,7 +87,7 @@ class UserDataSource(EntityDataSource, ABC):
         pass
 
     @abstractmethod
-    def public_keys_for_verification(self, identifier: ID) -> List[VerifyKey]:
+    async def public_keys_for_verification(self, identifier: ID) -> List[VerifyKey]:
         """
         Get user's public keys for verification
         [visa.key, meta.key]
@@ -98,7 +98,7 @@ class UserDataSource(EntityDataSource, ABC):
         pass
 
     @abstractmethod
-    def private_keys_for_decryption(self, identifier: ID) -> List[DecryptKey]:
+    async def private_keys_for_decryption(self, identifier: ID) -> List[DecryptKey]:
         """
         Get user's private keys for decryption
         (which paired with [visa.key, meta.key])
@@ -109,7 +109,7 @@ class UserDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
+    async def private_key_for_signature(self, identifier: ID) -> Optional[SignKey]:
         """
         Get user's private key for signature
         (which paired with visa.key or meta.key)
@@ -120,7 +120,7 @@ class UserDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def private_key_for_visa_signature(self, identifier: ID) -> Optional[SignKey]:
+    async def private_key_for_visa_signature(self, identifier: ID) -> Optional[SignKey]:
         """
         Get user's private key for signing visa
 
@@ -157,14 +157,14 @@ class User(Entity, ABC):
 
     @property
     @abstractmethod
-    def visa(self) -> Optional[Visa]:
+    async def visa(self) -> Optional[Visa]:
         """ User Document """
         # return self.document(doc_type=Document.VISA)
         raise NotImplemented
 
     @property
     @abstractmethod
-    def contacts(self) -> List[ID]:
+    async def contacts(self) -> List[ID]:
         """
         Get all contacts of the user
 
@@ -173,7 +173,7 @@ class User(Entity, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def verify(self, data: bytes, signature: bytes) -> bool:
+    async def verify(self, data: bytes, signature: bytes) -> bool:
         """
         Verify data and signature with user's public keys
 
@@ -184,7 +184,7 @@ class User(Entity, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt(self, data: bytes) -> bytes:
+    async def encrypt(self, data: bytes) -> bytes:
         """
         Encrypt data, try visa.key first, if not found, use meta.key
 
@@ -198,7 +198,7 @@ class User(Entity, ABC):
     #
 
     @abstractmethod
-    def sign(self, data: bytes) -> bytes:
+    async def sign(self, data: bytes) -> bytes:
         """
         Sign data with user's private key
 
@@ -208,7 +208,7 @@ class User(Entity, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt(self, data: bytes) -> Optional[bytes]:
+    async def decrypt(self, data: bytes) -> Optional[bytes]:
         """
         Decrypt data with user's private key(s)
 
@@ -222,12 +222,12 @@ class User(Entity, ABC):
     #
 
     @abstractmethod
-    def sign_visa(self, visa: Visa) -> Optional[Visa]:
+    async def sign_visa(self, visa: Visa) -> Optional[Visa]:
         # NOTICE: only sign visa with the private key paired with your meta.key
         raise NotImplemented
 
     @abstractmethod
-    def verify_visa(self, visa: Visa) -> bool:
+    async def verify_visa(self, visa: Visa) -> bool:
         # NOTICE: only verify visa with meta.key
         #         (if meta not exists, user won't be created)
         raise NotImplemented
@@ -247,20 +247,21 @@ class BaseUser(BaseEntity, User):
     #     super(BaseUser, BaseUser).data_source.__set__(self, barrack)
 
     @property  # Override
-    def visa(self) -> Optional[Visa]:
-        return DocumentHelper.last_visa(documents=self.documents)
+    async def visa(self) -> Optional[Visa]:
+        docs = await self.documents
+        return DocumentHelper.last_visa(documents=docs)
 
     @property  # Override
-    def contacts(self) -> List[ID]:
+    async def contacts(self) -> List[ID]:
         barrack = self.data_source
-        # assert barrack is not None, 'user delegate not set yet'
-        return barrack.contacts(identifier=self.identifier)
+        # assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
+        return await barrack.contacts(identifier=self.identifier)
 
     # Override
-    def verify(self, data: bytes, signature: bytes) -> bool:
+    async def verify(self, data: bytes, signature: bytes) -> bool:
         barrack = self.data_source
-        assert barrack is not None, 'user data source not set yet'
-        keys = barrack.public_keys_for_verification(identifier=self.identifier)
+        assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
+        keys = await barrack.public_keys_for_verification(identifier=self.identifier)
         assert len(keys) > 0, 'failed to get verify keys: %s' % self.identifier
         for key in keys:
             if key.verify(data=data, signature=signature):
@@ -270,30 +271,30 @@ class BaseUser(BaseEntity, User):
         # TODO: check whether visa is expired, query new document for this contact
 
     # Override
-    def encrypt(self, data: bytes) -> bytes:
+    async def encrypt(self, data: bytes) -> bytes:
         barrack = self.data_source
-        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
+        assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
         # NOTICE: meta.key will never changed, so use visa.key to encrypt message
         #         is the better way
-        key = barrack.public_key_for_encryption(identifier=self.identifier)
+        key = await barrack.public_key_for_encryption(identifier=self.identifier)
         assert key is not None, 'failed to get encrypt key for user: %s' % self.identifier
         return key.encrypt(data=data, extra={})
 
     # Override
-    def sign(self, data: bytes) -> bytes:
+    async def sign(self, data: bytes) -> bytes:
         barrack = self.data_source
-        assert barrack is not None, 'user data source not set yet'
-        key = barrack.private_key_for_signature(identifier=self.identifier)
+        assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
+        key = await barrack.private_key_for_signature(identifier=self.identifier)
         assert key is not None, 'failed to get sign key for user: %s' % self.identifier
         return key.sign(data=data)
 
     # Override
-    def decrypt(self, data: bytes) -> Optional[bytes]:
+    async def decrypt(self, data: bytes) -> Optional[bytes]:
         barrack = self.data_source
-        assert isinstance(barrack, UserDataSource), 'user data source error: %s' % barrack
+        assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
         # NOTICE: if you provide a public key in visa document for encryption,
         #         here you should return the private key paired with visa.key
-        keys = barrack.private_keys_for_decryption(identifier=self.identifier)
+        keys = await barrack.private_keys_for_decryption(identifier=self.identifier)
         assert len(keys) > 0, 'failed to get decrypt keys: %s' % self.identifier
         for key in keys:
             # try decrypting it with each private key
@@ -305,12 +306,12 @@ class BaseUser(BaseEntity, User):
         # TODO: check whether my visa key is changed, push new visa to this contact
 
     # Override
-    def sign_visa(self, visa: Visa) -> Optional[Visa]:
+    async def sign_visa(self, visa: Visa) -> Optional[Visa]:
         assert self.identifier == visa.identifier, 'visa ID not match: %s, %s' % (self.identifier, visa)
         barrack = self.data_source
-        assert barrack is not None, 'user data source not set yet'
+        assert isinstance(barrack, UserDataSource), 'user delegate error: %s' % barrack
         # NOTICE: only sign visa with the private key paired with your meta.key
-        key = barrack.private_key_for_visa_signature(identifier=self.identifier)
+        key = await barrack.private_key_for_visa_signature(identifier=self.identifier)
         assert key is not None, 'failed to get sign key for visa: %s' % self.identifier
         if visa.sign(private_key=key) is None:
             assert False, 'failed to sign visa: %s, %s' % (self.identifier, visa)
@@ -318,12 +319,13 @@ class BaseUser(BaseEntity, User):
             return visa
 
     # Override
-    def verify_visa(self, visa: Visa) -> bool:
+    async def verify_visa(self, visa: Visa) -> bool:
         # NOTICE: only verify visa with meta.key
         #         (if meta not exists, user won't be created)
         if self.identifier != visa.identifier:
             # visa ID not match
             return False
-        key = self.meta.public_key
+        meta = await self.meta
+        key = meta.public_key
         assert key is not None, 'failed to get meta key for visa: %s' % self.identifier
         return visa.verify(public_key=key)

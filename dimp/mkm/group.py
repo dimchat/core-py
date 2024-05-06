@@ -50,7 +50,7 @@ class GroupDataSource(EntityDataSource, ABC):
     """
 
     @abstractmethod
-    def founder(self, identifier: ID) -> Optional[ID]:
+    async def founder(self, identifier: ID) -> Optional[ID]:
         """
         Get founder of the group
 
@@ -60,7 +60,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def owner(self, identifier: ID) -> Optional[ID]:
+    async def owner(self, identifier: ID) -> Optional[ID]:
         """
         Get current owner of the group
 
@@ -70,7 +70,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def members(self, identifier: ID) -> List[ID]:
+    async def members(self, identifier: ID) -> List[ID]:
         """
         Get all members in the group
 
@@ -80,7 +80,7 @@ class GroupDataSource(EntityDataSource, ABC):
         raise NotImplemented
 
     @abstractmethod
-    def assistants(self, identifier: ID) -> List[ID]:
+    async def assistants(self, identifier: ID) -> List[ID]:
         """
         Get assistants for this group
 
@@ -116,31 +116,31 @@ class Group(Entity, ABC):
 
     @property
     @abstractmethod
-    def bulletin(self) -> Optional[Bulletin]:
+    async def bulletin(self) -> Optional[Bulletin]:
         """ Group Document """
         # return self.document(doc_type=Document.BULLETIN)
         raise NotImplemented
 
     @property
     @abstractmethod
-    def founder(self) -> ID:
+    async def founder(self) -> ID:
         raise NotImplemented
 
     @property
     @abstractmethod
-    def owner(self) -> ID:
+    async def owner(self) -> ID:
         raise NotImplemented
 
     @property
     @abstractmethod
-    def members(self) -> List[ID]:
+    async def members(self) -> List[ID]:
         """ NOTICE: the owner must be a member
             (usually the first one) """
         raise NotImplemented
 
     @property
     @abstractmethod
-    def assistants(self) -> List[ID]:
+    async def assistants(self) -> List[ID]:
         raise NotImplemented
 
 
@@ -160,31 +160,32 @@ class BaseGroup(BaseEntity, Group):
     #     super(BaseGroup, BaseGroup).data_source.__set__(self, delegate)
 
     @property  # Override
-    def bulletin(self) -> Optional[Bulletin]:
-        return DocumentHelper.last_bulletin(documents=self.documents)
+    async def bulletin(self) -> Optional[Bulletin]:
+        docs = await self.documents
+        return await DocumentHelper.last_bulletin(documents=docs)
 
     @property  # Override
-    def founder(self) -> ID:
+    async def founder(self) -> ID:
         if self.__founder is None:
-            delegate = self.data_source
-            # assert delegate is not None, 'group delegate not set yet'
-            self.__founder = delegate.founder(identifier=self.identifier)
+            barrack = self.data_source
+            # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
+            self.__founder = await barrack.founder(identifier=self.identifier)
         return self.__founder
 
     @property  # Override
-    def owner(self) -> ID:
-        delegate = self.data_source
-        # assert delegate is not None, 'group delegate not set yet'
-        return delegate.owner(identifier=self.identifier)
+    async def owner(self) -> ID:
+        barrack = self.data_source
+        # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
+        return await barrack.owner(identifier=self.identifier)
 
     @property  # Override
-    def members(self) -> List[ID]:
-        delegate = self.data_source
-        # assert delegate is not None, 'group delegate not set yet'
-        return delegate.members(identifier=self.identifier)
+    async def members(self) -> List[ID]:
+        barrack = self.data_source
+        # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
+        return await barrack.members(identifier=self.identifier)
 
     @property  # Override
-    def assistants(self) -> List[ID]:
-        delegate = self.data_source
-        # assert delegate is not None, 'group delegate not set yet'
-        return delegate.assistants(identifier=self.identifier)
+    async def assistants(self) -> List[ID]:
+        barrack = self.data_source
+        # assert isinstance(barrack, GroupDataSource), 'group delegate error: %s' % barrack
+        return await barrack.assistants(identifier=self.identifier)

@@ -63,19 +63,19 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     #
 
     # Override
-    def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
+    async def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         # NOTICE: check attachment for File/Image/Audio/Video message content
         #         before serialize content, this job should be do in subclass
         js = json_encode(obj=content.dictionary)
         return utf8_encode(string=js)
 
     # Override
-    def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
+    async def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
         # store 'IV' in msg for AES encryption
         return key.encrypt(data=data, extra=msg.dictionary)
 
     # # Override
-    # def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
+    # async def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
     #     if BaseMessage.is_broadcast(msg=msg):
     #         # broadcast message content will not be encrypted (just encoded to JsON),
     #         # so no need to encode to Base64 here
@@ -85,7 +85,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     #     return TransportableData.encode(data=data)
 
     # Override
-    def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
+    async def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
         if BaseMessage.is_broadcast(msg=msg):
             # broadcast message has no key
             return None
@@ -93,19 +93,19 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         return utf8_encode(string=js)
 
     # Override
-    def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
+    async def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         assert receiver.is_user, 'receiver error: %s' % receiver
         # TODO: make sure the receiver's public key exists
-        contact = self.barrack.user(identifier=receiver)
+        contact = await self.barrack.user(identifier=receiver)
         if contact is None:
             assert False, 'failed to encrypt message key for receiver: %s' % receiver
         else:
             # encrypt with public key of the receiver (or group member)
-            return contact.encrypt(data=data)
+            return await contact.encrypt(data=data)
 
     # # Override
-    # def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
+    # async def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
     #     assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
     #     # message key had been encrypted by a public key,
     #     # so the data should be encode here (with algorithm 'base64' as default).
@@ -116,25 +116,25 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     #
 
     # # Override
-    # def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
+    # async def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
     #     assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
     #     return TransportableData.decode(key)
 
     # Override
-    def decrypt_key(self, data: bytes, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
+    async def decrypt_key(self, data: bytes, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
         # NOTICE: the receiver must be a member ID
         #         if it's a group message
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key'
         assert receiver.is_user, 'receiver error: %s' % receiver
-        user = self.barrack.user(identifier=receiver)
+        user = await self.barrack.user(identifier=receiver)
         if user is None:
             assert False, 'failed to create local user: %s' % msg.receiver
         else:
             # decrypt with private key of the receiver (or group member)
-            return user.decrypt(data=data)
+            return await user.decrypt(data=data)
 
     # Override
-    def deserialize_key(self, data: Optional[bytes], msg: SecureMessage) -> Optional[SymmetricKey]:
+    async def deserialize_key(self, data: Optional[bytes], msg: SecureMessage) -> Optional[SymmetricKey]:
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key: %s' % msg
         if data is None:
             # assert False, 'reused key? get it from cache: %s => %s, %s' % (msg.sender, msg.receiver, msg.group)
@@ -153,7 +153,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         return SymmetricKey.parse(key=dictionary)
 
     # # Override
-    # def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
+    # async def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
     #     if BaseMessage.is_broadcast(msg=msg):
     #         # broadcast message content will not be encrypted (just encoded to JsON),
     #         # so return the string data directly
@@ -168,12 +168,12 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     #         return TransportableData.decode(data)
 
     # Override
-    def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
+    async def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
         # check 'IV' in msg for AES decryption
         return key.decrypt(data=data, params=msg.dictionary)
 
     # Override
-    def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
+    async def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
         js = utf8_decode(data=data)
         if js is None:
             # assert False, 'content data error: %s' % data
@@ -188,16 +188,16 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
 
     # Override
     # noinspection PyUnusedLocal
-    def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
+    async def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
         sender = msg.sender
-        user = self.barrack.user(identifier=sender)
+        user = await self.barrack.user(identifier=sender)
         if user is None:
             assert False, 'failed to sign message data for sender: %s' % sender
         else:
-            return user.sign(data)
+            return await user.sign(data)
 
     # # Override
-    # def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
+    # async def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
     #     return TransportableData.encode(data=signature)
 
     #
@@ -205,14 +205,14 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     #
 
     # # Override
-    # def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
+    # async def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
     #     return TransportableData.decode(signature)
 
     # Override
-    def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
+    async def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
         sender = msg.sender
-        contact = self.barrack.user(identifier=sender)
+        contact = await self.barrack.user(identifier=sender)
         if contact is None:
             assert False, 'failed to verify signature for sender: %s' % sender
         else:
-            return contact.verify(data=data, signature=signature)
+            return await contact.verify(data=data, signature=signature)

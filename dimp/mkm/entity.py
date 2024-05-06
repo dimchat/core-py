@@ -48,7 +48,7 @@ class EntityDataSource(ABC):
     """
 
     @abstractmethod
-    def meta(self, identifier: ID) -> Optional[Meta]:
+    async def meta(self, identifier: ID) -> Optional[Meta]:
         """
         Get meta for entity
 
@@ -58,7 +58,7 @@ class EntityDataSource(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def documents(self, identifier: ID) -> List[Document]:
+    async def documents(self, identifier: ID) -> List[Document]:
         """
         Get documents for entity ID
 
@@ -104,13 +104,13 @@ class Entity(ABC):
 
     @property
     @abstractmethod
-    def meta(self) -> Meta:
+    async def meta(self) -> Meta:
         """ Get meta """
         raise NotImplemented
 
     @property
     @abstractmethod
-    def documents(self) -> List[Document]:
+    async def documents(self) -> List[Document]:
         """ Get documents """
         raise NotImplemented
 
@@ -176,13 +176,13 @@ class BaseEntity(Entity):
         return self.__id.type
 
     @property  # Override
-    def meta(self) -> Meta:
+    async def meta(self) -> Meta:
         delegate = self.data_source
         # assert delegate is not None, 'entity delegate not set yet'
-        return delegate.meta(identifier=self.__id)
+        return await delegate.meta(identifier=self.__id)
 
     @property  # Override
-    def documents(self) -> List[Document]:
+    async def documents(self) -> List[Document]:
         delegate = self.data_source
         # assert delegate is not None, 'entity delegate not set yet'
-        return delegate.documents(identifier=self.__id)
+        return await delegate.documents(identifier=self.__id)

@@ -44,7 +44,7 @@ class Packer(ABC):
     #
 
     @abstractmethod
-    def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
+    async def encrypt_message(self, msg: InstantMessage) -> Optional[SecureMessage]:
         """
         Encrypt message content
 
@@ -54,7 +54,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def sign_message(self, msg: SecureMessage) -> Optional[ReliableMessage]:
+    async def sign_message(self, msg: SecureMessage) -> Optional[ReliableMessage]:
         """
         Sign content data
 
@@ -64,7 +64,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def serialize_message(self, msg: ReliableMessage) -> Optional[bytes]:
+    async def serialize_message(self, msg: ReliableMessage) -> Optional[bytes]:
         """
         Serialize network message
 
@@ -78,7 +78,7 @@ class Packer(ABC):
     #
 
     @abstractmethod
-    def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
+    async def deserialize_message(self, data: bytes) -> Optional[ReliableMessage]:
         """
         Deserialize network message
 
@@ -88,7 +88,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
+    async def verify_message(self, msg: ReliableMessage) -> Optional[SecureMessage]:
         """
         Verify encrypted content data
 
@@ -98,7 +98,7 @@ class Packer(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
+    async def decrypt_message(self, msg: SecureMessage) -> Optional[InstantMessage]:
         """
         Decrypt message content
 
