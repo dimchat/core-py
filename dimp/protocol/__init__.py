@@ -58,7 +58,7 @@ from .customized import CustomizedContent
 
 from .commands import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
-from .receipt import ReceiptCommand, ReceiptCommandMixIn
+from .receipt import ReceiptCommand
 
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
@@ -110,7 +110,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
-    'ReceiptCommand', 'ReceiptCommandMixIn',
+    'ReceiptCommand',
 
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',

@@ -42,12 +42,11 @@ from mkm.types import Converter
 from dkd import Envelope
 
 from ..protocol import Command
-from ..protocol import ReceiptCommand, ReceiptCommandMixIn
+from ..protocol import ReceiptCommand
 from .commands import BaseCommand
 
 
-# noinspection PyAbstractClass
-class BaseReceipt(BaseCommand, ReceiptCommand, ABC):
+class BaseReceiptCommand(BaseCommand, ReceiptCommand, ABC):
     """
         Receipt Command
         ~~~~~~~~~~~~~~~
@@ -126,9 +125,6 @@ class BaseReceipt(BaseCommand, ReceiptCommand, ABC):
         if origin is not None:
             signature = origin.get('signature')
             return Converter.get_str(value=signature, default=None)
-
-
-class BaseReceiptCommand(BaseReceipt, ReceiptCommandMixIn):
 
     @classmethod
     def from_text(cls, text: str, origin: Dict[str, Any] = None):

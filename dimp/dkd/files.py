@@ -30,8 +30,9 @@
 
 from typing import Optional, Any, Dict
 
-from mkm.format import TransportableData
 from mkm.types import URI
+from mkm.format import TransportableData
+from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
 
 from dkd import ContentType
@@ -115,16 +116,24 @@ class ImageFileContent(BaseFileContent, ImageContent):
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.IMAGE.value if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
+        # small image
+        self.__thumbnail: Optional[PortableNetworkFile] = None
 
     @property  # Override
-    def thumbnail(self) -> Optional[URI]:
-        base64 = self.get_str(key='thumbnail', default=None)
-        # TODO: convert 'data:' URI
-        return base64
+    def thumbnail(self) -> Optional[PortableNetworkFile]:
+        img = self.__thumbnail
+        if img is None:
+            base64 = self.get_str(key='thumbnail', default=None)
+            img = self.__thumbnail = PortableNetworkFile.parse(base64)
+        return img
 
     @thumbnail.setter  # Override
-    def thumbnail(self, base64: URI):
-        self['thumbnail'] = base64
+    def thumbnail(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('thumbnail', None)
+        else:
+            self['thumbnail'] = img.object
+        self.__thumbnail = img
 
 
 class AudioFileContent(BaseFileContent, AudioContent):
@@ -153,13 +162,21 @@ class VideoFileContent(BaseFileContent, VideoContent):
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.VIDEO.value if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
+        # small image
+        self.__snapshot: Optional[PortableNetworkFile] = None
 
     @property  # Override
-    def snapshot(self) -> Optional[URI]:
-        base64 = self.get_str(key='thumbnail', default=None)
-        # TODO: convert 'data:' URI
-        return base64
+    def snapshot(self) -> Optional[PortableNetworkFile]:
+        img = self.__snapshot
+        if img is None:
+            base64 = self.get_str(key='snapshot', default=None)
+            img = self.__snapshot = PortableNetworkFile.parse(base64)
+        return img
 
     @snapshot.setter  # Override
-    def snapshot(self, base64: URI):
-        self['snapshot'] = base64
+    def snapshot(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('snapshot', None)
+        else:
+            self['snapshot'] = img.object
+        self.__snapshot = img

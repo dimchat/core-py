@@ -33,6 +33,7 @@ from typing import Optional
 
 from mkm.types import URI
 from mkm.format import TransportableData
+from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
 from dkd import ContentType, Content
 
@@ -175,13 +176,13 @@ class ImageContent(FileContent, ABC):
 
     @property
     @abstractmethod
-    def thumbnail(self) -> Optional[URI]:
+    def thumbnail(self) -> Optional[PortableNetworkFile]:
         # thumbnail of image
         raise NotImplemented
 
     @thumbnail.setter
     @abstractmethod
-    def thumbnail(self, base64: URI):
+    def thumbnail(self, img: PortableNetworkFile):
         raise NotImplemented
 
 
@@ -247,11 +248,11 @@ class VideoContent(FileContent, ABC):
 
     @property
     @abstractmethod
-    def snapshot(self) -> Optional[URI]:
+    def snapshot(self) -> Optional[PortableNetworkFile]:
         # snapshot of video
         raise NotImplemented
 
     @snapshot.setter
     @abstractmethod
-    def snapshot(self, base64: URI):
+    def snapshot(self, img: PortableNetworkFile):
         raise NotImplemented

@@ -39,7 +39,7 @@ from .money import BaseMoneyContent, TransferMoneyContent
 from .customized import AppCustomizedContent
 
 from .commands import BaseMetaCommand, BaseDocumentCommand
-from .receipt import BaseReceipt, BaseReceiptCommand
+from .receipt import BaseReceiptCommand
 
 from .groups import BaseHistoryCommand, BaseGroupCommand
 from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
@@ -72,7 +72,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
-    'ReceiptCommand', 'ReceiptCommandMixIn',
+    'ReceiptCommand',
 
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
@@ -93,7 +93,7 @@ __all__ = [
     #
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
-    'BaseReceipt', 'BaseReceiptCommand',
+    'BaseReceiptCommand',
 
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',

@@ -208,12 +208,12 @@ class PageContent(Content, ABC):
 
     @property
     @abstractmethod
-    def icon(self) -> Optional[URI]:
+    def icon(self) -> Optional[PortableNetworkFile]:
         raise NotImplemented
 
     @icon.setter
     @abstractmethod
-    def icon(self, base64: URI):
+    def icon(self, img: PortableNetworkFile):
         raise NotImplemented
 
     #
@@ -263,16 +263,16 @@ class PageContent(Content, ABC):
     #
     @classmethod
     def create(cls, url: Optional[URI], html: Optional[str], title: str,
-               desc: Optional[str], icon: Optional[URI]):
+               desc: Optional[str], icon: Optional[PortableNetworkFile]):
         from ..dkd import WebPageContent
         return WebPageContent(url=url, html=html, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Optional[URI]):
+    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Optional[PortableNetworkFile]):
         return cls.create(url=url, html=None, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Optional[URI]):
+    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Optional[PortableNetworkFile]):
         return cls.create(url=None, html=html, title=title, desc=desc, icon=icon)
 
 

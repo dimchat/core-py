@@ -199,7 +199,7 @@ class WebPageContent(BaseContent, PageContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  url: URI = None, html: str = None, title: str = None,
-                 desc: Optional[str] = None, icon: Optional[URI] = None):
+                 desc: Optional[str] = None, icon: Optional[PortableNetworkFile] = None):
         if content is None:
             # 1. new content with url, title, desc & icon
             assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
@@ -208,6 +208,7 @@ class WebPageContent(BaseContent, PageContent):
         else:
             # 2. content info from network
             super().__init__(content)
+        self.__icon = None
         # URL or HTML
         if url is not None:
             self.url = url
@@ -237,14 +238,20 @@ class WebPageContent(BaseContent, PageContent):
     #
 
     @property  # Override
-    def icon(self) -> Optional[URI]:
-        base64 = self.get_str(key='icon', default=None)
-        # TODO: convert 'data:' URI
-        return base64
+    def icon(self) -> Optional[PortableNetworkFile]:
+        img = self.__icon
+        if img is None:
+            base64 = self.get_str(key='icon', default=None)
+            img = self.__icon = PortableNetworkFile.parse(base64)
+        return img
 
     @icon.setter  # Override
-    def icon(self, base64: URI):
-        self['icon'] = base64
+    def icon(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('icon', None)
+        else:
+            self['icon'] = img.object
+        self.__icon = img
 
     #
     #   Description
@@ -340,11 +347,8 @@ class NameCardContent(BaseContent, NameCard):
 
     @property  # Override
     def avatar(self) -> Optional[PortableNetworkFile]:
-        if self.__avatar is None:
+        img = self.__avatar
+        if img is None:
             url = self.get('avatar')
-            if isinstance(url, str) and len(url) == 0:
-                # ignore empty URL
-                pass
-            else:
-                self.__avatar = PortableNetworkFile.parse(url)
-        return self.__avatar
+            img = self.__avatar = PortableNetworkFile.parse(url)
+        return img

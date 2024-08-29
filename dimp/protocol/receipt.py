@@ -38,7 +38,7 @@
 from abc import abstractmethod
 from typing import Optional, Dict, Any
 
-from dkd import Envelope, Content, InstantMessage
+from dkd import Envelope, Content
 
 from .commands import Command
 
@@ -70,11 +70,6 @@ class ReceiptCommand(Command):
     def text(self) -> str:
         raise NotImplemented
 
-    @property  # protected
-    @abstractmethod
-    def origin(self) -> Optional[Dict]:
-        raise NotImplemented
-
     @property
     @abstractmethod
     def original_envelope(self) -> Optional[Envelope]:
@@ -88,10 +83,6 @@ class ReceiptCommand(Command):
     @property
     @abstractmethod
     def original_signature(self) -> Optional[str]:
-        raise NotImplemented
-
-    @abstractmethod
-    def match_message(self, msg: InstantMessage) -> bool:
         raise NotImplemented
 
     #
@@ -137,48 +128,3 @@ class ReceiptCommand(Command):
             info.pop('meta', None)
             info.pop('visa', None)
         return info
-
-
-# noinspection PyAbstractClass
-class ReceiptCommandMixIn(ReceiptCommand):
-
-    def match_message(self, msg: InstantMessage) -> bool:
-        if self.origin is None:
-            # receipt without original message info
-            return False
-        # check signature
-        sig1 = self.original_signature
-        if sig1 is not None:
-            # if contains signature, check it
-            sig2 = msg.get_str(key='signature', default=None)
-            if sig2 is not None:
-                return match_signatures(sig1, sig2)
-        # check envelope
-        env1 = self.original_envelope
-        if env1 is not None:
-            # if contains envelope, check it
-            if not match_envelopes(env1, msg.envelope):
-                return False
-        # check serial number
-        # (only the original message's receiver can know this number)
-        return self.original_sn == msg.content.sn
-
-
-def match_signatures(sig1: str, sig2: str) -> bool:
-    if len(sig1) > 8:
-        sig1 = sig1[-8:]
-    if len(sig2) > 8:
-        sig2 = sig2[-8:]
-    return sig1 == sig2
-
-
-def match_envelopes(env1: Envelope, env2: Envelope) -> bool:
-    if env1.sender != env2.sender:
-        return False
-    to1 = env1.group
-    if to1 is None:
-        to1 = env1.receiver
-    to2 = env2.group
-    if to2 is None:
-        to2 = env2.receiver
-    return to1 == to2
