@@ -60,7 +60,7 @@ class UserDataSource(EntityDataSource, ABC):
 
         (Visa Document)
         5. private key for visa signature
-           the private key pared with meta.key
+           the private key paired with meta.key
         6. public key for visa verification
            meta.key only
     """

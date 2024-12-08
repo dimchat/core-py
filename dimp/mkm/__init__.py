@@ -49,7 +49,7 @@ __all__ = [
     #
     #   Protocol
     #
-    'EntityType', 'MetaType',
+    'EntityType',
     'Address', 'AddressFactory',
     'ID', 'IDFactory',
     'Meta', 'MetaFactory',

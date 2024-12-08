@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
 from mkm.format import utf8_encode
@@ -37,7 +37,7 @@ from mkm.crypto import VerifyKey, PublicKey
 from mkm.types import Dictionary
 from mkm.factory import AccountFactoryManager
 from mkm import ID, Address
-from mkm import Meta, MetaType
+from mkm import Meta
 
 
 """
@@ -64,7 +64,7 @@ from mkm import Meta, MetaType
 class BaseMeta(Dictionary, Meta, ABC):
 
     def __init__(self, meta: Dict[str, Any] = None,
-                 version: int = None, public_key: VerifyKey = None,
+                 version: str = None, public_key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Optional[TransportableData] = None):
         # check parameters
         if meta is not None:
@@ -76,7 +76,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             status = 0
         elif seed is None or fingerprint is None:
             # 1. new meta with type & public key only
-            assert version is not None and version > 0 and public_key is not None and not MetaType.has_seed(version), \
+            assert version is not None and public_key is not None, \
                 'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
             assert seed is None and fingerprint is None, 'meta seed/fingerprint error'
             meta = {
@@ -88,7 +88,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             status = 1
         else:
             # 2. new meta with type, public key, seed & fingerprint
-            assert version is not None and version > 0 and public_key is not None and MetaType.has_seed(version), \
+            assert version is not None and public_key is not None, \
                 'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
             meta = {
                 'type': version,
@@ -109,35 +109,39 @@ class BaseMeta(Dictionary, Meta, ABC):
         self.__status = status
 
     @property  # Override
-    def type(self) -> int:
-        version = self.__type
-        if version is None:
+    def type(self) -> str:
+        if self.__type is None:
             gf = AccountFactoryManager.general_factory
-            version = gf.get_meta_type(meta=self.dictionary, default=0)
-            self.__type = version
+            self.__type = gf.get_meta_type(meta=self.dictionary, default='')
             # self.__type = self.get_int(key='type', default=0)
-        return version
+        return self.__type
 
     @property  # Override
     def public_key(self) -> VerifyKey:
         if self.__key is None:
             info = self.get('key')
-            pub = PublicKey.parse(key=info)
-            self.__key = pub
-            assert pub is not None, 'meta key error: %s' % info
+            self.__key = PublicKey.parse(key=info)
+            assert self.__key is not None, 'meta key error: %s' % info
         return self.__key
+
+    # protected
+    @abstractmethod
+    def has_seed(self) -> bool:
+        # version = self.type
+        # return version == 'MKM' or version == '1'
+        raise NotImplemented
 
     @property  # Override
     def seed(self) -> Optional[str]:
-        if self.__seed is None and MetaType.has_seed(self.type):
-            self.__seed = self.get_str(key='seed', default=None)
+        if self.__seed is None and self.has_seed():
+            self.__seed = self.get_str(key='seed', default='')
             assert self.__seed is not None, 'meta.seed empty: %s' % self
         return self.__seed
 
     @property  # Override
     def fingerprint(self) -> Optional[bytes]:
         ted = self.__fingerprint
-        if ted is None and MetaType.has_seed(self.type):
+        if ted is None and self.has_seed():
             base64 = self.get('fingerprint')
             assert base64 is not None, 'meta.fingerprint should not be empty: %s' % self
             self.__fingerprint = ted = TransportableData.parse(base64)
@@ -175,20 +179,21 @@ class MetaHelper:
     @classmethod
     def check_meta(cls, meta: Meta) -> bool:
         key = meta.public_key
+        if key is None:
+            return False
         # assert key is not None, 'meta.key should not be empty: %s' % meta
         seed = meta.seed
         fingerprint = meta.fingerprint
-        no_seed = seed is None or len(seed) == 0
-        no_sig = fingerprint is None or len(fingerprint) == 0
-        # check meta version
-        if not MetaType.has_seed(meta.type):
+        # check meta seed & signature
+        if seed is None or len(seed) == 0:
             # this meta has no seed, so no fingerprint too
-            return no_seed and no_sig
-        elif no_seed or no_sig:
-            # seed and fingerprint should not be empty
+            return fingerprint is None or len(fingerprint) == 0
+        elif fingerprint is None or len(fingerprint) == 0:
+            # fingerprint should not be empty here
             return False
         # verify fingerprint
-        return key.verify(data=utf8_encode(string=seed), signature=fingerprint)
+        data = utf8_encode(string=seed)
+        return key.verify(data=data, signature=fingerprint)
 
     @classmethod
     def match_identifier(cls, identifier: ID, meta: Meta) -> bool:
@@ -213,12 +218,12 @@ class MetaHelper:
         if key == meta.public_key:
             return True
         # check with seed & fingerprint
-        if MetaType.has_seed(meta.type):
+        seed = meta.seed
+        if seed is not None and len(seed) > 0:
             # check whether keys equal by verifying signature
-            seed = meta.seed
+            data = utf8_encode(string=seed)
             fingerprint = meta.fingerprint
-            assert seed is not None and fingerprint is not None, 'meta error: %s' % meta
-            return key.verify(data=utf8_encode(string=seed), signature=fingerprint)
+            return key.verify(data=data, signature=fingerprint)
         # NOTICE: ID with BTC/ETH address has no username, so
         #         just compare the key.data to check matching
         # return False

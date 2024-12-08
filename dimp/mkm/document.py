@@ -103,7 +103,7 @@ class BaseDocument(Dictionary, Document):
 
     @property  # Override
     def type(self) -> Optional[str]:
-        doc_type = self.get_property(key='type')  # deprecated
+        doc_type = self.get_property(name='type')  # deprecated
         if doc_type is None:
             gf = AccountFactoryManager.general_factory
             doc_type = gf.get_document_type(document=self.dictionary, default=None)
@@ -195,7 +195,7 @@ class BaseDocument(Dictionary, Document):
             assert signature is not None, 'document signature error: %s' % self
             return signature
         # 1. update sign time
-        self.set_property(key='time', value=DateTime.current_timestamp())
+        self.set_property(name='time', value=DateTime.current_timestamp())
         # 2. encode & sign
         info = self.properties
         if info is None:
@@ -241,13 +241,13 @@ class BaseDocument(Dictionary, Document):
         return self.__properties
 
     # Override
-    def get_property(self, key: str) -> Optional[Any]:
+    def get_property(self, name: str) -> Optional[Any]:
         info = self.properties
         if info is not None:
-            return info.get(key)
+            return info.get(name)
 
     # Override
-    def set_property(self, key: str, value: Optional[Any]):
+    def set_property(self, name: str, value: Optional[Any]):
         """ Update property with key and value """
         # 1. reset status
         assert self.__status >= 0, 'status error: %s' % self
@@ -257,9 +257,9 @@ class BaseDocument(Dictionary, Document):
         if info is None:
             assert False, 'failed to get properties: %s' % self
         elif value is None:
-            info.pop(key, None)
+            info.pop(name, None)
         else:
-            info[key] = value
+            info[name] = value
         # 3. clear data signature after properties changed
         self.pop('data', None)
         self.pop('signature', None)
@@ -272,14 +272,14 @@ class BaseDocument(Dictionary, Document):
 
     @property  # Override
     def time(self) -> Optional[DateTime]:
-        seconds = self.get_property(key='time')
+        seconds = self.get_property(name='time')
         return Converter.get_datetime(value=seconds, default=None)
 
     @property  # Override
     def name(self) -> Optional[str]:
-        text = self.get_property(key='name')
+        text = self.get_property(name='name')
         return Converter.get_str(value=text, default=None)
 
     @name.setter  # Override
     def name(self, text: str):
-        self.set_property(key='name', value=text)
+        self.set_property(name='name', value=text)

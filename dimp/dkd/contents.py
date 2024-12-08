@@ -208,7 +208,7 @@ class WebPageContent(BaseContent, PageContent):
         else:
             # 2. content info from network
             super().__init__(content)
-        self.__icon = None
+        self.__icon = None  # PNF
         # URL or HTML
         if url is not None:
             self.url = url

@@ -113,7 +113,9 @@ class DocumentHelper(ABC):
     @classmethod
     def last_document(cls, documents: List[Document], doc_type: str = None) -> Optional[Document]:
         """ Select last document matched the type """
-        if doc_type is None or doc_type == '*':
+        if documents is None or len(documents) == 0:
+            return None
+        elif doc_type is None or doc_type == '*':
             doc_type = ''
         check_type = len(doc_type) > 0
         last: Optional[Document] = None
@@ -125,10 +127,9 @@ class DocumentHelper(ABC):
                     # type not matched, skip it
                     continue
             # 2. check time
-            if last is not None:
-                if cls.is_expired(this_doc=item, old_doc=last):
-                    # skip expired document
-                    continue
+            if last is not None and cls.is_expired(this_doc=item, old_doc=last):
+                # skip expired document
+                continue
             # got it
             last = item
         return last
@@ -136,6 +137,8 @@ class DocumentHelper(ABC):
     @classmethod
     def last_visa(cls, documents: List[Document]) -> Optional[Visa]:
         """ Select last visa document """
+        if documents is None or len(documents) == 0:
+            return None
         last: Optional[Visa] = None
         for item in documents:
             # 1. check type
@@ -153,6 +156,8 @@ class DocumentHelper(ABC):
     @classmethod
     def last_bulletin(cls, documents: List[Document]) -> Optional[Bulletin]:
         """ Select last bulletin document """
+        if documents is None or len(documents) == 0:
+            return None
         last: Optional[Bulletin] = None
         for item in documents:
             # 1. check type

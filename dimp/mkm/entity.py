@@ -157,6 +157,10 @@ class BaseEntity(Entity):
         # check with ID
         return self.__id.__ne__(other)
 
+    # Override
+    def __hash__(self) -> int:
+        return hash(self.__id)
+
     @property  # Override
     def data_source(self) -> Optional[EntityDataSource]:
         if self.__barrack is not None:

@@ -80,7 +80,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             self.__content = content
         return self.__content
 
-    @content.setter  # Override
+    @content.setter  # protected
     def content(self, value: Content):
         self['content'] = value.dictionary
         self.__content = value

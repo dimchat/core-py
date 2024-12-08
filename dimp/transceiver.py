@@ -98,11 +98,11 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         assert receiver.is_user, 'receiver error: %s' % receiver
         # TODO: make sure the receiver's public key exists
         contact = await self.barrack.get_user(identifier=receiver)
-        if contact is None:
-            assert False, 'failed to encrypt message key for receiver: %s' % receiver
-        else:
+        if contact is not None:
             # encrypt with public key of the receiver (or group member)
             return await contact.encrypt(data=data)
+        else:
+            assert False, 'failed to encrypt message key for receiver: %s' % receiver
 
     # # Override
     # async def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
@@ -127,11 +127,11 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
         assert not BaseMessage.is_broadcast(msg=msg), 'broadcast message has no key'
         assert receiver.is_user, 'receiver error: %s' % receiver
         user = await self.barrack.get_user(identifier=receiver)
-        if user is None:
-            assert False, 'failed to create local user: %s' % msg.receiver
-        else:
+        if user is not None:
             # decrypt with private key of the receiver (or group member)
             return await user.decrypt(data=data)
+        else:
+            assert False, 'failed to create local user: %s' % msg.receiver
 
     # Override
     async def deserialize_key(self, data: Optional[bytes], msg: SecureMessage) -> Optional[SymmetricKey]:
@@ -212,7 +212,7 @@ class Transceiver(InstantMessageDelegate, SecureMessageDelegate, ReliableMessage
     async def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
         sender = msg.sender
         contact = await self.barrack.get_user(identifier=sender)
-        if contact is None:
-            assert False, 'failed to verify signature for sender: %s' % sender
-        else:
+        if contact is not None:
             return await contact.verify(data=data, signature=signature)
+        else:
+            assert False, 'failed to verify signature for sender: %s' % sender

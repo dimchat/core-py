@@ -69,7 +69,7 @@ class BaseVisa(BaseDocument, Visa):
     @property  # Override
     def public_key(self) -> Optional[EncryptKey]:
         if self.__key is None:
-            info = self.get_property(key='key')
+            info = self.get_property(name='key')
             # assert info is not None, 'visa key not found: %s' % self.dictionary
             pub = PublicKey.parse(key=info)
             if isinstance(pub, EncryptKey):
@@ -81,7 +81,7 @@ class BaseVisa(BaseDocument, Visa):
     @public_key.setter  # Override
     def public_key(self, key: EncryptKey):
         info = None if key is None else key.dictionary
-        self.set_property(key='key', value=info)
+        self.set_property(name='key', value=info)
         self.__key = key
 
     """
@@ -92,7 +92,7 @@ class BaseVisa(BaseDocument, Visa):
     @property  # Override
     def avatar(self) -> Optional[PortableNetworkFile]:
         if self.__avatar is None:
-            url = self.get_property(key='avatar')
+            url = self.get_property(name='avatar')
             if isinstance(url, str) and len(url) == 0:
                 # ignore empty URL
                 pass
@@ -103,7 +103,7 @@ class BaseVisa(BaseDocument, Visa):
     @avatar.setter  # Override
     def avatar(self, url: PortableNetworkFile):
         info = None if url is None else url.object
-        self.set_property(key='avatar', value=info)
+        self.set_property(name='avatar', value=info)
         self.__avatar = url
 
 
@@ -127,16 +127,16 @@ class BaseBulletin(BaseDocument, Bulletin):
 
     @property  # Override
     def founder(self) -> Optional[ID]:
-        identifier = self.get_property(key='founder')
+        identifier = self.get_property(name='founder')
         return ID.parse(identifier=identifier)
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
         if self.__bots is None:
-            bots = self.get_property(key='assistants')
+            bots = self.get_property(name='assistants')
             if bots is None:
                 # get from 'assistant'
-                single = self.get_property(key='assistant')
+                single = self.get_property(name='assistant')
                 single = ID.parse(identifier=single)
                 self.__bots = [] if single is None else [single]
             else:
@@ -146,6 +146,6 @@ class BaseBulletin(BaseDocument, Bulletin):
     @assistants.setter  # Override
     def assistants(self, bots: List[ID]):
         array = None if bots is None else ID.revert(bots)
-        self.set_property(key='assistants', value=array)
-        self.set_property(key='assistant', value=None)
+        self.set_property(name='assistants', value=array)
+        self.set_property(name='assistant', value=None)
         self.__bots = bots
