@@ -115,19 +115,21 @@ class BaseDataWrapper(Dictionary):
 
     @property
     def data(self) -> Optional[bytes]:
-        if self.__data is None:
+        binary = self.__data
+        if binary is None:
             text = self.get_str(key='data', default='')
             if len(text) > 0:
                 alg = self.algorithm
                 if alg == TransportableData.BASE_64:
-                    self.__data = base64_decode(string=text)
+                    binary = base64_decode(string=text)
                 elif alg == TransportableData.BASE_58:
-                    self.__data = base58_decode(string=text)
+                    binary = base58_decode(string=text)
                 elif alg == TransportableData.HEX:
-                    self.__data = hex_decode(string=text)
+                    binary = hex_decode(string=text)
                 else:
                     assert False, 'data algorithm not support: %s' % alg
-        return self.__data
+            self.__data = binary
+        return binary
 
     @data.setter
     def data(self, binary: Optional[bytes]):

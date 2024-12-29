@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2024 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2024 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,42 +28,33 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    Receipt Protocol
-    ~~~~~~~~~~~~~~~~
-
-    As receipt returned to sender to proofing the message's received
-"""
-
-from abc import ABC
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, List
 
 from mkm.types import Converter
-from dkd import Envelope
+from dkd import ContentType, Envelope, InstantMessage
 
-from ..protocol import Command
-from ..protocol import ReceiptCommand
-from .commands import BaseCommand
+from ..protocol import QuoteContent
+from ..protocol import CombineContent
+
+from .contents import BaseContent
 
 
-class BaseReceiptCommand(BaseCommand, ReceiptCommand, ABC):
+class BaseQuoteContent(BaseContent, QuoteContent):
     """
-        Receipt Command
-        ~~~~~~~~~~~~~~~
+        Quote Message content
+        ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : 0x37,
             sn   : 456,
 
-            command : "receipt",
             text    : "...",  // text message
             origin  : {       // original message envelope
-                sender    : "...",
-                receiver  : "...",
-                time      : 0,
+                sender   : "...",
+                receiver : "...",
 
-                sn        : 123,
-                signature : "..."
+                type     : 0x01,
+                sn       : 123,
             }
         }
     """
@@ -71,31 +62,18 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand, ABC):
     def __init__(self, content: Dict[str, Any] = None,
                  text: str = None, origin: Dict[str, Any] = None):
         if content is None:
-            # 1. new command with text & origin info
-            assert text is not None, 'receipt text should not be None, %s' % origin
-            cmd = Command.RECEIPT
-            super().__init__(cmd=cmd)
-            # text message
+            # 1. new content with text & origin info
+            assert not (text is None or origin is None), 'quote error: %s, %s' % (text, origin)
+            msg_type = ContentType.QUOTE.value
+            super().__init__(None, msg_type)
             self['text'] = text
-            # original envelope of message responding to,
-            # includes 'sn' and 'signature'
-            if origin is not None:
-                assert not (len(origin) == 0 or
-                            'data' in origin or
-                            'key' in origin or
-                            'keys' in origin or
-                            'meta' in origin or
-                            'visa' in origin), 'impure envelope: %s' % origin
-                self['origin'] = origin
+            self['origin'] = origin
         else:
-            # 2. command info from network
-            assert text is None and origin is None, 'params error: %s, %s, %s' % (content, text, origin)
-            # create with command content
+            # 2. content info from network
+            assert text is None and origin is None, 'quote error: %s, %s' % (text, origin)
             super().__init__(content=content)
         # lazy load
         self.__env = None
-
-    # -------- setters/getters
 
     @property  # Override
     def text(self) -> str:
@@ -119,9 +97,44 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand, ABC):
             sn = origin.get('sn')
             return Converter.get_int(value=sn, default=None)
 
+
+class CombineForwardContent(BaseContent, CombineContent):
+    """
+        Combine Forward message
+        ~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0xFF,
+            sn   : 456,
+
+            title    : "...",  // chat title
+            messages : [...]   // chat history
+        }
+    """
+
+    def __init__(self, content: Dict[str, Any] = None,
+                 title: str = None, messages: List[InstantMessage] = None):
+        if content is None:
+            # 1. new content with message(s)
+            assert not (title is None or messages is None), 'params error: %s, %s' % (title, messages)
+            msg_type = ContentType.COMBINE_FORWARD.value
+            super().__init__(None, msg_type)
+            self['messages'] = CombineContent.revert(messages=messages)
+        else:
+            # 2. content info from network
+            assert title is None and messages is None, 'params error: %s, %s' % (title, messages)
+            super().__init__(content)
+        # lazy
+        self.__messages = messages
+
     @property  # Override
-    def original_signature(self) -> Optional[str]:
-        origin = self.origin
-        if origin is not None:
-            signature = origin.get('signature')
-            return Converter.get_str(value=signature, default=None)
+    def title(self) -> str:
+        return self.get_str(key='title', default='')
+
+    @property  # Override
+    def messages(self) -> List[InstantMessage]:
+        if self.__messages is None:
+            array = self.get('messages')
+            if array is not None:
+                self.__messages = CombineContent.convert(messages=array)
+        return self.__messages

@@ -137,11 +137,11 @@ class BaseFileWrapper(Dictionary):
     @property
     def password(self) -> Optional[DecryptKey]:
         if self.__password is None:
-            info = self.get('password')
+            info = self.get('key')
             self.__password = SymmetricKey.parse(key=info)
         return self.__password
 
     @password.setter
     def password(self, key: Optional[DecryptKey]):
-        self.set_map(key='password', value=key)
+        self.set_map(key='key', value=key)
         self.__password = key

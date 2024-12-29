@@ -34,7 +34,7 @@ from typing import Optional, Any, Dict
 from mkm.types import Dictionary
 from mkm.crypto import CryptographyKey, EncryptKey, DecryptKey, SignKey, VerifyKey
 from mkm.crypto import SymmetricKey, AsymmetricKey, PublicKey, PrivateKey
-from mkm.crypto.factory import CryptographyKeyFactoryManager
+from mkm.plugins import SharedCryptoExtensions
 
 
 """
@@ -59,29 +59,29 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
 
     @classmethod
     def get_key_algorithm(cls, key: Dict[str, Any]) -> Optional[str]:
-        gf = CryptographyKeyFactoryManager.general_factory
-        return gf.get_key_algorithm(key=key, default='')
+        ext = SharedCryptoExtensions()
+        return ext.helper.get_key_algorithm(key=key, default='')
 
     @classmethod
-    def keys_match(cls, encrypt_key: EncryptKey, decrypt_key: DecryptKey) -> bool:
+    def match_encrypt_key(cls, encrypt_key: EncryptKey, decrypt_key: DecryptKey) -> bool:
         """ match encrypt key """
-        gf = CryptographyKeyFactoryManager.general_factory
-        return gf.keys_match(encrypt_key=encrypt_key, decrypt_key=decrypt_key)
+        ext = SharedCryptoExtensions()
+        return ext.helper.match_symmetric_keys(encrypt_key=encrypt_key, decrypt_key=decrypt_key)
 
     @classmethod
-    def asymmetric_keys_match(cls, sign_key: SignKey, verify_key: VerifyKey) -> bool:
+    def match_sign_key(cls, sign_key: SignKey, verify_key: VerifyKey) -> bool:
         """ match sign key """
-        gf = CryptographyKeyFactoryManager.general_factory
-        return gf.asymmetric_keys_match(sign_key=sign_key, verify_key=verify_key)
+        ext = SharedCryptoExtensions()
+        return ext.helper.match_asymmetric_keys(sign_key=sign_key, verify_key=verify_key)
 
     @classmethod
-    def keys_equal(cls, a: SymmetricKey, b: SymmetricKey) -> bool:
+    def symmetric_keys_equal(cls, a: SymmetricKey, b: SymmetricKey) -> bool:
         """ symmetric key equals """
         if a is b:
             # same object
             return True
         # compare by encryption
-        return cls.keys_match(encrypt_key=a, decrypt_key=b)
+        return cls.match_encrypt_key(encrypt_key=a, decrypt_key=b)
 
     @classmethod
     def private_keys_equal(cls, a: PrivateKey, b: PrivateKey) -> bool:
@@ -90,7 +90,7 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
             # same object
             return True
         # compare by signature
-        return cls.asymmetric_keys_match(sign_key=a, verify_key=b.public_key)
+        return cls.match_sign_key(sign_key=a, verify_key=b.public_key)
 
 
 # noinspection PyAbstractClass
@@ -102,12 +102,12 @@ class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
     # Override
     def __eq__(self, other) -> bool:
         if isinstance(other, SymmetricKey):
-            return BaseKey.keys_equal(other, self)
+            return BaseKey.symmetric_keys_equal(other, self)
 
     # Override
     def __ne__(self, other) -> bool:
         if isinstance(other, SymmetricKey):
-            return not BaseKey.keys_equal(other, self)
+            return not BaseKey.symmetric_keys_equal(other, self)
         else:
             return True
 
@@ -117,7 +117,7 @@ class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 
     # Override
     def match_encrypt_key(self, key: EncryptKey) -> bool:
-        return BaseKey.keys_match(encrypt_key=key, decrypt_key=self)
+        return BaseKey.match_encrypt_key(encrypt_key=key, decrypt_key=self)
 
 
 # noinspection PyAbstractClass
@@ -143,8 +143,7 @@ class BasePublicKey(Dictionary, PublicKey, ABC):
 
     # Override
     def match_sign_key(self, key: SignKey) -> bool:
-        gf = CryptographyKeyFactoryManager.general_factory
-        return gf.asymmetric_keys_match(sign_key=key, verify_key=self)
+        return BaseKey.match_sign_key(sign_key=key, verify_key=self)
 
 
 # noinspection PyAbstractClass

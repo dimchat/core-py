@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any
+from typing import Optional, Iterable, List, Dict, Any
 
 from mkm.types import URI
 from mkm.format import PortableNetworkFile
@@ -94,7 +94,7 @@ class ArrayContent(Content, ABC):
         return ListContent(contents=contents)
 
     @classmethod
-    def convert(cls, contents: List[Dict[str, Any]]) -> List[Content]:
+    def convert(cls, contents: Iterable) -> List[Content]:
         array = []
         for item in contents:
             msg = Content.parse(content=item)
@@ -104,7 +104,7 @@ class ArrayContent(Content, ABC):
         return array
 
     @classmethod
-    def revert(cls, contents: List[Content]) -> List[Dict[str, Any]]:
+    def revert(cls, contents: Iterable[Content]) -> List[Dict[str, Any]]:
         array = []
         for msg in contents:
             info = msg.dictionary
@@ -148,7 +148,7 @@ class ForwardContent(Content, ABC):
         return SecretContent(message=message, messages=messages)
 
     @classmethod
-    def convert(cls, messages: List[Dict[str, Any]]) -> List[ReliableMessage]:
+    def convert(cls, messages: Iterable) -> List[ReliableMessage]:
         array = []
         for item in messages:
             msg = ReliableMessage.parse(msg=item)
@@ -158,7 +158,7 @@ class ForwardContent(Content, ABC):
         return array
 
     @classmethod
-    def revert(cls, messages: List[ReliableMessage]) -> List[Dict[str, Any]]:
+    def revert(cls, messages: Iterable[ReliableMessage]) -> List[Dict[str, Any]]:
         array = []
         for msg in messages:
             info = msg.dictionary

@@ -33,13 +33,13 @@ from typing import Optional, Any, Dict
 from mkm.types import DateTime
 from mkm.types import Dictionary
 from mkm import ID
-from dkd import MessageFactoryManager
 from dkd import ContentType, Content
 from dkd import InstantMessage
+from dkd.plugins import SharedMessageExtensions
 
 from ..protocol import Command
 
-from .factory import CommandFactoryManager
+from ..plugins import SharedCommandExtensions
 
 
 """
@@ -80,8 +80,8 @@ class BaseContent(Dictionary, Content):
     def type(self) -> int:
         """ message content type: text, image, ... """
         if self.__type is None:
-            gf = MessageFactoryManager.general_factory
-            self.__type = gf.get_content_type(content=self.dictionary, default=0)
+            ext = SharedMessageExtensions()
+            self.__type = ext.helper.get_content_type(content=self.dictionary, default=0)
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
 
@@ -130,6 +130,6 @@ class BaseCommand(BaseContent, Command):
 
     @property  # Override
     def cmd(self) -> str:
-        gf = CommandFactoryManager.general_factory
-        return gf.get_cmd(content=self.dictionary, default='')
+        ext = SharedCommandExtensions()
+        return ext.helper.get_cmd(content=self.dictionary, default='')
         # return self.get_str(key='command', default='')

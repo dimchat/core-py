@@ -109,7 +109,7 @@ class ReceiptCommand(Command):
             info['sn'] = content.sn
         # create receipt with text & original info
         from ..dkd import BaseReceiptCommand
-        command = BaseReceiptCommand.from_text(text=text, origin=info)
+        command = BaseReceiptCommand(text=text, origin=info)
         # check group in original content
         if content is not None:
             group = content.group

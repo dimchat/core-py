@@ -35,7 +35,7 @@ from mkm.types import Dictionary, Converter
 from mkm.crypto import VerifyKey, SignKey
 from mkm.format import TransportableData
 from mkm.format import json_encode, json_decode, utf8_encode
-from mkm.factory import AccountFactoryManager
+from mkm.plugins import SharedAccountExtensions
 from mkm import ID, Document
 
 
@@ -105,8 +105,8 @@ class BaseDocument(Dictionary, Document):
     def type(self) -> Optional[str]:
         doc_type = self.get_property(name='type')  # deprecated
         if doc_type is None:
-            gf = AccountFactoryManager.general_factory
-            doc_type = gf.get_document_type(document=self.dictionary, default=None)
+            ext = SharedAccountExtensions()
+            doc_type = ext.helper.get_document_type(document=self.dictionary, default=None)
             # doc_type = self.get_str(key='type', default=None)
         return doc_type
 

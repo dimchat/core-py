@@ -35,18 +35,14 @@
     Define universal message types as contents and commands
 """
 
-from mkm.types import URI, DateTime
-from mkm.format import TransportableData, PortableNetworkFile
-from mkm.crypto import SymmetricKey, AsymmetricKey
-from mkm.crypto import EncryptKey, DecryptKey
-from mkm.crypto import SignKey, VerifyKey
-from mkm.crypto import PublicKey, PrivateKey
+from mkm.types import *
+from mkm.format import *
+from mkm.crypto import *
 
 from mkm.protocol import *
 from dkd.protocol import *
 
 from mkm import ANYWHERE, EVERYWHERE, ANYONE, EVERYONE, FOUNDER
-# from dkd import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 
 from .docs import Visa, Bulletin
 
@@ -54,7 +50,7 @@ from .contents import TextContent, ArrayContent, ForwardContent
 from .contents import PageContent, NameCard
 from .files import FileContent, ImageContent, AudioContent, VideoContent
 from .money import MoneyContent, TransferContent
-from .customized import CustomizedContent
+from .quote import QuoteContent, CombineContent
 
 from .commands import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
@@ -64,20 +60,24 @@ from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 from .groups import HireCommand, FireCommand, ResignCommand
 
+# from .commands import CommandHelper
+# from .helpers import CommandExtensions
+
 
 __all__ = [
 
     'URI', 'DateTime',
     'TransportableData', 'PortableNetworkFile',
 
+    'CryptographyKey',
+    'EncryptKey', 'DecryptKey', 'SignKey', 'VerifyKey',
     'SymmetricKey', 'AsymmetricKey',
-    'EncryptKey', 'DecryptKey',
-    'SignKey', 'VerifyKey',
-    'PublicKey', 'PrivateKey',
+    'PrivateKey', 'PublicKey',
 
     #
     #   MingKeMing
     #
+
     'EntityType',
     'Address',   # 'AddressFactory',
     'ID',        # 'IDFactory',
@@ -90,29 +90,36 @@ __all__ = [
     #
     #   DaoKeDao
     #
-    'ContentType', 'Content',  # 'ContentFactory',
-    'Envelope',                # 'EnvelopeFactory',
+
+    'ContentType',
+    'Content',          # 'ContentFactory',
+    'Envelope',         # 'EnvelopeFactory',
     'Message',
-    'InstantMessage',          # 'InstantMessageFactory',
-    'SecureMessage',           # 'SecureMessageFactory',
-    'ReliableMessage',         # 'ReliableMessageFactory',
+    'InstantMessage',   # 'InstantMessageFactory',
+    'SecureMessage',    # 'SecureMessageFactory',
+    'ReliableMessage',  # 'ReliableMessageFactory',
 
-    # 'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-
-    #
-    #   DaoKeDao protocol extends
-    #
+    # contents
     'TextContent', 'ArrayContent', 'ForwardContent',
     'PageContent', 'NameCard',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
-    'CustomizedContent',
+    'QuoteContent', 'CombineContent',
 
-    'Command', 'CommandFactory',
+    # commands
+    'Command',          # 'CommandFactory',
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
 
+    # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
+
+    #
+    #   Plugins
+    #
+
+    # 'CommandHelper', 'CommandExtensions',
+
 ]

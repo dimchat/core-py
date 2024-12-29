@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2024 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2024 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,50 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm import *
 
-from ..protocol import Visa, Bulletin
-
-from .meta import BaseMeta
-from .document import BaseDocument
-from .docs import BaseVisa, BaseBulletin
+"""
+    Command FactoryManager
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 
-__all__ = [
+# protected
+class CommandExtensions:
 
-    #
-    #   Protocol
-    #
-
-    'EntityType',
-    'Address',
-    'ID',
-    'Meta',
-    'Document', 'Visa', 'Bulletin',
-
-    #
-    #   Factories
-    #
-
-    'AddressFactory',
-    'IDFactory',
-    'MetaFactory',
-    'DocumentFactory',
-
-    #
-    #   Core
-    #
-
-    'Identifier',
-    'ANYONE', 'EVERYONE', 'FOUNDER',
-    'ANYWHERE', 'EVERYWHERE',
-    # 'BroadcastAddress',
-
-    #
-    #   Extends
-    #
-
-    'BaseMeta',
-    'BaseDocument', 'BaseVisa', 'BaseBulletin',
-
-]
+    cmd_helper = None  # CommandHelper

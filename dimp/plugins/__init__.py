@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2024 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2024 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,34 +28,61 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.plugins import *
+from dkd.plugins import *
 
-from abc import ABC, abstractmethod
-from typing import Optional
+from ..protocol.commands import CommandHelper
+# from ..protocol.helpers import CommandExtensions
 
-from mkm import ID
+from .cmd import GeneralCommandHelper, SharedCommandExtensions
 
-from .user import User
-from .group import Group
+__all__ = [
 
+    #
+    #   Crypto
+    #
 
-class EntityDelegate(ABC):
+    'SymmetricKeyHelper', 'PublicKeyHelper', 'PrivateKeyHelper',
+    # 'CryptoExtensions',
 
-    @abstractmethod
-    async def get_user(self, identifier: ID) -> Optional[User]:
-        """
-        Create user with ID
+    'GeneralCryptoHelper', 'SharedCryptoExtensions',
 
-        :param identifier: ID object
-        :return: User object
-        """
-        raise NotImplemented
+    #
+    #   Format
+    #
 
-    @abstractmethod
-    async def get_group(self, identifier: ID) -> Optional[Group]:
-        """
-        Create group with ID
+    'TransportableDataHelper', 'PortableNetworkFileHelper',
+    # 'FormatExtensions',
 
-        :param identifier: ID object
-        :return: Group object
-        """
-        raise NotImplemented
+    'GeneralFormatHelper', 'SharedFormatExtensions',
+
+    #
+    #   Account
+    #
+
+    'AddressHelper', 'IdentifierHelper',
+    'MetaHelper', 'DocumentHelper',
+    # 'AccountExtensions',
+
+    'GeneralAccountHelper', 'SharedAccountExtensions',
+
+    #
+    #   Message
+    #
+
+    'ContentHelper', 'EnvelopeHelper',
+    'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'MessageExtensions',
+
+    'GeneralMessageHelper', 'SharedMessageExtensions',
+
+    #
+    #   Command
+    #
+
+    'CommandHelper',
+    # 'CommandExtensions',
+
+    'GeneralCommandHelper', 'SharedCommandExtensions',
+
+]

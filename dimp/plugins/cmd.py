@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2024 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2024 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,48 +29,51 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
+from typing import Optional, Dict
 
-from dkd import Content
+from mkm.types import Singleton
+
+from ..protocol.commands import CommandHelper
+from ..protocol.helpers import CommandExtensions
 
 
-class CustomizedContent(Content, ABC):
-    """
-        Application Customized message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : 0xCC,
-            sn   : 123,
-
-            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
-            mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
-            act   : "{ACTION}",  // action name (e.g.: "throw")
-            extra : info         // action parameters
-        }
-    """
-
-    @property
-    @abstractmethod
-    def application(self) -> str:
-        """ App ID """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def module(self) -> str:
-        """ Module Name """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def action(self) -> str:
-        """ Action Name """
-        raise NotImplemented
+# class GeneralCommandHelper(CommandHelper, ABC):
+class GeneralCommandHelper(ABC):
+    """ Command GeneralFactory """
 
     #
-    #   Factory method
+    #   CMD - Command, Method, Declaration
     #
-    @classmethod
-    def create(cls, app: str, mod: str, act: str):
-        from ..dkd import AppCustomizedContent
-        return AppCustomizedContent(app=app, mod=mod, act=act)
+
+    @abstractmethod
+    def get_cmd(self, content: Dict, default: Optional[str]) -> Optional[str]:
+        raise NotImplemented
+
+
+@Singleton
+class SharedCommandExtensions:
+    """ Command FactoryManager """
+
+    def __init__(self):
+        super().__init__()
+        self.__helper: Optional[GeneralCommandHelper] = None
+
+    @property
+    def helper(self) -> Optional[GeneralCommandHelper]:
+        return self.__helper
+
+    @helper.setter
+    def helper(self, helper: GeneralCommandHelper):
+        self.__helper = helper
+
+    #
+    #   Command
+    #
+
+    @property
+    def cmd_helper(self) -> Optional[CommandHelper]:
+        return CommandExtensions.cmd_helper
+
+    @cmd_helper.setter
+    def cmd_helper(self, helper: CommandHelper):
+        CommandExtensions.cmd_helper = helper

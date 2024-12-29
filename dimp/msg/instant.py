@@ -74,15 +74,14 @@ class PlainMessage(BaseMessage, InstantMessage):
     @property  # Override
     def content(self) -> Content:
         if self.__content is None:
-            content = self.get('content')
-            content = Content.parse(content=content)
-            assert content is not None, 'message content not found: %s' % self
-            self.__content = content
+            info = self.get('content')
+            self.__content = Content.parse(content=info)
+            assert self.__content is not None, 'content error: %s' % info
         return self.__content
 
     @content.setter  # protected
     def content(self, value: Content):
-        self['content'] = value.dictionary
+        self.set_map(key='content', value=value)
         self.__content = value
 
     @property  # Override

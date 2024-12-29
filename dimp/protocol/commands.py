@@ -35,6 +35,8 @@ from mkm.types import DateTime
 from mkm import ID, Meta, Document
 from dkd import Content
 
+from .helpers import CommandExtensions
+
 
 class Command(Content, ABC):
     """
@@ -68,26 +70,25 @@ class Command(Content, ABC):
 
     @classmethod
     def parse(cls, content: Any):  # -> Optional[Command]:
-        gf = general_factory()
-        return gf.parse_command(content=content)
+        helper = CommandExtensions.cmd_helper
+        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
+        return helper.parse_command(content=content)
 
     @classmethod
-    def factory(cls, cmd: str):  # -> Optional[CommandFactory]:
-        gf = general_factory()
-        return gf.get_command_factory(cmd=cmd)
+    def get_factory(cls, cmd: str):  # -> Optional[CommandFactory]:
+        helper = CommandExtensions.cmd_helper
+        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
+        return helper.get_command_factory(cmd=cmd)
 
     @classmethod
-    def register(cls, cmd: str, factory):
-        gf = general_factory()
-        gf.set_command_factory(cmd=cmd, factory=factory)
+    def set_factory(cls, cmd: str, factory):
+        helper = CommandExtensions.cmd_helper
+        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
+        helper.set_command_factory(cmd=cmd, factory=factory)
 
 
-def general_factory():
-    from ..dkd.factory import CommandFactoryManager
-    return CommandFactoryManager.general_factory
-
-
-class CommandFactory:
+class CommandFactory(ABC):
+    """ Command Factory """
 
     @abstractmethod
     def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
@@ -98,6 +99,29 @@ class CommandFactory:
         :return: Command
         """
         raise NotImplemented
+
+
+class CommandHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_command_factory(self, cmd: str, factory: CommandFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_command(self, content: Any) -> Optional[Command]:
+        raise NotImplemented
+
+
+#############################
+#                           #
+#       Core Commands       #
+#                           #
+#############################
 
 
 class MetaCommand(Command, ABC):

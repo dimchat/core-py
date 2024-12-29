@@ -36,7 +36,7 @@ from .contents import BaseTextContent, ListContent, SecretContent
 from .contents import WebPageContent, NameCardContent
 from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 from .money import BaseMoneyContent, TransferMoneyContent
-from .customized import AppCustomizedContent
+from .quote import BaseQuoteContent, CombineForwardContent
 
 from .commands import BaseMetaCommand, BaseDocumentCommand
 from .receipt import BaseReceiptCommand
@@ -46,59 +46,79 @@ from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
 from .groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
 from .group_admins import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
-from .factory import CommandGeneralFactory, CommandFactoryManager
-
+# from ..protocol.commands import CommandHelper
+# from ..protocol.helpers import CommandExtensions
 
 __all__ = [
 
     #
     #   Protocol
     #
-    'ContentType', 'Content', 'ContentFactory',
-    'Envelope', 'EnvelopeFactory',
+
+    'ContentType',
+    'Content',
+    'Envelope',
     'Message',
-    'InstantMessage', 'InstantMessageFactory',
-    'SecureMessage', 'SecureMessageFactory',
-    'ReliableMessage', 'ReliableMessageFactory',
+    'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-    'MessageGeneralFactory', 'MessageFactoryManager',
-
+    # contents
     'TextContent', 'ArrayContent', 'ForwardContent',
     'PageContent', 'NameCard',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
-    'CustomizedContent',
+    'QuoteContent', 'CombineContent',
 
-    'Command', 'CommandFactory',
+    # commands
+    'Command',
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
 
+    # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
 
     #
-    #   Contents
+    #   Factories
     #
+
+    'ContentFactory',
+    'EnvelopeFactory',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    #
+    #   Delegates
+    #
+
+    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+
+    #
+    #   Extends
+    #
+
+    # contents
     'BaseContent',
     'BaseTextContent', 'ListContent', 'SecretContent',
     'WebPageContent', 'NameCardContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     'BaseMoneyContent', 'TransferMoneyContent',
-    'AppCustomizedContent',
+    'BaseQuoteContent', 'CombineForwardContent',
 
-    #
-    #   Commands
-    #
+    # commands
     'BaseCommand',
     'BaseMetaCommand', 'BaseDocumentCommand',
     'BaseReceiptCommand',
 
+    # group history
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
     'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
     'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
-    'CommandGeneralFactory', 'CommandFactoryManager',
+    #
+    #   Plugins
+    #
+
+    # 'CommandHelper', 'CommandExtensions',
+
 ]
