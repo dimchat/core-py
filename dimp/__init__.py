@@ -32,6 +32,7 @@ from mkm.types import *
 from mkm.format import *
 from mkm.crypto import *
 from mkm import *
+from dkd import *
 
 from .protocol.commands import CommandFactory
 from .protocol import *
@@ -72,8 +73,8 @@ __all__ = [
     'json_encode', 'json_decode',
     'utf8_encode', 'utf8_decode',
 
-    'TransportableData',
-    'PortableNetworkFile',
+    'TransportableData', 'TransportableDataFactory',
+    'PortableNetworkFile', 'PortableNetworkFileFactory',
 
     #
     #   Digest
