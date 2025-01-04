@@ -87,12 +87,6 @@ __all__ = [
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
 
     #
-    #   Delegates
-    #
-
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-
-    #
     #   Extends
     #
 

@@ -92,10 +92,6 @@ class HandshakeCommand(BaseCommand):
     def state(self) -> HandshakeState:
         return handshake_state(title=self.title, session=self.session)
 
-    #
-    #   Factories
-    #
-
     @classmethod
     def offer(cls, session: str = None) -> Command:
         """
@@ -189,9 +185,6 @@ class CustomizedContent(Content, ABC):
         """ Action Name """
         raise NotImplemented
 
-    #
-    #   Factory method
-    #
     @classmethod
     def create(cls, app: str, mod: str, act: str):
         return AppCustomizedContent(app=app, mod=mod, act=act)

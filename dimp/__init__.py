@@ -184,7 +184,4 @@ __all__ = [
     'EnvelopeFactory',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
 
-    # delegates
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-
 ]

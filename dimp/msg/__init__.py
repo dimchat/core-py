@@ -28,8 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd.protocol import *
-from dkd.msg import *
+from dkd import *
 
 from .envelope import MessageEnvelope
 
@@ -57,12 +56,6 @@ __all__ = [
     'ContentFactory',
     'EnvelopeFactory',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-
-    #
-    #   Message Delegates
-    #
-
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
     #
     #   Implementations
