@@ -30,9 +30,9 @@
 
 from typing import Optional, Any, Dict
 
-from dkd import ContentType
 from mkm import ID
 
+from ..protocol import ContentType
 from ..protocol import MoneyContent, TransferContent
 
 from .base import BaseContent
@@ -44,7 +44,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x40,
+            type : i2s(0x40),
             sn   : 123,
 
             currency : "RMB", // USD, USDT, ...
@@ -53,14 +53,14 @@ class BaseMoneyContent(BaseContent, MoneyContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: int = None,
+                 msg_type: str = None,
                  currency: str = None, amount: float = None):
         if content is None:
             # 1. new content with type, currency & amount
             assert currency is not None and amount is not None, \
                 'money content error: %s, %s, %s' % (msg_type, currency, amount)
             if msg_type is None:
-                msg_type = ContentType.MONEY.value
+                msg_type = ContentType.MONEY
             super().__init__(None, msg_type)
             # set values to inner dictionary
             self['currency'] = currency
@@ -77,7 +77,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
     @property  # Override
     def amount(self) -> float:
-        return self.get_float(key='amount', default=0)
+        return self.get_float(key='amount', default=0.0)
 
     @amount.setter  # Override
     def amount(self, value: float):
@@ -90,7 +90,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x41,
+            type : i2s(0x41),
             sn   : 123,
 
             currency : "RMB",    // USD, USDT, ...
@@ -102,7 +102,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  currency: str = None, amount: float = None):
-        msg_type = ContentType.TRANSFER.value if content is None else None
+        msg_type = ContentType.TRANSFER if content is None else None
         super().__init__(content, msg_type, currency=currency, amount=amount)
 
     @property  # Override

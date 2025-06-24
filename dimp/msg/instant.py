@@ -97,5 +97,5 @@ class PlainMessage(BaseMessage, InstantMessage):
         return self.content.group
 
     @property  # Override
-    def type(self) -> Optional[int]:
+    def type(self) -> Optional[str]:
         return self.content.type

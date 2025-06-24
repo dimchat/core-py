@@ -41,8 +41,8 @@ from typing import Optional, Any, Dict, List
 
 from mkm.types import DateTime
 from mkm import ID
-from dkd import ContentType
 
+from ..protocol import ContentType
 from ..protocol import HistoryCommand, GroupCommand
 from ..protocol import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 
@@ -55,7 +55,7 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x89,
+            type : i2s(0x89),
             sn   : 123,
 
             command : "...", // command name
@@ -65,10 +65,10 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: int = None, cmd: str = None):
+                 msg_type: str = None, cmd: str = None):
         if content is None:
             if msg_type is None:
-                msg_type = ContentType.HISTORY.value
+                msg_type = ContentType.HISTORY
             assert cmd is not None, 'command name should not empty'
         super().__init__(content, msg_type, cmd=cmd)
 
@@ -79,7 +79,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         ~~~~~~~~~~~~~
 
         data format: {
-            type : 0x89,
+            type : i2s(0x89),
             sn   : 123,
 
             command : "invite",         // "expel", "quit"

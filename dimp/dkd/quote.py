@@ -31,8 +31,9 @@
 from typing import Optional, Any, Dict, List
 
 from mkm.types import Converter
-from dkd import ContentType, Envelope, InstantMessage
+from dkd import Envelope, InstantMessage
 
+from ..protocol import ContentType
 from ..protocol import QuoteContent
 from ..protocol import CombineContent
 
@@ -45,7 +46,7 @@ class BaseQuoteContent(BaseContent, QuoteContent):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x37,
+            type : i2s(0x37),
             sn   : 456,
 
             text    : "...",  // text message
@@ -64,7 +65,7 @@ class BaseQuoteContent(BaseContent, QuoteContent):
         if content is None:
             # 1. new content with text & origin info
             assert not (text is None or origin is None), 'quote error: %s, %s' % (text, origin)
-            msg_type = ContentType.QUOTE.value
+            msg_type = ContentType.QUOTE
             super().__init__(None, msg_type)
             self['text'] = text
             self['origin'] = origin
@@ -104,7 +105,7 @@ class CombineForwardContent(BaseContent, CombineContent):
         ~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xFF,
+            type : i2s(0xFF),
             sn   : 456,
 
             title    : "...",  // chat title
@@ -117,9 +118,9 @@ class CombineForwardContent(BaseContent, CombineContent):
         if content is None:
             # 1. new content with message(s)
             assert not (title is None or messages is None), 'params error: %s, %s' % (title, messages)
-            msg_type = ContentType.COMBINE_FORWARD.value
+            msg_type = ContentType.COMBINE_FORWARD
             super().__init__(None, msg_type)
-            self['messages'] = CombineContent.revert(messages=messages)
+            self['messages'] = InstantMessage.revert(messages)
         else:
             # 2. content info from network
             assert title is None and messages is None, 'params error: %s, %s' % (title, messages)
@@ -136,5 +137,5 @@ class CombineForwardContent(BaseContent, CombineContent):
         if self.__messages is None:
             array = self.get('messages')
             if array is not None:
-                self.__messages = CombineContent.convert(messages=array)
+                self.__messages = InstantMessage.convert(array)
         return self.__messages

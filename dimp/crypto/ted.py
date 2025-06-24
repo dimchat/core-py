@@ -33,8 +33,9 @@ from typing import Optional, Any, Dict
 from mkm.format import base64_encode, base64_decode
 from mkm.format import base58_encode, base58_decode
 from mkm.format import hex_encode, hex_decode
-from mkm.format import TransportableData
 from mkm.types import Dictionary
+
+from .algorithms import EncodeAlgorithms
 
 
 class BaseDataWrapper(Dictionary):
@@ -72,7 +73,7 @@ class BaseDataWrapper(Dictionary):
         if len(text) == 0:
             return text
         alg = self.get_str(key='algorithm', default='')
-        if alg == TransportableData.DEFAULT:
+        if alg == EncodeAlgorithms.DEFAULT:
             alg = ''
         if len(alg) == 0:
             # 0. "{BASE64_ENCODE}"
@@ -99,12 +100,12 @@ class BaseDataWrapper(Dictionary):
     def algorithm(self) -> str:
         alg = self.get_str(key='algorithm', default='')
         if len(alg) == 0:
-            alg = TransportableData.DEFAULT
+            alg = EncodeAlgorithms.DEFAULT
         return alg
 
     @algorithm.setter
     def algorithm(self, name: str):
-        if name is None:  # or name == TransportableData.DEFAULT:
+        if name is None:  # or name == EncodeAlgorithms.DEFAULT:
             self.pop('algorithm', None)
         else:
             self['algorithm'] = name
@@ -120,11 +121,11 @@ class BaseDataWrapper(Dictionary):
             text = self.get_str(key='data', default='')
             if len(text) > 0:
                 alg = self.algorithm
-                if alg == TransportableData.BASE_64:
+                if alg == EncodeAlgorithms.BASE_64:
                     binary = base64_decode(string=text)
-                elif alg == TransportableData.BASE_58:
+                elif alg == EncodeAlgorithms.BASE_58:
                     binary = base58_decode(string=text)
-                elif alg == TransportableData.HEX:
+                elif alg == EncodeAlgorithms.HEX:
                     binary = hex_decode(string=text)
                 else:
                     assert False, 'data algorithm not support: %s' % alg
@@ -137,11 +138,11 @@ class BaseDataWrapper(Dictionary):
             self.pop('data', None)
         else:
             alg = self.algorithm
-            if alg == TransportableData.BASE_64:
+            if alg == EncodeAlgorithms.BASE_64:
                 text = base64_encode(data=binary)
-            elif alg == TransportableData.BASE_58:
+            elif alg == EncodeAlgorithms.BASE_58:
                 text = base58_encode(data=binary)
-            elif alg == TransportableData.HEX:
+            elif alg == EncodeAlgorithms.HEX:
                 text = hex_encode(data=binary)
             else:
                 assert False, 'data algorithm not support: %s' % alg

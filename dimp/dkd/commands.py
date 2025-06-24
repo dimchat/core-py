@@ -32,11 +32,11 @@
     Meta Command Protocol
     ~~~~~~~~~~~~~~~~~~~~~
 
-    1. contains 'ID' only, means query meta for ID
+    1. contains 'did' only, means query meta for ID
     2. contains 'meta' (must match), means reply
 """
 
-from typing import Optional, Any, Dict
+from typing import Optional, Any, List, Dict
 
 from mkm.types import DateTime
 from mkm import ID, Meta, Document
@@ -52,11 +52,11 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
         ~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 123,
 
             command : "meta", // command name
-            ID      : "{ID}", // contact's ID
+            did     : "{ID}", // contact's ID
             meta    : {...}   // When meta is empty, means query meta for ID
         }
     """
@@ -71,7 +71,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
             if cmd is None:
                 cmd = Command.META
             super().__init__(cmd=cmd)
-            self.set_string(key='ID', value=identifier)
+            self.set_string(key='did', value=identifier)
             if meta is not None:
                 self.set_map(key='meta', value=meta)
         else:
@@ -89,7 +89,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
     @property  # Override
     def identifier(self) -> ID:
         if self.__id is None:
-            self.__id = ID.parse(identifier=self.get('ID'))
+            self.__id = ID.parse(identifier=self.get('did'))
         return self.__id
 
     #
@@ -108,14 +108,14 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 123,
 
             command   : "document", // command name
-            ID        : "{ID}",     // entity ID
+            did       : "{ID}",     // entity ID
             meta      : {...},      // only for handshaking with new friend
-            document  : {...},      // when document is empty, means query for ID
-            signature : "..."       // old document's signature for querying
+            documents : [...],      // when document is empty, means query for ID
+            last_time : 12345       // old document time for querying
         }
 
     """
@@ -123,38 +123,37 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
     def __init__(self, content: Dict[str, Any] = None,
                  identifier: ID = None,
                  meta: Optional[Meta] = None,
-                 document: Optional[Document] = None,
+                 documents: List[Document] = None,
                  last_time: Optional[DateTime] = None):
         if content is None:
             # 1. new command with ID, meta, document & signature
-            if identifier is None:
-                assert document is not None, 'document command error: %s, %s' % (meta, last_time)
-                identifier = document.identifier
-            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, document, last_time)
-            cmd = Command.DOCUMENT
+            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, documents, last_time)
+            cmd = Command.DOCUMENTS
             super().__init__(cmd=cmd, identifier=identifier, meta=meta)
             # respond with document info
-            if document is not None:
-                self['document'] = document.dictionary
+            if documents is not None:
+                self['documents'] = Document.revert(documents)
             # query with last document time
             if last_time is not None:
                 self.set_datetime(key='last_time', value=last_time)
         else:
             # 2. command info from network
-            assert identifier is None and meta is None and document is None and last_time is None, \
-                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, document, last_time)
+            assert identifier is None and meta is None and documents is None and last_time is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, documents, last_time)
             super().__init__(content)
         # lazy load
-        self.__doc = document
+        self.__docs = documents
 
     #
     #   document
     #
     @property  # Override
-    def document(self) -> Optional[Document]:
-        if self.__doc is None:
-            self.__doc = Document.parse(document=self.get('document'))
-        return self.__doc
+    def documents(self) -> Optional[List[Document]]:
+        if self.__docs is None:
+            docs = self.get('documents')
+            if docs is not None:
+                self.__docs = Document.convert(docs)
+        return self.__docs
 
     @property  # Override
     def last_time(self) -> Optional[DateTime]:

@@ -35,9 +35,8 @@ from mkm.format import TransportableData
 from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
 
-from dkd import ContentType
-
 from ..crypto import BaseFileWrapper
+from ..protocol import ContentType
 from ..protocol import FileContent, ImageContent, AudioContent, VideoContent
 
 from .contents import BaseContent
@@ -47,13 +46,13 @@ class BaseFileContent(BaseContent, FileContent):
     """ File Message Content """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: int = None,
+                 msg_type: str = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         if content is None:
             # 1. new content with type, data, filename, url & password
             if msg_type is None:
-                msg_type = ContentType.FILE.value
+                msg_type = ContentType.FILE
             super().__init__(None, msg_type)
             # access via the wrapper
             wrapper = BaseFileWrapper(dictionary=self.dictionary)
@@ -114,7 +113,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.IMAGE.value if content is None else None
+        msg_type = ContentType.IMAGE if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # small image
         self.__thumbnail: Optional[PortableNetworkFile] = None
@@ -142,7 +141,7 @@ class AudioFileContent(BaseFileContent, AudioContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.AUDIO.value if content is None else None
+        msg_type = ContentType.AUDIO if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
 
     @property  # Override
@@ -160,7 +159,7 @@ class VideoFileContent(BaseFileContent, VideoContent):
     def __init__(self, content: Dict[str, Any] = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        msg_type = ContentType.VIDEO.value if content is None else None
+        msg_type = ContentType.VIDEO if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # small image
         self.__snapshot: Optional[PortableNetworkFile] = None

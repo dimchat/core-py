@@ -35,6 +35,8 @@ from mkm.types import URI
 from mkm.types import Dictionary
 from mkm.crypto import DecryptKey, SymmetricKey
 
+from .algorithms import EncodeAlgorithms
+
 
 class BaseFileWrapper(Dictionary):
     """
@@ -90,7 +92,7 @@ class BaseFileWrapper(Dictionary):
             ted = None
             self.pop('data', None)
         else:
-            ted = TransportableData.create(data=binary)
+            ted = TransportableData.create(data=binary, algorithm=EncodeAlgorithms.DEFAULT)
             self['data'] = ted.object
         self.__attachment = ted
 

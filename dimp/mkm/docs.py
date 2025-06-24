@@ -34,8 +34,8 @@ from mkm.crypto import PublicKey, EncryptKey
 from mkm.format import TransportableData
 from mkm.format import PortableNetworkFile
 from mkm import ID
-from mkm import Document
 
+from ..protocol import DocumentType
 from ..protocol import Visa, Bulletin
 
 from .document import BaseDocument
@@ -48,7 +48,7 @@ class BaseVisa(BaseDocument, Visa):
         if document is None:
             # 1. document from local
             assert identifier is not None, 'visa info error: %s, %s' % (data, signature)
-            doc_type = Document.VISA
+            doc_type = DocumentType.VISA
             super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
         else:
             # 2. document from network
@@ -115,7 +115,7 @@ class BaseBulletin(BaseDocument, Bulletin):
         if document is None:
             # 1. document from local
             assert identifier is not None, 'bulletin info error: %s, %s' % (data, signature)
-            doc_type = Document.BULLETIN
+            doc_type = DocumentType.BULLETIN
             super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
         else:
             # 2. document from network

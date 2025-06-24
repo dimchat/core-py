@@ -112,9 +112,9 @@ class MessageEnvelope(Dictionary, Envelope):
         self.set_string(key='group', value=value)
 
     @property  # Override
-    def type(self) -> Optional[int]:
-        return self.get_int(key='type', default=None)
+    def type(self) -> Optional[str]:
+        return self.get_str(key='type', default=None)
 
     @type.setter  # Override
-    def type(self, value: int):
+    def type(self, value: str):
         self['type'] = value

@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable, List, Dict, Any
+from typing import Optional, List, Dict, Any
 
 from dkd import Content, Envelope
 from dkd import InstantMessage
@@ -41,7 +41,7 @@ class QuoteContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x37,
+            type : i2s(0x37),
             sn   : 456,
 
             text    : "...",  // text message
@@ -114,7 +114,7 @@ class CombineContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xFF,
+            type : i2s(0xFF),
             sn   : 456,
 
             title    : "...",  // chat title
@@ -139,21 +139,3 @@ class CombineContent(Content, ABC):
     def create(cls, title: str, messages: List[InstantMessage]):
         from ..dkd import CombineForwardContent
         return CombineForwardContent(title=title, messages=messages)
-
-    @classmethod
-    def convert(cls, messages: Iterable) -> List[InstantMessage]:
-        array = []
-        for item in messages:
-            msg = InstantMessage.parse(msg=item)
-            if msg is None:
-                continue
-            array.append(msg)
-        return array
-
-    @classmethod
-    def revert(cls, messages: Iterable[InstantMessage]) -> List[Dict[str, Any]]:
-        array = []
-        for msg in messages:
-            info = msg.dictionary
-            array.append(info)
-        return array

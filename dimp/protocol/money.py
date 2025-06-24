@@ -32,8 +32,9 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm import ID
-from dkd import ContentType
 from dkd import Content
+
+from .types import ContentType
 
 
 class MoneyContent(Content, ABC):
@@ -42,7 +43,7 @@ class MoneyContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x40,
+            type : i2s(0x40),
             sn   : 123,
 
             currency : "RMB", // USD, USDT, ...
@@ -69,10 +70,10 @@ class MoneyContent(Content, ABC):
     #   Factory method
     #
     @classmethod
-    def create(cls, currency: str, amount: float, msg_type: int = None):
+    def create(cls, currency: str, amount: float, msg_type: str = None):
         # convert type value
         if msg_type is None:
-            msg_type = ContentType.MONEY.value
+            msg_type = ContentType.MONEY
         # create with type value
         from ..dkd import BaseMoneyContent
         return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
@@ -84,7 +85,7 @@ class TransferContent(MoneyContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x41,
+            type : i2s(0x41),
             sn   : 123,
 
             currency : "RMB",    // USD, USDT, ...

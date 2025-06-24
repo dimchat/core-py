@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Any, List, Dict
 
 from mkm.types import DateTime
 from mkm import ID, Meta, Document
@@ -44,7 +44,7 @@ class Command(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 123,
 
             command : "...", // command name
@@ -54,14 +54,14 @@ class Command(Content, ABC):
 
     # -------- command names begin --------
     META = 'meta'
-    DOCUMENT = 'document'
+    DOCUMENTS = 'documents'
     RECEIPT = 'receipt'
     # -------- command names end --------
 
     @property
     @abstractmethod
     def cmd(self) -> str:
-        """ get command name """
+        """ command/method/declaration """
         raise NotImplemented
 
     #
@@ -130,11 +130,11 @@ class MetaCommand(Command, ABC):
         ~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 123,
 
             command : "meta", // command name
-            ID      : "{ID}", // contact's ID
+            did     : "{ID}", // contact's ID
             meta    : {...}   // When meta is empty, means query meta for ID
         }
     """
@@ -189,24 +189,24 @@ class DocumentCommand(MetaCommand, ABC):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 123,
 
             command   : "document", // command name
-            ID        : "{ID}",     // entity ID
+            did       : "{ID}",     // entity ID
             meta      : {...},      // only for handshaking with new friend
-            document  : {...},      // when document is empty, means query for ID
+            documents : [...],      // when document is empty, means query for ID
             last_time : 12345       // old document time for querying
         }
 
     """
 
     #
-    #   document
+    #   documents
     #
     @property
     @abstractmethod
-    def document(self) -> Optional[Document]:
+    def documents(self) -> Optional[List[Document]]:
         raise NotImplemented
 
     @property
@@ -233,15 +233,15 @@ class DocumentCommand(MetaCommand, ABC):
         return BaseDocumentCommand(identifier=identifier, last_time=last_time)
 
     @classmethod
-    def response(cls, document: Document, meta: Optional[Meta] = None, identifier: ID = None):
+    def response(cls, documents: List[Document], meta: Optional[Meta] = None, identifier: ID = None):
         """
         1. Send Meta and Document to new friend
         2. Response Entity Document
 
         :param identifier: entity ID
         :param meta:       entity meta
-        :param document:   entity document
+        :param documents:  entity documents
         :return: DocumentCommand
         """
         from ..dkd import BaseDocumentCommand
-        return BaseDocumentCommand(identifier=identifier, meta=meta, document=document)
+        return BaseDocumentCommand(identifier=identifier, meta=meta, documents=documents)

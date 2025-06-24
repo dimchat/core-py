@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2025 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2025 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,53 +28,30 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm import *
 
-from ..protocol import MetaType, DocumentType
-from ..protocol import Visa, Bulletin
+class AsymmetricAlgorithms:
+    """ Algorithms for Asymmetric Key """
 
-from .meta import BaseMeta
-from .document import BaseDocument
-from .docs import BaseVisa, BaseBulletin
+    RSA = 'RSA'  # -- "RSA/ECB/PKCS1Padding", "SHA256withRSA"
+    ECC = 'ECC'
 
 
-__all__ = [
+class SymmetricAlgorithms:
+    """ Algorithms for Symmetric Key """
 
-    #
-    #   Protocol
-    #
+    AES = 'AES'  # -- "AES/CBC/PKCS7Padding"
+    DES = 'DES'
 
-    'EntityType',
-    'MetaType', 'DocumentType',
+    # Symmetric key algorithm for broadcast message,
+    # which will do nothing when en/decoding message data
+    PLAIN = 'PLAIN'
 
-    'Address',
-    'ID',
-    'Meta',
-    'Document', 'Visa', 'Bulletin',
 
-    #
-    #   Factories
-    #
+class EncodeAlgorithms:
+    """ Algorithms for Encoding Data """
 
-    'AddressFactory',
-    'IDFactory',
-    'MetaFactory',
-    'DocumentFactory',
+    DEFAULT = 'base64'
 
-    #
-    #   Core
-    #
-
-    'Identifier',
-    'ANYONE', 'EVERYONE', 'FOUNDER',
-    'ANYWHERE', 'EVERYWHERE',
-    # 'BroadcastAddress',
-
-    #
-    #   Extends
-    #
-
-    'BaseMeta',
-    'BaseDocument', 'BaseVisa', 'BaseBulletin',
-
-]
+    BASE_64 = 'base64'
+    BASE_58 = 'base58'
+    HEX = 'hex'

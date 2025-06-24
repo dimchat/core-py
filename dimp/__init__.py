@@ -103,6 +103,12 @@ __all__ = [
     'BaseFileWrapper',
 
     #
+    #   Algorithm
+    #
+    'AsymmetricAlgorithms', 'SymmetricAlgorithms',
+    'EncodeAlgorithms',
+
+    #
     #   MingKeMing
     #
 
@@ -124,6 +130,8 @@ __all__ = [
 
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
+
+    'MetaType', 'DocumentType',
 
     #
     #   DaoKeDao

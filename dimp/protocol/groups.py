@@ -53,7 +53,7 @@ class HistoryCommand(Command, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x89,
+            type : i2s(0x89),
             sn   : 123,
 
             command : "...", // command name
@@ -75,14 +75,15 @@ class GroupCommand(HistoryCommand, ABC):
         ~~~~~~~~~~~~~
 
         data format: {
-            type : 0x89,
+            type : i2s(0x89),
             sn   : 123,
 
-            command : "invite",         // "expel", "quit"
-            time    : 0,                // timestamp
-            group   : "{GROUP_ID}",     // group ID
-            member  : "{MEMBER_ID}",    // member ID
-            members : ["{MEMBER_ID}",]  // member ID list
+            command : "reset",   // "invite", "quit", "query", ...
+            time    : 0,         // timestamp
+
+            group   : "{GROUP_ID}",
+            member  : "{MEMBER_ID}",
+            members : ["{MEMBER_ID}",]
         }
     """
 

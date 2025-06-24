@@ -97,7 +97,7 @@ class BaseMessage(Dictionary, Message):
         return self.envelope.group
 
     @property  # Override
-    def type(self) -> Optional[int]:
+    def type(self) -> Optional[str]:
         return self.envelope.type
 
     @classmethod

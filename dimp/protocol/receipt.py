@@ -49,7 +49,7 @@ class ReceiptCommand(Command):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x88,
+            type : i2s(0x88),
             sn   : 456,
 
             command : "receipt",

@@ -33,9 +33,10 @@ from typing import Optional, Any, Dict, List
 from mkm.format import PortableNetworkFile
 from mkm.types import URI
 from mkm import ID
-from dkd import ContentType, Content
+from dkd import Content
 from dkd import ReliableMessage
 
+from ..protocol import ContentType
 from ..protocol import TextContent, ArrayContent, ForwardContent
 from ..protocol import PageContent, NameCard
 
@@ -48,7 +49,7 @@ class BaseTextContent(BaseContent, TextContent):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x01,
+            type : i2s(0x01),
             sn   : 123,
 
             text : "..."
@@ -59,7 +60,7 @@ class BaseTextContent(BaseContent, TextContent):
         if content is None:
             # 1. new content with text string
             assert text is not None, 'text should not be None'
-            msg_type = ContentType.TEXT.value
+            msg_type = ContentType.TEXT
             super().__init__(None, msg_type)
             self['text'] = text
         else:
@@ -81,7 +82,7 @@ class ListContent(BaseContent, ArrayContent):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xCA,
+            type : i2s(0xCA),
             sn   : 123,
 
             contents : [...]  // content list
@@ -93,9 +94,9 @@ class ListContent(BaseContent, ArrayContent):
         if content is None:
             # 1. new content with a list
             assert contents is not None, 'content list should no be None'
-            msg_type = ContentType.ARRAY.value
+            msg_type = ContentType.ARRAY
             super().__init__(None, msg_type)
-            self['contents'] = ArrayContent.revert(contents=contents)
+            self['contents'] = Content.revert(contents)
         else:
             # 2. content info from network
             assert contents is None, 'params error: %s, %s' % (content, contents)
@@ -110,7 +111,7 @@ class ListContent(BaseContent, ArrayContent):
             if array is None:
                 self.__list = []
             else:
-                self.__list = ArrayContent.convert(contents=array)
+                self.__list = Content.convert(array)
         return self.__list
 
 
@@ -120,7 +121,7 @@ class SecretContent(BaseContent, ForwardContent):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xFF,
+            type : i2s(0xFF),
             sn   : 456,
 
             forward : {...}  // reliable (secure + certified) message
@@ -133,12 +134,12 @@ class SecretContent(BaseContent, ForwardContent):
                  messages: List[ReliableMessage] = None):
         if content is None:
             # 1. new content with message(s)
-            msg_type = ContentType.FORWARD.value
+            msg_type = ContentType.FORWARD
             super().__init__(None, msg_type)
             if message is not None:
                 self['forward'] = message.dictionary
             if messages is not None:
-                self['secrets'] = ForwardContent.revert(messages=messages)
+                self['secrets'] = ReliableMessage.revert(messages)
         else:
             # 2. content info from network
             assert message is None and messages is None, 'params error: %s, %s, %s' % (content, message, messages)
@@ -171,7 +172,7 @@ class SecretContent(BaseContent, ForwardContent):
                     self.__secrets = [msg]
             else:
                 # get from 'secrets'
-                self.__secrets = ForwardContent.convert(messages=messages)
+                self.__secrets = ReliableMessage.convert(messages)
         return self.__secrets
 
 
@@ -181,7 +182,7 @@ class WebPageContent(BaseContent, PageContent):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x20,
+            type : i2s(0x20),
             sn   : 123,
 
             title : "...",                // Web title
@@ -203,7 +204,7 @@ class WebPageContent(BaseContent, PageContent):
         if content is None:
             # 1. new content with url, title, desc & icon
             assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
-            msg_type = ContentType.PAGE.value
+            msg_type = ContentType.PAGE
             super().__init__(None, msg_type)
         else:
             # 2. content info from network
@@ -304,10 +305,10 @@ class NameCardContent(BaseContent, NameCard):
         ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x33,
+            type : i2s(0x33),
             sn   : 123,
 
-            ID     : "{ID}",        // contact's ID
+            did    : "{ID}",        // contact's ID
             name   : "{nickname}}", // contact's name
             avatar : "{URL}"        // avatar - PNF(URL)
         }
@@ -320,9 +321,9 @@ class NameCardContent(BaseContent, NameCard):
             # 1. new content with ID, name & avatar
             assert identifier is not None and name is not None, \
                 'name card info error: %s, %s, %s' % (identifier, name, avatar)
-            msg_type = ContentType.NAME_CARD.value
+            msg_type = ContentType.NAME_CARD
             super().__init__(None, msg_type)
-            self.set_string(key='ID', value=identifier)
+            self.set_string(key='did', value=identifier)
             self['name'] = name
             if avatar is not None:
                 self['avatar'] = avatar.object
@@ -338,7 +339,7 @@ class NameCardContent(BaseContent, NameCard):
     @property  # Override
     def identifier(self) -> ID:
         if self.__id is None:
-            self.__id = ID.parse(identifier=self.get('ID'))
+            self.__id = ID.parse(identifier=self.get('did'))
         return self.__id
 
     @property  # Override

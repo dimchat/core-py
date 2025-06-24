@@ -44,6 +44,7 @@ from dkd.protocol import *
 
 from mkm import ANYWHERE, EVERYWHERE, ANYONE, EVERYONE, FOUNDER
 
+from .types import MetaType, DocumentType, ContentType
 from .docs import Visa, Bulletin
 
 from .contents import TextContent, ArrayContent, ForwardContent
@@ -86,6 +87,8 @@ __all__ = [
     'Visa', 'Bulletin',
 
     'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
+
+    'MetaType', 'DocumentType',
 
     #
     #   DaoKeDao

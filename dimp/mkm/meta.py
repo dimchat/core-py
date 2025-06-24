@@ -44,15 +44,15 @@ from mkm import Meta
     ~~~~~~~~~~~~~~~~~~~~
     This class is used to generate entity ID
 
-        data format: {
-            type: 1,             // meta version
-            seed: "moKy",        // user/group name
-            key: "{public key}", // PK = secp256k1(SK);
-            fingerprint: "..."   // CT = sign(seed, SK);
-        }
+    data format: {
+        type       : 1,              // meta version
+        seed       : "moKy",         // user/group name
+        key        : "{public key}", // PK = secp256k1(SK);
+        fingerprint: "..."           // CT = sign(seed, SK);
+    }
 
-        algorithm:
-            fingerprint = sign(seed, SK);
+    algorithm:
+        fingerprint = sign(seed, SK);
 
     abstractmethod:
         - generate_address(network)

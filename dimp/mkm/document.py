@@ -35,8 +35,9 @@ from mkm.types import Dictionary, Converter
 from mkm.crypto import VerifyKey, SignKey
 from mkm.format import TransportableData
 from mkm.format import json_encode, json_decode, utf8_encode
-from mkm.plugins import SharedAccountExtensions
 from mkm import ID, Document
+
+from ..crypto import EncodeAlgorithms
 
 
 """
@@ -68,7 +69,7 @@ class BaseDocument(Dictionary, Document):
             assert data is None and signature is None, \
                 'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
             document = {
-                'ID': str(identifier),
+                'did': str(identifier),
                 'type': doc_type,
             }
             # new properties with created time
@@ -83,7 +84,7 @@ class BaseDocument(Dictionary, Document):
             assert doc_type is not None and doc_type != '*' and identifier is not None, \
                 'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
             document = {
-                'ID': str(identifier),
+                'did': str(identifier),
                 'type': doc_type,
                 'data': data,
                 'signature': signature.object,
@@ -101,19 +102,19 @@ class BaseDocument(Dictionary, Document):
         self.__properties = properties
         self.__status = status  # 1 for valid, -1 for invalid
 
-    @property  # Override
-    def type(self) -> Optional[str]:
-        doc_type = self.get_property(name='type')  # deprecated
-        if doc_type is None:
-            ext = SharedAccountExtensions()
-            doc_type = ext.helper.get_document_type(document=self.dictionary, default=None)
-            # doc_type = self.get_str(key='type', default=None)
-        return doc_type
+    # @property  # Override
+    # def type(self) -> Optional[str]:
+    #     doc_type = self.get_property(name='type')  # deprecated
+    #     if doc_type is None:
+    #         ext = SharedAccountExtensions()
+    #         doc_type = ext.helper.get_document_type(document=self.dictionary, default=None)
+    #         # doc_type = self.get_str(key='type', default=None)
+    #     return doc_type
 
     @property  # Override
     def identifier(self) -> ID:
         if self.__identifier is None:
-            self.__identifier = ID.parse(identifier=self.get('ID'))
+            self.__identifier = ID.parse(identifier=self.get('did'))
         return self.__identifier
 
     @property  # private
@@ -209,7 +210,7 @@ class BaseDocument(Dictionary, Document):
         if len(signature) == 0:
             # assert False, 'should not happen'
             return None
-        ted = TransportableData.create(data=signature)
+        ted = TransportableData.create(data=signature, algorithm=EncodeAlgorithms.DEFAULT)
         # 3. update 'data' & 'signature' fields
         self['data'] = data             # JsON string
         self['signature'] = ted.object  # BASE-64

@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable, List, Dict, Any
+from typing import Optional, List
 
 from mkm.types import URI
 from mkm.format import PortableNetworkFile
@@ -43,7 +43,7 @@ class TextContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x01,
+            type : i2s(0x01),
             sn   : 123,
 
             text : "..."
@@ -73,7 +73,7 @@ class ArrayContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xCA,
+            type : i2s(0xCA),
             sn   : 123,
 
             contents : [...]  // content array
@@ -86,30 +86,12 @@ class ArrayContent(Content, ABC):
         raise NotImplemented
 
     #
-    #   Factory methods
+    #   Factory
     #
     @classmethod
     def create(cls, contents: List[Content]):
         from ..dkd import ListContent
         return ListContent(contents=contents)
-
-    @classmethod
-    def convert(cls, contents: Iterable) -> List[Content]:
-        array = []
-        for item in contents:
-            msg = Content.parse(content=item)
-            if msg is None:
-                continue
-            array.append(msg)
-        return array
-
-    @classmethod
-    def revert(cls, contents: Iterable[Content]) -> List[Dict[str, Any]]:
-        array = []
-        for msg in contents:
-            info = msg.dictionary
-            array.append(info)
-        return array
 
 
 class ForwardContent(Content, ABC):
@@ -118,7 +100,7 @@ class ForwardContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xFF,
+            type : i2s(0xFF),
             sn   : 456,
 
             forward : {...}  // reliable (secure + certified) message
@@ -147,24 +129,6 @@ class ForwardContent(Content, ABC):
         from ..dkd import SecretContent
         return SecretContent(message=message, messages=messages)
 
-    @classmethod
-    def convert(cls, messages: Iterable) -> List[ReliableMessage]:
-        array = []
-        for item in messages:
-            msg = ReliableMessage.parse(msg=item)
-            if msg is None:
-                continue
-            array.append(msg)
-        return array
-
-    @classmethod
-    def revert(cls, messages: Iterable[ReliableMessage]) -> List[Dict[str, Any]]:
-        array = []
-        for msg in messages:
-            info = msg.dictionary
-            array.append(info)
-        return array
-
 
 class PageContent(Content, ABC):
     """
@@ -172,7 +136,7 @@ class PageContent(Content, ABC):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x20,
+            type : i2s(0x20),
             sn   : 123,
 
             title : "...",                // Web title
@@ -282,10 +246,10 @@ class NameCard(Content, ABC):
         ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x33,
+            type : i2s(0x33),
             sn   : 123,
 
-            ID     : "{ID}",        // contact's ID
+            did    : "{ID}",        // contact's ID
             name   : "{nickname}}", // contact's name
             avatar : "{URL}"        // avatar - PNF(URL)
         }

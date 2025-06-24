@@ -35,7 +35,9 @@ from mkm.types import URI
 from mkm.format import TransportableData
 from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
-from dkd import ContentType, Content
+from dkd import Content
+
+from .types import ContentType
 
 
 class FileContent(Content, ABC):
@@ -44,7 +46,7 @@ class FileContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x10,
+            type : i2s(0x10),
             sn   : 123,
 
             data     : "...",        // base64_encode(fileContent)
@@ -108,17 +110,16 @@ class FileContent(Content, ABC):
     #
 
     @classmethod
-    def create(cls, msg_type: int,
+    def create(cls, msg_type: str,
                data: Optional[TransportableData] = None, filename: Optional[str] = None,
                url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        assert msg_type > 0, 'file type error: %d' % msg_type
-        if msg_type == ContentType.IMAGE.value:
+        if msg_type == ContentType.IMAGE:
             from ..dkd import ImageFileContent
             return ImageFileContent(data=data, filename=filename, url=url, password=password)
-        elif msg_type == ContentType.AUDIO.value:
+        elif msg_type == ContentType.AUDIO:
             from ..dkd import AudioFileContent
             return AudioFileContent(data=data, filename=filename, url=url, password=password)
-        elif msg_type == ContentType.VIDEO.value:
+        elif msg_type == ContentType.VIDEO:
             from ..dkd import VideoFileContent
             return VideoFileContent(data=data, filename=filename, url=url, password=password)
         else:
@@ -156,7 +157,7 @@ class ImageContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x12,
+            type : i2s(0x12),
             sn   : 123,
 
             data     : "...",        // base64_encode(fileContent)
@@ -192,7 +193,7 @@ class AudioContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x14,
+            type : i2s(0x14),
             sn   : 123,
 
             data     : "...",        // base64_encode(fileContent)
@@ -228,7 +229,7 @@ class VideoContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0x16,
+            type : i2s(0x16),
             sn   : 123,
 
             data     : "...",        // base64_encode(fileContent)
