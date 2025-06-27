@@ -120,7 +120,7 @@ class CombineForwardContent(BaseContent, CombineContent):
             assert not (title is None or messages is None), 'params error: %s, %s' % (title, messages)
             msg_type = ContentType.COMBINE_FORWARD
             super().__init__(None, msg_type)
-            self['messages'] = InstantMessage.revert(messages)
+            self['messages'] = InstantMessage.revert(messages=messages)
         else:
             # 2. content info from network
             assert title is None and messages is None, 'params error: %s, %s' % (title, messages)
@@ -137,5 +137,5 @@ class CombineForwardContent(BaseContent, CombineContent):
         if self.__messages is None:
             array = self.get('messages')
             if array is not None:
-                self.__messages = InstantMessage.convert(array)
+                self.__messages = InstantMessage.convert(array=array)
         return self.__messages

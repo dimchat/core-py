@@ -54,22 +54,22 @@ class HireGroupCommand(BaseGroupCommand, HireCommand):
         super().__init__(content, cmd=cmd, group=group)
         # group admins
         if administrators is not None:
-            self['administrators'] = ID.revert(administrators)
+            self['administrators'] = ID.revert(identifiers=administrators)
         # group bots
         if assistants is not None:
-            self['assistants'] = ID.revert(assistants)
+            self['assistants'] = ID.revert(identifiers=assistants)
 
     @property  # Override
     def administrators(self) -> Optional[List[ID]]:
         users = self.get('administrators')
         if users is not None:
-            return ID.convert(users)
+            return ID.convert(array=users)
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
         bots = self.get('assistants')
         if bots is not None:
-            return ID.convert(bots)
+            return ID.convert(array=bots)
 
 
 class FireGroupCommand(BaseGroupCommand, FireCommand):
@@ -81,22 +81,22 @@ class FireGroupCommand(BaseGroupCommand, FireCommand):
         super().__init__(content=content, cmd=cmd, group=group)
         # group admins
         if administrators is not None:
-            self['administrators'] = ID.revert(administrators)
+            self['administrators'] = ID.revert(identifiers=administrators)
         # group bots
         if assistants is not None:
-            self['assistants'] = ID.revert(assistants)
+            self['assistants'] = ID.revert(identifiers=assistants)
 
     @property  # Override
     def administrators(self) -> Optional[List[ID]]:
         users = self.get('administrators')
         if users is not None:
-            return ID.convert(users)
+            return ID.convert(array=users)
 
     @property  # Override
     def assistants(self) -> Optional[List[ID]]:
         bots = self.get('assistants')
         if bots is not None:
-            return ID.convert(bots)
+            return ID.convert(array=bots)
 
 
 class ResignGroupCommand(BaseGroupCommand, ResignCommand):

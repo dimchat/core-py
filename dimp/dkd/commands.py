@@ -132,7 +132,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
             super().__init__(cmd=cmd, identifier=identifier, meta=meta)
             # respond with document info
             if documents is not None:
-                self['documents'] = Document.revert(documents)
+                self['documents'] = Document.revert(documents=documents)
             # query with last document time
             if last_time is not None:
                 self.set_datetime(key='last_time', value=last_time)
@@ -152,7 +152,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
         if self.__docs is None:
             docs = self.get('documents')
             if docs is not None:
-                self.__docs = Document.convert(docs)
+                self.__docs = Document.convert(array=docs)
         return self.__docs
 
     @property  # Override

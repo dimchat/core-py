@@ -122,7 +122,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         array = self.get('members')
         if array is not None:
             # convert all items to ID objects
-            return ID.convert(array)
+            return ID.convert(array=array)
         # get from 'member'
         single = self.member
         return [] if single is None else [single]
@@ -132,7 +132,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
         if users is None:
             self.pop('members', None)
         else:
-            self['members'] = ID.revert(users)
+            self['members'] = ID.revert(identifiers=users)
         self.pop('member', None)
 
 

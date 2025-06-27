@@ -59,16 +59,16 @@ class MetaType:
             ...
     """
 
-    DEFAULT = i2s(1)
-    MKM = i2s(1)      # 0000 0001: username@address
+    DEFAULT = i2s(0x01)
+    MKM = i2s(0x01)      # 0000 0001: username@address
 
     # Bitcoin
-    BTC = i2s(2)      # 0000 0010: btc_address
-    ExBTC = i2s(3)    # 0000 0011: username@btc_address (RESERVED)
+    BTC = i2s(0x02)      # 0000 0010: btc_address
+    ExBTC = i2s(0x03)    # 0000 0011: username@btc_address (RESERVED)
 
     # Ethereum
-    ETH = i2s(4)      # 0000 0100: eth_address
-    ExETH = i2s(5)    # 0000 0101: username@eth_address (RESERVED)
+    ETH = i2s(0x04)      # 0000 0100: eth_address
+    ExETH = i2s(0x05)    # 0000 0101: username@eth_address (RESERVED)
 
     # ...
 

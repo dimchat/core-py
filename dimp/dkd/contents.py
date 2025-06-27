@@ -96,7 +96,7 @@ class ListContent(BaseContent, ArrayContent):
             assert contents is not None, 'content list should no be None'
             msg_type = ContentType.ARRAY
             super().__init__(None, msg_type)
-            self['contents'] = Content.revert(contents)
+            self['contents'] = Content.revert(contents=contents)
         else:
             # 2. content info from network
             assert contents is None, 'params error: %s, %s' % (content, contents)
@@ -111,7 +111,7 @@ class ListContent(BaseContent, ArrayContent):
             if array is None:
                 self.__list = []
             else:
-                self.__list = Content.convert(array)
+                self.__list = Content.convert(array=array)
         return self.__list
 
 
@@ -139,7 +139,7 @@ class SecretContent(BaseContent, ForwardContent):
             if message is not None:
                 self['forward'] = message.dictionary
             if messages is not None:
-                self['secrets'] = ReliableMessage.revert(messages)
+                self['secrets'] = ReliableMessage.revert(messages=messages)
         else:
             # 2. content info from network
             assert message is None and messages is None, 'params error: %s, %s, %s' % (content, message, messages)
@@ -172,7 +172,7 @@ class SecretContent(BaseContent, ForwardContent):
                     self.__secrets = [msg]
             else:
                 # get from 'secrets'
-                self.__secrets = ReliableMessage.convert(messages)
+                self.__secrets = ReliableMessage.convert(array=messages)
         return self.__secrets
 
 

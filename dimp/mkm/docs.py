@@ -140,12 +140,12 @@ class BaseBulletin(BaseDocument, Bulletin):
                 single = ID.parse(identifier=single)
                 self.__bots = [] if single is None else [single]
             else:
-                self.__bots = ID.convert(bots)
+                self.__bots = ID.convert(array=bots)
         return self.__bots
 
     @assistants.setter  # Override
     def assistants(self, bots: List[ID]):
-        array = None if bots is None else ID.revert(bots)
+        array = None if bots is None else ID.revert(identifiers=bots)
         self.set_property(name='assistants', value=array)
         self.set_property(name='assistant', value=None)
         self.__bots = bots
