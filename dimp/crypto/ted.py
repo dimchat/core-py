@@ -69,11 +69,11 @@ class BaseDataWrapper(Dictionary):
 
     # Override
     def __str__(self) -> str:
-        text = self.get_str(key='data', default='')
-        if len(text) == 0:
-            return text
-        alg = self.get_str(key='algorithm', default='')
-        if alg == EncodeAlgorithms.DEFAULT:
+        text = self.get_str(key='data', default=None)
+        if text is None:  # or len(text) == 0:
+            return ''
+        alg = self.get_str(key='algorithm', default=None)
+        if alg is None or alg == EncodeAlgorithms.DEFAULT:
             alg = ''
         if len(alg) == 0:
             # 0. "{BASE64_ENCODE}"
@@ -85,9 +85,9 @@ class BaseDataWrapper(Dictionary):
     def encode(self, mime_type: str) -> str:
         """ toString(mimeType) """
         # get encoded data
-        text = self.get_str(key='data', default='')
-        if len(text) == 0:
-            return text
+        text = self.get_str(key='data', default=None)
+        if text is None:  # or len(text) == 0:
+            return ''
         alg = self.algorithm
         # 2. "data:image/png;base64,{BASE64_ENCODE}"
         return 'data:%s;%s,%s' % (mime_type, alg, text)
@@ -98,8 +98,8 @@ class BaseDataWrapper(Dictionary):
 
     @property
     def algorithm(self) -> str:
-        alg = self.get_str(key='algorithm', default='')
-        if len(alg) == 0:
+        alg = self.get_str(key='algorithm', default=None)
+        if alg is None or len(alg) == 0:
             alg = EncodeAlgorithms.DEFAULT
         return alg
 
@@ -118,8 +118,11 @@ class BaseDataWrapper(Dictionary):
     def data(self) -> Optional[bytes]:
         binary = self.__data
         if binary is None:
-            text = self.get_str(key='data', default='')
-            if len(text) > 0:
+            text = self.get_str(key='data', default=None)
+            if text is None or len(text) == 0:
+                assert False, 'TED data empty: %s' % self.dictionary
+                # return None
+            else:
                 alg = self.algorithm
                 if alg == EncodeAlgorithms.BASE_64:
                     binary = base64_decode(string=text)
@@ -145,6 +148,7 @@ class BaseDataWrapper(Dictionary):
             elif alg == EncodeAlgorithms.HEX:
                 text = hex_encode(data=binary)
             else:
-                assert False, 'data algorithm not support: %s' % alg
+                raise ArithmeticError('data algorithm not support: %s' % alg)
+                # assert False, 'data algorithm not support: %s' % alg
             self['data'] = text
         self.__data = binary

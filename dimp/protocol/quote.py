@@ -114,7 +114,7 @@ class CombineContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0xFF),
+            type : i2s(0xCF),
             sn   : 456,
 
             title    : "...",  // chat title

@@ -86,11 +86,11 @@ class PlainMessage(BaseMessage, InstantMessage):
 
     @property  # Override
     def time(self) -> Optional[DateTime]:
-        value = self.content.time
-        if value is not None:
-            return value
-        # return super().time
-        return self.envelope.time
+        when = self.content.time
+        if when is None:
+            # when = super().time
+            when = self.envelope.time
+        return when
 
     @property  # Override
     def group(self) -> Optional[ID]:

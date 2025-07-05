@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC
-from typing import Optional, Any, Dict
+from typing import Any, Dict
 
 from mkm.types import Dictionary
 from mkm.crypto import CryptographyKey, EncryptKey, DecryptKey, SignKey, VerifyKey
@@ -58,9 +58,10 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
     #
 
     @classmethod
-    def get_key_algorithm(cls, key: Dict[str, Any]) -> Optional[str]:
+    def get_key_algorithm(cls, key: Dict[str, Any]) -> str:
         ext = SharedCryptoExtensions()
-        return ext.helper.get_key_algorithm(key=key, default='')
+        algorithm = ext.helper.get_key_algorithm(key=key, default=None)
+        return '' if algorithm is None else algorithm
 
     @classmethod
     def match_encrypt_key(cls, encrypt_key: EncryptKey, decrypt_key: DecryptKey) -> bool:

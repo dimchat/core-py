@@ -59,7 +59,6 @@ from mkm import Meta
 """
 
 
-# noinspection PyAbstractClass
 class BaseMeta(Dictionary, Meta, ABC):
 
     def __init__(self, meta: Dict[str, Any] = None,

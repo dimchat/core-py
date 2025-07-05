@@ -37,8 +37,6 @@ from mkm.format import TransportableData
 from mkm.format import json_encode, json_decode, utf8_encode
 from mkm import ID, Document
 
-from ..crypto import EncodeAlgorithms
-
 
 """
     Base Documents
@@ -210,7 +208,7 @@ class BaseDocument(Dictionary, Document):
         if len(signature) == 0:
             # assert False, 'should not happen'
             return None
-        ted = TransportableData.create(data=signature, algorithm=EncodeAlgorithms.DEFAULT)
+        ted = TransportableData.create(data=signature)
         # 3. update 'data' & 'signature' fields
         self['data'] = data             # JsON string
         self['signature'] = ted.object  # BASE-64

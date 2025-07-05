@@ -210,7 +210,6 @@ class QuitCommand(GroupCommand, ABC):
     pass
 
 
-# noinspection PyAbstractClass
 class QueryCommand(GroupCommand, ABC):
     """
     NOTICE:
@@ -236,7 +235,6 @@ class ResetCommand(GroupCommand, ABC):
 """
 
 
-# noinspection PyAbstractClass
 class HireCommand(GroupCommand, ABC):
 
     @property
@@ -244,13 +242,22 @@ class HireCommand(GroupCommand, ABC):
     def administrators(self) -> Optional[List[ID]]:
         raise NotImplemented
 
+    @administrators.setter
+    @abstractmethod
+    def administrators(self, users: List[ID]):
+        raise NotImplemented
+
     @property
     @abstractmethod
     def assistants(self) -> Optional[List[ID]]:
         raise NotImplemented
 
+    @assistants.setter
+    @abstractmethod
+    def assistants(self, bots: List[ID]):
+        raise NotImplemented
 
-# noinspection PyAbstractClass
+
 class FireCommand(GroupCommand, ABC):
 
     @property
@@ -258,9 +265,19 @@ class FireCommand(GroupCommand, ABC):
     def administrators(self) -> Optional[List[ID]]:
         raise NotImplemented
 
+    @administrators.setter
+    @abstractmethod
+    def administrators(self, users: List[ID]):
+        raise NotImplemented
+
     @property
     @abstractmethod
     def assistants(self) -> Optional[List[ID]]:
+        raise NotImplemented
+
+    @assistants.setter
+    @abstractmethod
+    def assistants(self, bots: List[ID]):
         raise NotImplemented
 
 

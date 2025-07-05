@@ -106,13 +106,15 @@ class ListContent(BaseContent, ArrayContent):
 
     @property  # Override
     def contents(self) -> List[Content]:
-        if self.__list is None:
+        array = self.__list
+        if array is None:
             array = self.get('contents')
             if array is None:
-                self.__list = []
+                array = []
             else:
-                self.__list = Content.convert(array=array)
-        return self.__list
+                array = Content.convert(array=array)
+            self.__list = array
+        return array
 
 
 class SecretContent(BaseContent, ForwardContent):
@@ -161,19 +163,19 @@ class SecretContent(BaseContent, ForwardContent):
 
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:
-        if self.__secrets is None:
-            messages = self.get('secrets')
-            if messages is None:
+        messages = self.__secrets
+        if messages is None:
+            info = self.get('secrets')
+            if isinstance(info, List):
+                # get from 'secrets'
+                messages = ReliableMessage.convert(array=info)
+            else:
+                assert info is None, 'secret messages error: %s' % info
                 # get from 'forward'
                 msg = self.forward
-                if msg is None:
-                    self.__secrets = []
-                else:
-                    self.__secrets = [msg]
-            else:
-                # get from 'secrets'
-                self.__secrets = ReliableMessage.convert(array=messages)
-        return self.__secrets
+                messages = [] if msg is None else [msg]
+            self.__secrets = messages
+        return messages
 
 
 class WebPageContent(BaseContent, PageContent):

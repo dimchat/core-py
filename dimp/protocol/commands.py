@@ -220,7 +220,7 @@ class DocumentCommand(MetaCommand, ABC):
     #
 
     @classmethod
-    def query(cls, identifier: ID, last_time: str = None):  # -> DocumentCommand:
+    def query(cls, identifier: ID, last_time: DateTime = None):  # -> DocumentCommand:
         """
         1. Query Entity Document
         2. Query Entity Document for updating with last time
