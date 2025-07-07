@@ -137,6 +137,9 @@ class CombineForwardContent(BaseContent, CombineContent):
     def messages(self) -> List[InstantMessage]:
         if self.__messages is None:
             array = self.get('messages')
-            if array is not None:
+            if array is None:
+                self.__messages = []
+            else:
+                assert isinstance(array, List), 'combined messages error: %s' % array
                 self.__messages = InstantMessage.convert(array=array)
         return self.__messages

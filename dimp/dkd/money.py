@@ -30,6 +30,7 @@
 
 from typing import Optional, Any, Dict
 
+from mkm.types import Converter
 from mkm import ID
 
 from ..protocol import ContentType
@@ -77,7 +78,14 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
     @property  # Override
     def amount(self) -> float:
-        return self.get_float(key='amount', default=0.0)
+        # return self.get_float(key='amount', default=0.0)
+        value = self.get('amount')
+        if value is None:
+            return 0.0
+        elif isinstance(value, int) or isinstance(value, float):
+            return value
+        else:
+            return Converter.get_float(value=value, default=0.0)
 
     @amount.setter  # Override
     def amount(self, value: float):

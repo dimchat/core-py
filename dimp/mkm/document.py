@@ -100,15 +100,6 @@ class BaseDocument(Dictionary, Document):
         self.__properties = properties
         self.__status = status  # 1 for valid, -1 for invalid
 
-    # @property  # Override
-    # def type(self) -> Optional[str]:
-    #     doc_type = self.get_property(name='type')  # deprecated
-    #     if doc_type is None:
-    #         ext = SharedAccountExtensions()
-    #         doc_type = ext.helper.get_document_type(document=self.dictionary, default=None)
-    #         # doc_type = self.get_str(key='type', default=None)
-    #     return doc_type
-
     @property  # Override
     def identifier(self) -> ID:
         if self.__identifier is None:
