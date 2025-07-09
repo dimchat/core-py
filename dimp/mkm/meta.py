@@ -45,10 +45,10 @@ from mkm import Meta
     This class is used to generate entity ID
 
     data format: {
-        type       : 1,              // meta version
-        seed       : "moKy",         // user/group name
-        key        : "{public key}", // PK = secp256k1(SK);
-        fingerprint: "..."           // CT = sign(seed, SK);
+        type        : 1,              // meta version
+        key         : "{public key}", // PK = secp256k1(SK);
+        seed        : "moKy",         // user/group name
+        fingerprint : "..."           // CT = sign(seed, SK);
     }
 
     algorithm:
@@ -142,7 +142,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         ted = self.__fingerprint
         if ted is None and self.has_seed:
             base64 = self.get('fingerprint')
-            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % self
+            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % self.dictionary
             self.__fingerprint = ted = TransportableData.parse(base64)
             assert ted is not None, 'meta.fingerprint error: %s' % base64
         if ted is not None:

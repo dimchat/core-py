@@ -84,9 +84,10 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 
             command : "invite",         // "expel", "quit"
             time    : 0,                // timestamp
-            group   : "{GROUP_ID}",     // group ID
-            member  : "{MEMBER_ID}",    // member ID
-            members : ["{MEMBER_ID}",], // member ID list
+
+            group   : "{GROUP_ID}",
+            member  : "{MEMBER_ID}",
+            members : ["{MEMBER_ID}",]
         }
     """
 

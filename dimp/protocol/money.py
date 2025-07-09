@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 from mkm import ID
 from dkd import Content
@@ -58,19 +58,19 @@ class MoneyContent(Content, ABC):
 
     @property
     @abstractmethod
-    def amount(self) -> float:
+    def amount(self) -> Union[int, float]:
         raise NotImplemented
 
     @amount.setter
     @abstractmethod
-    def amount(self, value: float):
+    def amount(self, value: Union[int, float]):
         raise NotImplemented
 
     #
     #   Factory method
     #
     @classmethod
-    def create(cls, currency: str, amount: float, msg_type: str = None):
+    def create(cls, currency: str, amount: Union[int, float], msg_type: str = None):
         # convert type value
         if msg_type is None:
             msg_type = ContentType.MONEY
@@ -119,6 +119,6 @@ class TransferContent(MoneyContent, ABC):
     #   Factory method
     #
     @classmethod
-    def transfer(cls, currency: str, amount: float):
+    def transfer(cls, currency: str, amount: Union[int, float]):
         from ..dkd import TransferMoneyContent
         return TransferMoneyContent(currency=currency, amount=amount)

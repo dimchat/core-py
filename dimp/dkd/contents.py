@@ -108,11 +108,11 @@ class ListContent(BaseContent, ArrayContent):
     def contents(self) -> List[Content]:
         array = self.__list
         if array is None:
-            array = self.get('contents')
-            if array is None:
-                array = []
+            info = self.get('contents')
+            if isinstance(info, List):
+                array = Content.convert(array=info)
             else:
-                array = Content.convert(array=array)
+                array = []
             self.__list = array
         return array
 

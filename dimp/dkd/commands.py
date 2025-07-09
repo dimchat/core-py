@@ -111,11 +111,11 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
             type : i2s(0x88),
             sn   : 123,
 
-            command   : "document", // command name
-            did       : "{ID}",     // entity ID
-            meta      : {...},      // only for handshaking with new friend
-            documents : [...],      // when document is empty, means query for ID
-            last_time : 12345       // old document time for querying
+            command   : "documents", // command name
+            did       : "{ID}",      // entity ID
+            meta      : {...},       // only for handshaking with new friend
+            documents : [...],       // when this is null, means to query
+            last_time : 12345        // old document time for querying
         }
 
     """

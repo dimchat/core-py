@@ -80,21 +80,24 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property  # Override
     def sender(self) -> ID:
-        if self.__sender is None:
-            identifier = self.get('sender')
-            self.__sender = ID.parse(identifier=identifier)
-        return self.__sender
+        did = self.__sender
+        if did is None:
+            did = self.get('sender')
+            did = ID.parse(identifier=did)
+            assert did is not None, 'message sender error: %s' % self.dictionary
+            self.__sender = did
+        return did
 
     @property  # Override
     def receiver(self) -> ID:
-        if self.__receiver is None:
-            identifier = self.get('receiver')
-            identifier = ID.parse(identifier=identifier)
-            if identifier is None:
-                self.__receiver = ANYONE
-            else:
-                self.__receiver = identifier
-        return self.__receiver
+        did = self.__receiver
+        if did is None:
+            did = self.get('receiver')
+            did = ID.parse(identifier=did)
+            if did is None:
+                did = ANYONE
+            self.__receiver = did
+        return did
 
     @property  # Override
     def time(self) -> Optional[DateTime]:

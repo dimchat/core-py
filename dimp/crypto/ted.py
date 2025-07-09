@@ -59,13 +59,13 @@ class BaseDataWrapper(Dictionary):
         # binary data
         self.__data: Optional[bytes] = None
 
-    # Override
-    def __len__(self) -> int:
-        """ return len(self) """
-        # if super().__len__() == 0:
-        #     return 0
-        data = self.data
-        return 0 if data is None else len(data)
+    # # Override
+    # def __len__(self) -> int:
+    #     """ return len(self) """
+    #     if super().__len__() == 0:
+    #         return 0
+    #     data = self.data
+    #     return 0 if data is None else len(data)
 
     # Override
     def __str__(self) -> str:
@@ -120,8 +120,8 @@ class BaseDataWrapper(Dictionary):
         if binary is None:
             text = self.get_str(key='data', default=None)
             if text is None or len(text) == 0:
-                assert False, 'TED data empty: %s' % self.dictionary
-                # return None
+                # assert False, 'TED data empty: %s' % self.dictionary
+                return None
             else:
                 alg = self.algorithm
                 if alg == EncodeAlgorithms.BASE_64:

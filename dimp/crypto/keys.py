@@ -31,7 +31,7 @@
 from abc import ABC
 from typing import Any, Dict
 
-from mkm.types import Dictionary
+from mkm.types import Mapper, Dictionary
 from mkm.crypto import CryptographyKey, EncryptKey, DecryptKey, SignKey, VerifyKey
 from mkm.crypto import SymmetricKey, AsymmetricKey, PublicKey, PrivateKey
 from mkm.plugins import SharedCryptoExtensions
@@ -102,15 +102,27 @@ class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 
     # Override
     def __eq__(self, other) -> bool:
-        if isinstance(other, SymmetricKey):
-            return BaseKey.symmetric_keys_equal(other, self)
+        if isinstance(other, Mapper):
+            if self is other:
+                # same object
+                return True
+            elif isinstance(other, SymmetricKey):
+                return BaseKey.symmetric_keys_equal(other, self)
+            # compare with inner map
+            other = other.dictionary
+        return self.dictionary.__eq__(other)
 
     # Override
     def __ne__(self, other) -> bool:
-        if isinstance(other, SymmetricKey):
-            return not BaseKey.symmetric_keys_equal(other, self)
-        else:
-            return True
+        if isinstance(other, Mapper):
+            if self is other:
+                # same object
+                return False
+            elif isinstance(other, SymmetricKey):
+                return not BaseKey.symmetric_keys_equal(other, self)
+            # compare with inner map
+            other = other.dictionary
+        return self.dictionary.__ne__(other)
 
     @property  # Override
     def algorithm(self) -> str:
@@ -155,15 +167,27 @@ class BasePrivateKey(Dictionary, PrivateKey, ABC):
 
     # Override
     def __eq__(self, other) -> bool:
-        if isinstance(other, PrivateKey):
-            return BaseKey.private_keys_equal(other, self)
+        if isinstance(other, Mapper):
+            if self is other:
+                # same object
+                return True
+            elif isinstance(other, PrivateKey):
+                return BaseKey.private_keys_equal(other, self)
+            # compare with inner map
+            other = other.dictionary
+        return self.dictionary.__eq__(other)
 
     # Override
     def __ne__(self, other) -> bool:
-        if isinstance(other, PrivateKey):
-            return not BaseKey.private_keys_equal(other, self)
-        else:
-            return True
+        if isinstance(other, Mapper):
+            if self is other:
+                # same object
+                return False
+            elif isinstance(other, PrivateKey):
+                return not BaseKey.private_keys_equal(other, self)
+            # compare with inner map
+            other = other.dictionary
+        return self.dictionary.__ne__(other)
 
     @property  # Override
     def algorithm(self) -> str:

@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Union, Any, Dict
 
 from mkm.types import Converter
 from mkm import ID
@@ -55,7 +55,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  msg_type: str = None,
-                 currency: str = None, amount: float = None):
+                 currency: str = None, amount: Union[int, float] = None):
         if content is None:
             # 1. new content with type, currency & amount
             assert currency is not None and amount is not None, \
@@ -77,18 +77,18 @@ class BaseMoneyContent(BaseContent, MoneyContent):
         return self.get_str(key='currency', default='')
 
     @property  # Override
-    def amount(self) -> float:
+    def amount(self) -> Union[int, float]:
         # return self.get_float(key='amount', default=0.0)
         value = self.get('amount')
         if value is None:
-            return 0.0
+            return 0
         elif isinstance(value, int) or isinstance(value, float):
             return value
         else:
-            return Converter.get_float(value=value, default=0.0)
+            return Converter.get_float(value=value, default=0)
 
     @amount.setter  # Override
-    def amount(self, value: float):
+    def amount(self, value: Union[int, float]):
         self['amount'] = value
 
 
@@ -109,7 +109,7 @@ class TransferMoneyContent(BaseMoneyContent, TransferContent):
     """
 
     def __init__(self, content: Dict[str, Any] = None,
-                 currency: str = None, amount: float = None):
+                 currency: str = None, amount: Union[int, float] = None):
         msg_type = ContentType.TRANSFER if content is None else None
         super().__init__(content, msg_type, currency=currency, amount=amount)
 

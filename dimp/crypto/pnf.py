@@ -115,11 +115,12 @@ class BaseFileWrapper(Dictionary):
 
     @property
     def url(self) -> Optional[URI]:
-        if self.__url is None:
+        remote = self.__url
+        if remote is None:
             remote = self.get_str(key='URL', default=None)
             # TODO: convert str to URI
             self.__url = remote
-        return self.__url
+        return remote
 
     @url.setter
     def url(self, remote: Optional[URI]):
@@ -136,10 +137,12 @@ class BaseFileWrapper(Dictionary):
 
     @property
     def password(self) -> Optional[DecryptKey]:
-        if self.__password is None:
+        key = self.__password
+        if key is None:
             info = self.get('key')
-            self.__password = SymmetricKey.parse(key=info)
-        return self.__password
+            key = SymmetricKey.parse(key=info)
+            self.__password = key
+        return key
 
     @password.setter
     def password(self, key: Optional[DecryptKey]):

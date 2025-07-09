@@ -189,16 +189,12 @@ class BaseDocument(Dictionary, Document):
         # 2. encode & sign
         info = self.properties
         if info is None:
-            # assert False, 'should not happen'
+            # assert False, 'document invalid: %s' % self.dictionary
             return None
         data = json_encode(info)
-        if len(data) == 0:
-            # properties error
-            return None
+        assert len(data) > 0, 'should not happen: %s' % info
         signature = private_key.sign(data=utf8_encode(string=data))
-        if len(signature) == 0:
-            # assert False, 'should not happen'
-            return None
+        assert len(signature) > 0, 'should not happen: %s' % info
         ted = TransportableData.create(data=signature)
         # 3. update 'data' & 'signature' fields
         self['data'] = data             # JsON string

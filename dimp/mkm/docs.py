@@ -68,15 +68,17 @@ class BaseVisa(BaseDocument, Visa):
 
     @property  # Override
     def public_key(self) -> Optional[EncryptKey]:
-        if self.__key is None:
+        visa_key = self.__key
+        if visa_key is None:
             info = self.get_property(name='key')
             # assert info is not None, 'visa key not found: %s' % self.dictionary
             pub = PublicKey.parse(key=info)
             if isinstance(pub, EncryptKey):
-                self.__key = pub
+                visa_key = pub
+                self.__key = visa_key
             else:
                 assert info is None, 'visa key error: %s' % info
-        return self.__key
+        return visa_key
 
     @public_key.setter  # Override
     def public_key(self, key: EncryptKey):
@@ -91,20 +93,22 @@ class BaseVisa(BaseDocument, Visa):
 
     @property  # Override
     def avatar(self) -> Optional[PortableNetworkFile]:
-        if self.__avatar is None:
+        img = self.__avatar
+        if img is None:
             url = self.get_property(name='avatar')
             if isinstance(url, str) and len(url) == 0:
                 # ignore empty URL
                 pass
             else:
-                self.__avatar = PortableNetworkFile.parse(url)
-        return self.__avatar
+                img = PortableNetworkFile.parse(url)
+                self.__avatar = img
+        return img
 
     @avatar.setter  # Override
-    def avatar(self, url: PortableNetworkFile):
-        info = None if url is None else url.object
+    def avatar(self, img: PortableNetworkFile):
+        info = None if img is None else img.object
         self.set_property(name='avatar', value=info)
-        self.__avatar = url
+        self.__avatar = img
 
 
 class BaseBulletin(BaseDocument, Bulletin):
@@ -134,13 +138,13 @@ class BaseBulletin(BaseDocument, Bulletin):
     def assistants(self) -> Optional[List[ID]]:
         if self.__bots is None:
             bots = self.get_property(name='assistants')
-            if bots is None:
+            if isinstance(bots, List):
+                self.__bots = ID.convert(array=bots)
+            else:
                 # get from 'assistant'
                 single = self.get_property(name='assistant')
                 single = ID.parse(identifier=single)
                 self.__bots = [] if single is None else [single]
-            else:
-                self.__bots = ID.convert(array=bots)
         return self.__bots
 
     @assistants.setter  # Override

@@ -127,7 +127,7 @@ class CombineForwardContent(BaseContent, CombineContent):
             assert title is None and messages is None, 'params error: %s, %s' % (title, messages)
             super().__init__(content)
         # lazy
-        self.__messages = messages
+        self.__history = messages
 
     @property  # Override
     def title(self) -> str:
@@ -135,11 +135,13 @@ class CombineForwardContent(BaseContent, CombineContent):
 
     @property  # Override
     def messages(self) -> List[InstantMessage]:
-        if self.__messages is None:
-            array = self.get('messages')
-            if array is None:
-                self.__messages = []
+        array = self.__history
+        if array is None:
+            info = self.get('messages')
+            if isinstance(info, List):
+                array = InstantMessage.convert(array=info)
             else:
-                assert isinstance(array, List), 'combined messages error: %s' % array
-                self.__messages = InstantMessage.convert(array=array)
-        return self.__messages
+                assert info is None, 'combined messages error: %s' % info
+                array = []
+            self.__history = array
+        return array

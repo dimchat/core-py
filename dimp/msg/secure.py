@@ -69,21 +69,23 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 
     @property  # Override
     def data(self) -> bytes:
-        if self.__data is None:
+        binary = self.__data
+        if binary is None:
             text = self.get('data')
             if text is None:
-                assert False, 'message data cannot be empty: %s' % self
+                assert False, 'message data not found: %s' % self.dictionary
             elif not BaseMessage.is_broadcast(msg=self):
                 # message content had been encrypted by a symmetric key,
                 # so the data should be encoded here (with algorithm 'base64' as default).
-                self.__data = TransportableData.decode(text)
+                binary = TransportableData.decode(text)
             elif isinstance(text, str):
                 # broadcast message content will not be encrypted (just encoded to JsON),
                 # so return the string data directly
-                self.__data = utf8_encode(string=text)  # JsON
+                binary = utf8_encode(string=text)  # JsON
             else:
                 assert False, 'content data error: %s' % text
-        return self.__data
+            self.__data = binary
+        return binary
 
     @property  # Override
     def encrypted_key(self) -> Optional[bytes]:
@@ -104,5 +106,9 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     @property  # Override
     def encrypted_keys(self) -> Optional[Dict[str, Any]]:
         if self.__keys is None:
-            self.__keys = self.get('keys')
+            keys = self.get('keys')
+            if isinstance(keys, Dict):
+                self.__keys = keys
+            else:
+                assert keys is None, 'message keys error: %s' % keys
         return self.__keys
