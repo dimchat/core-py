@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.types import DateTime
 from mkm import ID
@@ -57,7 +57,7 @@ from .base import BaseMessage
 
 class PlainMessage(BaseMessage, InstantMessage):
 
-    def __init__(self, msg: Dict[str, Any] = None,
+    def __init__(self, msg: Dict = None,
                  head: Envelope = None, body: Content = None):
         if msg is None:
             # 1. new instant message with envelope & content

@@ -34,7 +34,7 @@ from mkm.crypto import *
 from mkm import *
 from dkd import *
 
-from .protocol.commands import CommandFactory
+from .protocol.base import CommandFactory
 from .protocol import *
 from .crypto import *
 from .mkm import *

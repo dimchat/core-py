@@ -48,7 +48,7 @@ from mkm import ID, Document
 
 class BaseDocument(Dictionary, Document):
 
-    def __init__(self, document: Dict[str, Any] = None,
+    def __init__(self, document: Dict = None,
                  doc_type: str = None, identifier: ID = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         # check parameters
@@ -210,7 +210,7 @@ class BaseDocument(Dictionary, Document):
     #
 
     @property  # Override
-    def properties(self) -> Optional[Dict[str, Any]]:
+    def properties(self) -> Optional[Dict]:
         """ Load properties from data """
         if self.__status < 0:
             # invalid

@@ -47,13 +47,13 @@ from mkm import ANYWHERE, EVERYWHERE, ANYONE, EVERYONE, FOUNDER
 from .types import MetaType, DocumentType, ContentType
 from .docs import Visa, Bulletin
 
-from .contents import TextContent, ArrayContent, ForwardContent
-from .contents import PageContent, NameCard
+from .contents import TextContent, PageContent, NameCard
+from .forward import ForwardContent, CombineContent, ArrayContent
 from .files import FileContent, ImageContent, AudioContent, VideoContent
 from .money import MoneyContent, TransferContent
-from .quote import QuoteContent, CombineContent
+from .quote import QuoteContent
 
-from .commands import Command, CommandFactory
+from .base import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
 from .receipt import ReceiptCommand
 
@@ -61,7 +61,7 @@ from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
 from .groups import HireCommand, FireCommand, ResignCommand
 
-# from .commands import CommandHelper
+# from .base import CommandHelper, GeneralCommandHelper, SharedCommandExtensions
 # from .helpers import CommandExtensions
 
 
@@ -103,11 +103,11 @@ __all__ = [
     'ReliableMessage',  # 'ReliableMessageFactory',
 
     # contents
-    'TextContent', 'ArrayContent', 'ForwardContent',
-    'PageContent', 'NameCard',
+    'TextContent', 'PageContent', 'NameCard',
+    'ForwardContent', 'CombineContent', 'ArrayContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
-    'QuoteContent', 'CombineContent',
+    'QuoteContent',
 
     # commands
     'Command',          # 'CommandFactory',

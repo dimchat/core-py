@@ -35,15 +35,17 @@
     As receipt returned to sender to proofing the message's received
 """
 
-from abc import abstractmethod
-from typing import Optional, Dict, Any
+from abc import ABC, abstractmethod
+from typing import Optional, Dict
 
+from mkm.types import Converter
 from dkd import Envelope, Content
 
+from .base import BaseCommand
 from .commands import Command
 
 
-class ReceiptCommand(Command):
+class ReceiptCommand(Command, ABC):
     """
         Receipt Command
         ~~~~~~~~~~~~~~~
@@ -108,7 +110,6 @@ class ReceiptCommand(Command):
             info = cls.purify(envelope=envelope)
             info['sn'] = content.sn
         # create receipt with text & original info
-        from ..dkd import BaseReceiptCommand
         command = BaseReceiptCommand(text=text, origin=info)
         # check group in original content
         if content is not None:
@@ -119,7 +120,7 @@ class ReceiptCommand(Command):
         return command
 
     @classmethod
-    def purify(cls, envelope: Envelope) -> Dict[str, Any]:
+    def purify(cls, envelope: Envelope) -> Dict:
         info = envelope.copy_dictionary(deep_copy=False)
         if 'data' in info:
             info.pop('data', None)
@@ -128,3 +129,71 @@ class ReceiptCommand(Command):
             info.pop('meta', None)
             info.pop('visa', None)
         return info
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
+
+
+class BaseReceiptCommand(BaseCommand, ReceiptCommand):
+
+    def __init__(self, content: Dict = None,
+                 text: str = None, origin: Dict = None):
+        if content is None:
+            # 1. new command with text & origin info
+            assert text is not None, 'receipt text should not be None, %s' % origin
+            cmd = Command.RECEIPT
+            super().__init__(cmd=cmd)
+            # text message
+            self['text'] = text
+            # original envelope of message responding to,
+            # includes 'sn' and 'signature'
+            if origin is not None:
+                assert not (len(origin) == 0 or
+                            'data' in origin or
+                            'key' in origin or
+                            'keys' in origin or
+                            'meta' in origin or
+                            'visa' in origin), 'impure envelope: %s' % origin
+                self['origin'] = origin
+        else:
+            # 2. command info from network
+            assert text is None and origin is None, 'params error: %s, %s, %s' % (content, text, origin)
+            # create with command content
+            super().__init__(content=content)
+        # lazy load
+        self.__env = None
+
+    # -------- setters/getters
+
+    @property  # Override
+    def text(self) -> str:
+        return self.get_str(key='text', default='')
+
+    @property  # protected
+    def origin(self) -> Optional[Dict]:
+        return self.get('origin')
+
+    @property  # Override
+    def original_envelope(self) -> Optional[Envelope]:
+        if self.__env is None:
+            # origin: { sender: "...", receiver: "...", time: 0 }
+            self.__env = Envelope.parse(envelope=self.origin)
+        return self.__env
+
+    @property  # Override
+    def original_sn(self) -> Optional[int]:
+        origin = self.origin
+        if origin is not None:
+            sn = origin.get('sn')
+            return Converter.get_int(value=sn)
+
+    @property  # Override
+    def original_signature(self) -> Optional[str]:
+        origin = self.origin
+        if origin is not None:
+            signature = origin.get('signature')
+            return Converter.get_str(value=signature)

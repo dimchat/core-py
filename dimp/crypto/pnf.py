@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.format import TransportableData
 from mkm.types import URI
@@ -55,7 +55,7 @@ class BaseFileWrapper(Dictionary):
             }
     """
 
-    def __init__(self, dictionary: Dict[str, Any]):
+    def __init__(self, dictionary: Dict):
         super().__init__(dictionary=dictionary)
         # file data (not encrypted)
         self.__attachment: Optional[TransportableData] = None

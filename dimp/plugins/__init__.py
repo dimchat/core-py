@@ -31,10 +31,10 @@
 from mkm.plugins import *
 from dkd.plugins import *
 
-from ..protocol.commands import CommandHelper
+from ..protocol.base import CommandHelper
 # from ..protocol.helpers import CommandExtensions
 
-from .cmd import GeneralCommandHelper, SharedCommandExtensions
+from ..protocol.base import GeneralCommandHelper, SharedCommandExtensions
 
 __all__ = [
 

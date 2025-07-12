@@ -50,7 +50,7 @@
 """
 
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -61,7 +61,7 @@ from dkd import Envelope, Message
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: Dict[str, Any] = None, head: Envelope = None):
+    def __init__(self, msg: Dict = None, head: Envelope = None):
         if msg is None:
             # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'

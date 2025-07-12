@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.format import utf8_encode
 from mkm.format import TransportableData
@@ -60,7 +60,7 @@ from .base import BaseMessage
 
 class EncryptedMessage(BaseMessage, SecureMessage):
 
-    def __init__(self, msg: Dict[str, Any]):
+    def __init__(self, msg: Dict):
         super().__init__(msg=msg)
         # lazy
         self.__data: Optional[bytes] = None
@@ -104,7 +104,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             return ted.data
 
     @property  # Override
-    def encrypted_keys(self) -> Optional[Dict[str, Any]]:
+    def encrypted_keys(self) -> Optional[Dict]:
         if self.__keys is None:
             keys = self.get('keys')
             if isinstance(keys, Dict):

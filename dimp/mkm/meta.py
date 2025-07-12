@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.format import utf8_encode
 from mkm.format import TransportableData
@@ -61,7 +61,7 @@ from mkm import Meta
 
 class BaseMeta(Dictionary, Meta, ABC):
 
-    def __init__(self, meta: Dict[str, Any] = None,
+    def __init__(self, meta: Dict = None,
                  version: str = None, public_key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Optional[TransportableData] = None):
         # check parameters

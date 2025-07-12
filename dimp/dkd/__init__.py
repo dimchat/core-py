@@ -31,22 +31,23 @@
 from dkd import *
 from ..protocol import *
 
-from .base import BaseContent, BaseCommand
-from .contents import BaseTextContent, ListContent, SecretContent
-from .contents import WebPageContent, NameCardContent
-from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
-from .money import BaseMoneyContent, TransferMoneyContent
-from .quote import BaseQuoteContent, CombineForwardContent
+from ..protocol.base import BaseContent
+from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
+from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
+from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+from ..protocol.money import BaseMoneyContent, TransferMoneyContent
+from ..protocol.quote import BaseQuoteContent
 
-from .commands import BaseMetaCommand, BaseDocumentCommand
-from .receipt import BaseReceiptCommand
+from ..protocol.base import BaseCommand
+from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
+from ..protocol.receipt import BaseReceiptCommand
 
-from .groups import BaseHistoryCommand, BaseGroupCommand
-from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
-from .groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
-from .group_admins import HireGroupCommand, FireGroupCommand, ResignGroupCommand
+from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
+from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
+from ..protocol.groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
+from ..protocol.groups import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
-# from ..protocol.commands import CommandHelper
+# from ..protocol.base import CommandHelper
 # from ..protocol.helpers import CommandExtensions
 
 __all__ = [

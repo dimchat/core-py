@@ -28,8 +28,10 @@
 # SOFTWARE.
 # ==============================================================================
 
+from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm.types import Singleton
 from mkm.types import DateTime
 from mkm.types import Dictionary
 from mkm import ID
@@ -37,23 +39,151 @@ from dkd import Content
 from dkd import InstantMessage
 from dkd.plugins import SharedMessageExtensions
 
-from ..protocol import ContentType
-from ..protocol import Command
-
-from ..plugins import SharedCommandExtensions
+from .helpers import CommandExtensions
+from .types import ContentType
 
 
-"""
-    Message Content
-    ~~~~~~~~~~~~~~~
+class Command(Content, ABC):
+    """
+        Command Message Content
+        ~~~~~~~~~~~~~~~~~~~~~~~
 
-    Base implementation of Content
-"""
+        data format: {
+            type : i2s(0x88),
+            sn   : 123,
+
+            command : "...", // command name
+            extra   : info   // command parameters
+        }
+    """
+
+    # -------- command names begin --------
+    META = 'meta'
+    DOCUMENTS = 'documents'
+    RECEIPT = 'receipt'
+    # -------- command names end --------
+
+    @property
+    @abstractmethod
+    def cmd(self) -> str:
+        """ command/method/declaration """
+        raise NotImplemented
+
+    #
+    #   Factory method
+    #
+
+    @classmethod
+    def parse(cls, content: Any):  # -> Optional[Command]:
+        helper = cmd_helper()
+        return helper.parse_command(content=content)
+
+    @classmethod
+    def get_factory(cls, cmd: str):  # -> Optional[CommandFactory]:
+        helper = cmd_helper()
+        return helper.get_command_factory(cmd=cmd)
+
+    @classmethod
+    def set_factory(cls, cmd: str, factory):
+        helper = cmd_helper()
+        helper.set_command_factory(cmd=cmd, factory=factory)
+
+
+def cmd_helper():
+    helper = CommandExtensions.cmd_helper
+    assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
+    return helper
+
+
+class CommandFactory(ABC):
+    """ Command Factory """
+
+    @abstractmethod
+    def parse_command(self, content: Dict) -> Optional[Command]:
+        """
+        Parse map object to command
+
+        :param content: command content
+        :return: Command
+        """
+        raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
+
+
+class CommandHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_command_factory(self, cmd: str, factory: CommandFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_command(self, content: Any) -> Optional[Command]:
+        raise NotImplemented
+
+
+# class GeneralCommandHelper(CommandHelper, ABC):
+class GeneralCommandHelper(ABC):
+    """ Command GeneralFactory """
+
+    #
+    #   CMD - Command, Method, Declaration
+    #
+
+    @abstractmethod
+    def get_cmd(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
+        raise NotImplemented
+
+
+@Singleton
+class SharedCommandExtensions:
+    """ Command FactoryManager """
+
+    def __init__(self):
+        super().__init__()
+        self.__helper: Optional[GeneralCommandHelper] = None
+
+    @property
+    def helper(self) -> Optional[GeneralCommandHelper]:
+        return self.__helper
+
+    @helper.setter
+    def helper(self, helper: GeneralCommandHelper):
+        self.__helper = helper
+
+    #
+    #   Command
+    #
+
+    @property
+    def cmd_helper(self) -> Optional[CommandHelper]:
+        return CommandExtensions.cmd_helper
+
+    @cmd_helper.setter
+    def cmd_helper(self, helper: CommandHelper):
+        CommandExtensions.cmd_helper = helper
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
 
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Dict[str, Any] = None, msg_type: str = None):
+    def __init__(self, content: Dict = None, msg_type: str = None):
         # check parameters
         if content is None:
             # 1. new content with type
@@ -108,14 +238,9 @@ class BaseContent(Dictionary, Content):
         self.set_string(key='group', value=identifier)
 
 
-"""
-    Base Command
-"""
-
-
 class BaseCommand(BaseContent, Command):
 
-    def __init__(self, content: Dict[str, Any] = None, msg_type: str = None, cmd: str = None):
+    def __init__(self, content: Dict = None, msg_type: str = None, cmd: str = None):
         # check parameters
         if content is None:
             # 1. new command with type & name

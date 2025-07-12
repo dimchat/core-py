@@ -2,12 +2,12 @@
 #
 #   DIMP : Decentralized Instant Messaging Protocol
 #
-#                                Written in 2024 by Moky <albert.moky@gmail.com>
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2024 Albert Moky
+# Copyright (c) 2019 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict
 
+from mkm.types import Converter
 from dkd import Content, Envelope
-from dkd import InstantMessage
+
+from .types import ContentType
+from .base import BaseContent
 
 
 class QuoteContent(Content, ABC):
@@ -91,11 +94,10 @@ class QuoteContent(Content, ABC):
         group = content.group
         if group is not None:
             info['receiver'] = str(group)
-        from ..dkd import BaseQuoteContent
         return BaseQuoteContent(text=text, origin=info)
 
     @classmethod
-    def purify(cls, envelope: Envelope) -> Dict[str, Any]:
+    def purify(cls, envelope: Envelope) -> Dict:
         source = envelope.sender
         target = envelope.group
         if target is None:
@@ -108,34 +110,49 @@ class QuoteContent(Content, ABC):
         return info
 
 
-class CombineContent(Content, ABC):
-    """
-        Combine Forward message
-        ~~~~~~~~~~~~~~~~~~~~~~~
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
 
-        data format: {
-            type : i2s(0xCF),
-            sn   : 456,
 
-            title    : "...",  // chat title
-            messages : [...]   // chat history
-        }
-    """
+class BaseQuoteContent(BaseContent, QuoteContent):
 
-    @property
-    @abstractmethod
-    def title(self) -> str:
-        raise NotImplemented
+    def __init__(self, content: Dict = None,
+                 text: str = None, origin: Dict = None):
+        if content is None:
+            # 1. new content with text & origin info
+            assert not (text is None or origin is None), 'quote error: %s, %s' % (text, origin)
+            msg_type = ContentType.QUOTE
+            super().__init__(None, msg_type)
+            self['text'] = text
+            self['origin'] = origin
+        else:
+            # 2. content info from network
+            assert text is None and origin is None, 'quote error: %s, %s' % (text, origin)
+            super().__init__(content=content)
+        # lazy load
+        self.__env = None
 
-    @property
-    @abstractmethod
-    def messages(self) -> List[InstantMessage]:
-        raise NotImplemented
+    @property  # Override
+    def text(self) -> str:
+        return self.get_str(key='text', default='')
 
-    #
-    #   Factory methods
-    #
-    @classmethod
-    def create(cls, title: str, messages: List[InstantMessage]):
-        from ..dkd import CombineForwardContent
-        return CombineForwardContent(title=title, messages=messages)
+    @property  # protected
+    def origin(self) -> Optional[Dict]:
+        return self.get('origin')
+
+    @property  # Override
+    def original_envelope(self) -> Optional[Envelope]:
+        if self.__env is None:
+            # origin: { sender: "...", receiver: "...", time: 0 }
+            self.__env = Envelope.parse(envelope=self.origin)
+        return self.__env
+
+    @property  # Override
+    def original_sn(self) -> Optional[int]:
+        origin = self.origin
+        if origin is not None:
+            sn = origin.get('sn')
+            return Converter.get_int(value=sn)

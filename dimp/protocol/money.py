@@ -29,12 +29,14 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
+from mkm.types import Converter
 from mkm import ID
 from dkd import Content
 
 from .types import ContentType
+from .base import BaseContent
 
 
 class MoneyContent(Content, ABC):
@@ -75,7 +77,6 @@ class MoneyContent(Content, ABC):
         if msg_type is None:
             msg_type = ContentType.MONEY
         # create with type value
-        from ..dkd import BaseMoneyContent
         return BaseMoneyContent(msg_type=msg_type, currency=currency, amount=amount)
 
 
@@ -120,5 +121,78 @@ class TransferContent(MoneyContent, ABC):
     #
     @classmethod
     def transfer(cls, currency: str, amount: Union[int, float]):
-        from ..dkd import TransferMoneyContent
         return TransferMoneyContent(currency=currency, amount=amount)
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
+
+
+class BaseMoneyContent(BaseContent, MoneyContent):
+
+    def __init__(self, content: Dict = None,
+                 msg_type: str = None,
+                 currency: str = None, amount: Union[int, float] = None):
+        if content is None:
+            # 1. new content with type, currency & amount
+            assert currency is not None and amount is not None, \
+                'money content error: %s, %s, %s' % (msg_type, currency, amount)
+            if msg_type is None:
+                msg_type = ContentType.MONEY
+            super().__init__(None, msg_type)
+            # set values to inner dictionary
+            self['currency'] = currency
+            self['amount'] = amount
+        else:
+            # 2. content info from network
+            assert msg_type is None and currency is None and amount is None,\
+                'params error: %s, %s, %s, %s' % (content, msg_type, currency, amount)
+            super().__init__(content=content)
+
+    @property  # Override
+    def currency(self) -> str:
+        return self.get_str(key='currency', default='')
+
+    @property  # Override
+    def amount(self) -> Union[int, float]:
+        # return self.get_float(key='amount', default=0.0)
+        value = self.get('amount')
+        if value is None:
+            return 0
+        elif isinstance(value, int) or isinstance(value, float):
+            return value
+        else:
+            return Converter.get_float(value=value, default=0)
+
+    @amount.setter  # Override
+    def amount(self, value: Union[int, float]):
+        self['amount'] = value
+
+
+class TransferMoneyContent(BaseMoneyContent, TransferContent):
+
+    def __init__(self, content: Dict = None,
+                 currency: str = None, amount: Union[int, float] = None):
+        msg_type = ContentType.TRANSFER if content is None else None
+        super().__init__(content, msg_type, currency=currency, amount=amount)
+
+    @property  # Override
+    def remitter(self) -> Optional[ID]:
+        sender = self.get('remitter')
+        return ID.parse(identifier=sender)
+
+    @remitter.setter  # Override
+    def remitter(self, sender: Optional[ID]):
+        self.set_string(key='remitter', value=sender)
+
+    @property  # Override
+    def remittee(self) -> Optional[ID]:
+        receiver = self.get('remittee')
+        return ID.parse(identifier=receiver)
+
+    @remittee.setter  # Override
+    def remittee(self, receiver: Optional[ID]):
+        self.set_string(key='remittee', value=receiver)

@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict, List
+from typing import Optional, Dict, List
 
 from mkm.crypto import PublicKey, EncryptKey
 from mkm.format import TransportableData
@@ -43,7 +43,7 @@ from .document import BaseDocument
 
 class BaseVisa(BaseDocument, Visa):
 
-    def __init__(self, document: Optional[Dict[str, Any]] = None,
+    def __init__(self, document: Optional[Dict] = None,
                  identifier: ID = None, data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is None:
             # 1. document from local
@@ -113,7 +113,7 @@ class BaseVisa(BaseDocument, Visa):
 
 class BaseBulletin(BaseDocument, Bulletin):
 
-    def __init__(self, document: Optional[Dict[str, Any]] = None,
+    def __init__(self, document: Optional[Dict] = None,
                  identifier: ID = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is None:

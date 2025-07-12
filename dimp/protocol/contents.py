@@ -29,12 +29,15 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, Dict
 
 from mkm.types import URI
 from mkm.format import PortableNetworkFile
 from mkm import ID
-from dkd import Content, ReliableMessage
+from dkd import Content
+
+from .types import ContentType
+from .base import BaseContent
 
 
 class TextContent(Content, ABC):
@@ -63,71 +66,7 @@ class TextContent(Content, ABC):
     #
     @classmethod
     def create(cls, text: str):
-        from ..dkd import BaseTextContent
         return BaseTextContent(text=text)
-
-
-class ArrayContent(Content, ABC):
-    """
-        Content Array message
-        ~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : i2s(0xCA),
-            sn   : 123,
-
-            contents : [...]  // content array
-        }
-    """
-
-    @property
-    @abstractmethod
-    def contents(self) -> List[Content]:
-        raise NotImplemented
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def create(cls, contents: List[Content]):
-        from ..dkd import ListContent
-        return ListContent(contents=contents)
-
-
-class ForwardContent(Content, ABC):
-    """
-        Top-Secret Message Content
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : i2s(0xFF),
-            sn   : 456,
-
-            forward : {...}  // reliable (secure + certified) message
-            secrets : [...]  // reliable (secure + certified) messages
-        }
-    """
-
-    #
-    #   forward (top-secret message)
-    #
-    @property
-    @abstractmethod
-    def forward(self) -> Optional[ReliableMessage]:
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def secrets(self) -> List[ReliableMessage]:
-        raise NotImplemented
-
-    #
-    #   Factory methods
-    #
-    @classmethod
-    def create(cls, message: ReliableMessage = None, messages: List[ReliableMessage] = None):
-        from ..dkd import SecretContent
-        return SecretContent(message=message, messages=messages)
 
 
 class PageContent(Content, ABC):
@@ -228,7 +167,6 @@ class PageContent(Content, ABC):
     @classmethod
     def create(cls, url: Optional[URI], html: Optional[str], title: str,
                desc: Optional[str], icon: Optional[PortableNetworkFile]):
-        from ..dkd import WebPageContent
         return WebPageContent(url=url, html=html, title=title, desc=desc, icon=icon)
 
     @classmethod
@@ -275,5 +213,179 @@ class NameCard(Content, ABC):
     #
     @classmethod
     def create(cls, identifier: ID, name: str, avatar: Optional[PortableNetworkFile]):
-        from ..dkd import NameCardContent
         return NameCardContent(identifier=identifier, name=name, avatar=avatar)
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
+
+
+class BaseTextContent(BaseContent, TextContent):
+
+    def __init__(self, content: Dict = None, text: str = None):
+        if content is None:
+            # 1. new content with text string
+            assert text is not None, 'text should not be None'
+            msg_type = ContentType.TEXT
+            super().__init__(None, msg_type)
+            self['text'] = text
+        else:
+            # 2. content info from network
+            assert text is None, 'params error: %s, %s' % (content, text)
+            super().__init__(content)
+
+    #
+    #   text
+    #
+    @property  # Override
+    def text(self) -> str:
+        return self.get_str(key='text', default='')
+
+
+class WebPageContent(BaseContent, PageContent):
+
+    def __init__(self, content: Dict = None,
+                 url: URI = None, html: str = None, title: str = None,
+                 desc: Optional[str] = None, icon: Optional[PortableNetworkFile] = None):
+        if content is None:
+            # 1. new content with url, title, desc & icon
+            assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
+            msg_type = ContentType.PAGE
+            super().__init__(None, msg_type)
+        else:
+            # 2. content info from network
+            super().__init__(content)
+        self.__icon = None  # PNF
+        # URL or HTML
+        if url is not None:
+            self.url = url
+        if html is not None:
+            self.html = html
+        # title, icon, description
+        self.title = title
+        if desc is not None:
+            self.desc = desc
+        if icon is not None:
+            self.icon = icon
+
+    #
+    #   Web Title
+    #
+
+    @property  # Override
+    def title(self) -> str:
+        return self.get_str(key='title', default='')
+
+    @title.setter  # Override
+    def title(self, string: str):
+        self['title'] = string
+
+    #
+    #   Fav Icon
+    #
+
+    @property  # Override
+    def icon(self) -> Optional[PortableNetworkFile]:
+        img = self.__icon
+        if img is None:
+            base64 = self.get_str(key='icon', default=None)
+            img = self.__icon = PortableNetworkFile.parse(base64)
+        return img
+
+    @icon.setter  # Override
+    def icon(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('icon', None)
+        else:
+            self['icon'] = img.object
+        self.__icon = img
+
+    #
+    #   Description
+    #
+
+    @property  # Override
+    def desc(self) -> Optional[str]:
+        return self.get_str(key='desc', default=None)
+
+    @desc.setter  # Override
+    def desc(self, text: Optional[str]):
+        if text is None:
+            self.pop('desc', None)
+        else:
+            self['desc'] = text
+
+    #
+    #   Page URL
+    #
+
+    @property  # Override
+    def url(self) -> URI:
+        # TODO: convert str to URI
+        return self.get_str(key='URL', default=None)
+
+    @url.setter  # Override
+    def url(self, locator: URI):
+        # TODO: convert URI to str
+        self['URL'] = locator
+
+    #
+    #   Page content
+    #
+
+    @property  # Override
+    def html(self) -> Optional[str]:
+        return self.get_str(key='desc', default=None)
+
+    @html.setter  # Override
+    def html(self, content: Optional[str]):
+        if content is None:
+            self.pop('HTML', None)
+        else:
+            self['HTML'] = content
+
+
+class NameCardContent(BaseContent, NameCard):
+
+    def __init__(self, content: Dict = None,
+                 identifier: ID = None,
+                 name: str = None, avatar: Optional[PortableNetworkFile] = None):
+        if content is None:
+            # 1. new content with ID, name & avatar
+            assert identifier is not None and name is not None, \
+                'name card info error: %s, %s, %s' % (identifier, name, avatar)
+            msg_type = ContentType.NAME_CARD
+            super().__init__(None, msg_type)
+            self.set_string(key='did', value=identifier)
+            self['name'] = name
+            if avatar is not None:
+                self['avatar'] = avatar.object
+        else:
+            # 2. content info from network
+            assert identifier is None and name is None and avatar is None, \
+                'params error: %s, %s, %s, %s' % (content, identifier, name, avatar)
+            super().__init__(content=content)
+        # lazy load
+        self.__id = identifier
+        self.__avatar = avatar
+
+    @property  # Override
+    def identifier(self) -> ID:
+        if self.__id is None:
+            self.__id = ID.parse(identifier=self.get('did'))
+        return self.__id
+
+    @property  # Override
+    def name(self) -> str:
+        return self.get_str(key='name', default='')
+
+    @property  # Override
+    def avatar(self) -> Optional[PortableNetworkFile]:
+        img = self.__avatar
+        if img is None:
+            url = self.get('avatar')
+            img = self.__avatar = PortableNetworkFile.parse(url)
+        return img

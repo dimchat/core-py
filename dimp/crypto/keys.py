@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC
-from typing import Any, Dict
+from typing import Dict
 
 from mkm.types import Mapper, Dictionary
 from mkm.crypto import CryptographyKey, EncryptKey, DecryptKey, SignKey, VerifyKey
@@ -46,7 +46,7 @@ from mkm.plugins import SharedCryptoExtensions
 # noinspection PyAbstractClass
 class BaseKey(Dictionary, CryptographyKey, ABC):
 
-    def __init__(self, key: Dict[str, Any]):
+    def __init__(self, key: Dict):
         super().__init__(dictionary=key)
 
     @property  # Override
@@ -58,7 +58,7 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
     #
 
     @classmethod
-    def get_key_algorithm(cls, key: Dict[str, Any]) -> str:
+    def get_key_algorithm(cls, key: Dict) -> str:
         ext = SharedCryptoExtensions()
         algorithm = ext.helper.get_key_algorithm(key=key, default=None)
         return '' if algorithm is None else algorithm
@@ -97,7 +97,7 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
 # noinspection PyAbstractClass
 class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 
-    def __init__(self, key: Dict[str, Any]):
+    def __init__(self, key: Dict):
         super().__init__(dictionary=key)
 
     # Override
@@ -136,7 +136,7 @@ class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 # noinspection PyAbstractClass
 class BaseAsymmetricKey(Dictionary, AsymmetricKey, ABC):
 
-    def __init__(self, key: Dict[str, Any]):
+    def __init__(self, key: Dict):
         super().__init__(dictionary=key)
 
     @property  # Override
@@ -147,7 +147,7 @@ class BaseAsymmetricKey(Dictionary, AsymmetricKey, ABC):
 # noinspection PyAbstractClass
 class BasePublicKey(Dictionary, PublicKey, ABC):
 
-    def __init__(self, key: Dict[str, Any]):
+    def __init__(self, key: Dict):
         super().__init__(dictionary=key)
 
     @property  # Override
@@ -162,7 +162,7 @@ class BasePublicKey(Dictionary, PublicKey, ABC):
 # noinspection PyAbstractClass
 class BasePrivateKey(Dictionary, PrivateKey, ABC):
 
-    def __init__(self, key: Dict[str, Any]):
+    def __init__(self, key: Dict):
         super().__init__(dictionary=key)
 
     # Override

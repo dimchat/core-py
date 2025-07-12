@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.format import base64_encode, base64_decode
 from mkm.format import base58_encode, base58_decode
@@ -54,7 +54,7 @@ class BaseDataWrapper(Dictionary):
             2. "data:image/png;base64,{BASE64_ENCODE}"
     """
 
-    def __init__(self, dictionary: Dict[str, Any]):
+    def __init__(self, dictionary: Dict):
         super().__init__(dictionary=dictionary)
         # binary data
         self.__data: Optional[bytes] = None

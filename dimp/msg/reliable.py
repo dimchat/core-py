@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from mkm.format import TransportableData
 
@@ -62,7 +62,7 @@ from .secure import EncryptedMessage
 
 class NetworkMessage(EncryptedMessage, ReliableMessage):
 
-    def __init__(self, msg: Dict[str, Any]):
+    def __init__(self, msg: Dict):
         super().__init__(msg=msg)
         # lazy
         self.__signature: Optional[TransportableData] = None

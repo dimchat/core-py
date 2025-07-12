@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Dict
 
 from mkm.types import URI
 from mkm.format import TransportableData
@@ -37,7 +37,10 @@ from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
 from dkd import Content
 
+from ..crypto import BaseFileWrapper
+
 from .types import ContentType
+from .base import BaseContent
 
 
 class FileContent(Content, ABC):
@@ -114,40 +117,32 @@ class FileContent(Content, ABC):
                data: Optional[TransportableData] = None, filename: Optional[str] = None,
                url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         if msg_type == ContentType.IMAGE:
-            from ..dkd import ImageFileContent
             return ImageFileContent(data=data, filename=filename, url=url, password=password)
         elif msg_type == ContentType.AUDIO:
-            from ..dkd import AudioFileContent
             return AudioFileContent(data=data, filename=filename, url=url, password=password)
         elif msg_type == ContentType.VIDEO:
-            from ..dkd import VideoFileContent
             return VideoFileContent(data=data, filename=filename, url=url, password=password)
         else:
-            from ..dkd import BaseFileContent
             return BaseFileContent(msg_type=msg_type, data=data, filename=filename, url=url, password=password)
 
     @classmethod
     def file(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
              url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        from ..dkd import BaseFileContent
         return BaseFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
     def image(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
               url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        from ..dkd import ImageFileContent
         return ImageFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
     def audio(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
               url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        from ..dkd import AudioFileContent
         return AudioFileContent(data=data, filename=filename, url=url, password=password)
 
     @classmethod
     def video(cls, data: Optional[TransportableData] = None, filename: Optional[str] = None,
               url: Optional[URI] = None, password: Optional[DecryptKey] = None):
-        from ..dkd import VideoFileContent
         return VideoFileContent(data=data, filename=filename, url=url, password=password)
 
 
@@ -257,3 +252,149 @@ class VideoContent(FileContent, ABC):
     @abstractmethod
     def snapshot(self, img: PortableNetworkFile):
         raise NotImplemented
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
+
+
+class BaseFileContent(BaseContent, FileContent):
+    """ File Message Content """
+
+    def __init__(self, content: Dict = None,
+                 msg_type: str = None,
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        if content is None:
+            # 1. new content with type, data, filename, url & password
+            if msg_type is None:
+                msg_type = ContentType.FILE
+            super().__init__(None, msg_type)
+            # access via the wrapper
+            wrapper = BaseFileWrapper(dictionary=self.dictionary)
+            if data is not None:
+                wrapper.data = data
+            if filename is not None:
+                wrapper.filename = filename
+            if url is not None:
+                wrapper.url = url
+            if password is not None:
+                wrapper.password = password
+        else:
+            # 2. content from network
+            assert msg_type is None and data is None and filename is None and url is None and password is None, \
+                'params error: %s, %s, %s, %s, %s, %s' % (content, msg_type, data, filename, url, password)
+            super().__init__(content)
+            wrapper = BaseFileWrapper(dictionary=self.dictionary)
+        self.__wrapper = wrapper
+
+    @property  # Override
+    def data(self) -> Optional[bytes]:
+        ted = self.__wrapper.data
+        if ted is not None:
+            return ted.data
+
+    @data.setter  # Override
+    def data(self, attachment: bytes):
+        self.__wrapper.set_data(attachment)
+
+    @property  # Override
+    def filename(self) -> Optional[str]:
+        return self.__wrapper.filename
+
+    @filename.setter  # Override
+    def filename(self, name: str):
+        self.__wrapper.filename = name
+
+    @property  # Override
+    def url(self) -> Optional[URI]:
+        return self.__wrapper.url
+
+    @url.setter  # Override
+    def url(self, remote: str):
+        self.__wrapper.url = remote
+
+    @property  # Override
+    def password(self) -> Optional[DecryptKey]:
+        return self.__wrapper.password
+
+    @password.setter  # Override
+    def password(self, key: DecryptKey):
+        self.__wrapper.password = key
+
+
+class ImageFileContent(BaseFileContent, ImageContent):
+    """ Image Message Content """
+
+    def __init__(self, content: Dict = None,
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        msg_type = ContentType.IMAGE if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
+        # small image
+        self.__thumbnail: Optional[PortableNetworkFile] = None
+
+    @property  # Override
+    def thumbnail(self) -> Optional[PortableNetworkFile]:
+        img = self.__thumbnail
+        if img is None:
+            base64 = self.get_str(key='thumbnail', default=None)
+            img = self.__thumbnail = PortableNetworkFile.parse(base64)
+        return img
+
+    @thumbnail.setter  # Override
+    def thumbnail(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('thumbnail', None)
+        else:
+            self['thumbnail'] = img.object
+        self.__thumbnail = img
+
+
+class AudioFileContent(BaseFileContent, AudioContent):
+    """ Audio Message Content """
+
+    def __init__(self, content: Dict = None,
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        msg_type = ContentType.AUDIO if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
+
+    @property  # Override
+    def text(self) -> Optional[str]:
+        return self.get_str(key='text', default=None)
+
+    @text.setter  # Override
+    def text(self, asr: str):
+        self['text'] = asr
+
+
+class VideoFileContent(BaseFileContent, VideoContent):
+    """ Video Message Content """
+
+    def __init__(self, content: Dict = None,
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None):
+        msg_type = ContentType.VIDEO if content is None else None
+        super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
+        # small image
+        self.__snapshot: Optional[PortableNetworkFile] = None
+
+    @property  # Override
+    def snapshot(self) -> Optional[PortableNetworkFile]:
+        img = self.__snapshot
+        if img is None:
+            base64 = self.get_str(key='snapshot', default=None)
+            img = self.__snapshot = PortableNetworkFile.parse(base64)
+        return img
+
+    @snapshot.setter  # Override
+    def snapshot(self, img: PortableNetworkFile):
+        if img is None:
+            self.pop('snapshot', None)
+        else:
+            self['snapshot'] = img.object
+        self.__snapshot = img

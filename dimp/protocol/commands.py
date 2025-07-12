@@ -29,92 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, List, Dict
+from typing import Optional, List, Dict
 
 from mkm.types import DateTime
 from mkm import ID, Meta, Document
-from dkd import Content
 
-from .helpers import CommandExtensions
-
-
-class Command(Content, ABC):
-    """
-        Command Message Content
-        ~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            type : i2s(0x88),
-            sn   : 123,
-
-            command : "...", // command name
-            extra   : info   // command parameters
-        }
-    """
-
-    # -------- command names begin --------
-    META = 'meta'
-    DOCUMENTS = 'documents'
-    RECEIPT = 'receipt'
-    # -------- command names end --------
-
-    @property
-    @abstractmethod
-    def cmd(self) -> str:
-        """ command/method/declaration """
-        raise NotImplemented
-
-    #
-    #   Factory method
-    #
-
-    @classmethod
-    def parse(cls, content: Any):  # -> Optional[Command]:
-        helper = CommandExtensions.cmd_helper
-        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
-        return helper.parse_command(content=content)
-
-    @classmethod
-    def get_factory(cls, cmd: str):  # -> Optional[CommandFactory]:
-        helper = CommandExtensions.cmd_helper
-        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
-        return helper.get_command_factory(cmd=cmd)
-
-    @classmethod
-    def set_factory(cls, cmd: str, factory):
-        helper = CommandExtensions.cmd_helper
-        assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
-        helper.set_command_factory(cmd=cmd, factory=factory)
-
-
-class CommandFactory(ABC):
-    """ Command Factory """
-
-    @abstractmethod
-    def parse_command(self, content: Dict[str, Any]) -> Optional[Command]:
-        """
-        Parse map object to command
-
-        :param content: command content
-        :return: Command
-        """
-        raise NotImplemented
-
-
-class CommandHelper(ABC):
-    """ General Helper """
-
-    @abstractmethod
-    def set_command_factory(self, cmd: str, factory: CommandFactory):
-        raise NotImplemented
-
-    @abstractmethod
-    def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
-        raise NotImplemented
-
-    @abstractmethod
-    def parse_command(self, content: Any) -> Optional[Command]:
-        raise NotImplemented
+from .base import Command
+from .base import BaseCommand
 
 
 #############################
@@ -167,7 +88,6 @@ class MetaCommand(Command, ABC):
         :param identifier: entity ID
         :return: MetaCommand
         """
-        from ..dkd import BaseMetaCommand
         return BaseMetaCommand(identifier=identifier)
 
     @classmethod
@@ -179,7 +99,6 @@ class MetaCommand(Command, ABC):
         :param meta: entity meta
         :return: MetaCommand
         """
-        from ..dkd import BaseMetaCommand
         return BaseMetaCommand(identifier=identifier, meta=meta)
 
 
@@ -229,7 +148,6 @@ class DocumentCommand(MetaCommand, ABC):
         :param last_time:  last document time
         :return: DocumentCommand
         """
-        from ..dkd import BaseDocumentCommand
         return BaseDocumentCommand(identifier=identifier, last_time=last_time)
 
     @classmethod
@@ -243,5 +161,96 @@ class DocumentCommand(MetaCommand, ABC):
         :param documents:  entity documents
         :return: DocumentCommand
         """
-        from ..dkd import BaseDocumentCommand
         return BaseDocumentCommand(identifier=identifier, meta=meta, documents=documents)
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
+
+
+class BaseMetaCommand(BaseCommand, MetaCommand):
+
+    def __init__(self, content: Dict = None,
+                 cmd: str = None,
+                 identifier: ID = None,
+                 meta: Optional[Meta] = None):
+        if content is None:
+            # 1. new command with name, ID & meta
+            assert identifier is not None, 'meta command error: %s, %s, %s' % (cmd, identifier, meta)
+            if cmd is None:
+                cmd = Command.META
+            super().__init__(cmd=cmd)
+            self.set_string(key='did', value=identifier)
+            if meta is not None:
+                self.set_map(key='meta', value=meta)
+        else:
+            # 2. command info from network
+            assert cmd is None and identifier is None and meta is None, \
+                'params error: %s, %s, %s, %s' % (content, cmd, identifier, meta)
+            super().__init__(content)
+        # lazy load
+        self.__id = identifier
+        self.__meta = meta
+
+    #
+    #   ID
+    #
+    @property  # Override
+    def identifier(self) -> ID:
+        if self.__id is None:
+            self.__id = ID.parse(identifier=self.get('did'))
+        return self.__id
+
+    #
+    #   Meta
+    #
+    @property  # Override
+    def meta(self) -> Optional[Meta]:
+        if self.__meta is None:
+            self.__meta = Meta.parse(meta=self.get('meta'))
+        return self.__meta
+
+
+class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
+
+    def __init__(self, content: Dict = None,
+                 identifier: ID = None,
+                 meta: Optional[Meta] = None,
+                 documents: List[Document] = None,
+                 last_time: Optional[DateTime] = None):
+        if content is None:
+            # 1. new command with ID, meta, document & signature
+            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, documents, last_time)
+            cmd = Command.DOCUMENTS
+            super().__init__(cmd=cmd, identifier=identifier, meta=meta)
+            # respond with document info
+            if documents is not None:
+                self['documents'] = Document.revert(documents=documents)
+            # query with last document time
+            if last_time is not None:
+                self.set_datetime(key='last_time', value=last_time)
+        else:
+            # 2. command info from network
+            assert identifier is None and meta is None and documents is None and last_time is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, documents, last_time)
+            super().__init__(content)
+        # lazy load
+        self.__docs = documents
+
+    #
+    #   document
+    #
+    @property  # Override
+    def documents(self) -> Optional[List[Document]]:
+        if self.__docs is None:
+            docs = self.get('documents')
+            if docs is not None:
+                self.__docs = Document.convert(array=docs)
+        return self.__docs
+
+    @property  # Override
+    def last_time(self) -> Optional[DateTime]:
+        return self.get_datetime(key='last_time', default=None)
