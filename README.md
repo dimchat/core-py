@@ -151,7 +151,7 @@ from dimp import Content
 from dimp import BaseContent
 
 
-class CustomizedContent(Content, ABC):
+class AppContent(Content, ABC):
     """
         Application Customized message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,10 +187,10 @@ class CustomizedContent(Content, ABC):
 
     @classmethod
     def create(cls, app: str, mod: str, act: str):
-        return AppCustomizedContent(app=app, mod=mod, act=act)
+        return ApplicationContent(app=app, mod=mod, act=act)
 
 
-class AppCustomizedContent(BaseContent, CustomizedContent):
+class ApplicationContent(BaseContent, AppContent):
 
     def __init__(self, content: Dict[str, Any] = None,
                  msg_type: int = None,
@@ -230,5 +230,5 @@ class AppCustomizedContent(BaseContent, CustomizedContent):
 
 ----
 
-Copyright &copy; 2018 Albert Moky
+Copyright &copy; 2018-2025 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

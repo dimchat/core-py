@@ -145,11 +145,12 @@ __all__ = [
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     # contents
-    'TextContent', 'ArrayContent', 'ForwardContent',
-    'PageContent', 'NameCard',
+    'TextContent', 'PageContent', 'NameCard',
+    'ForwardContent', 'CombineContent', 'ArrayContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
-    'QuoteContent', 'CombineContent',
+    'QuoteContent',
+    'CustomizedContent',
 
     # commands
     'Command',
@@ -163,11 +164,12 @@ __all__ = [
 
     # extend contents
     'BaseContent',
-    'BaseTextContent', 'ListContent', 'SecretContent',
-    'WebPageContent', 'NameCardContent',
+    'BaseTextContent', 'WebPageContent', 'NameCardContent',
+    'SecretContent', 'CombineForwardContent', 'ListContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     'BaseMoneyContent', 'TransferMoneyContent',
-    'BaseQuoteContent', 'CombineForwardContent',
+    'BaseQuoteContent',
+    'AppCustomizedContent',
 
     # extend commands
     'BaseCommand',

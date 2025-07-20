@@ -52,6 +52,7 @@ from .forward import ForwardContent, CombineContent, ArrayContent
 from .files import FileContent, ImageContent, AudioContent, VideoContent
 from .money import MoneyContent, TransferContent
 from .quote import QuoteContent
+from .customized import CustomizedContent
 
 from .base import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
@@ -108,6 +109,7 @@ __all__ = [
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
     'QuoteContent',
+    'CustomizedContent',
 
     # commands
     'Command',          # 'CommandFactory',
