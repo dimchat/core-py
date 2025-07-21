@@ -226,7 +226,7 @@ class BaseContent(Dictionary, Content):
     @property  # Override
     def time(self) -> Optional[DateTime]:
         if self.__time is None:
-            self.__time = self.get_datetime(key='time', default=None)
+            self.__time = self.get_datetime(key='time')
         return self.__time
 
     @property  # Override

@@ -102,7 +102,7 @@ class MessageEnvelope(Dictionary, Envelope):
     @property  # Override
     def time(self) -> Optional[DateTime]:
         if self.__time is None:
-            self.__time = self.get_datetime(key='time', default=None)
+            self.__time = self.get_datetime(key='time')
         return self.__time
 
     @property  # Override
@@ -116,7 +116,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property  # Override
     def type(self) -> Optional[str]:
-        return self.get_str(key='type', default=None)
+        return self.get_str(key='type')
 
     @type.setter  # Override
     def type(self, value: str):

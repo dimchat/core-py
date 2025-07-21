@@ -291,7 +291,7 @@ class WebPageContent(BaseContent, PageContent):
     def icon(self) -> Optional[PortableNetworkFile]:
         img = self.__icon
         if img is None:
-            base64 = self.get_str(key='icon', default=None)
+            base64 = self.get_str(key='icon')
             img = self.__icon = PortableNetworkFile.parse(base64)
         return img
 
@@ -309,7 +309,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def desc(self) -> Optional[str]:
-        return self.get_str(key='desc', default=None)
+        return self.get_str(key='desc')
 
     @desc.setter  # Override
     def desc(self, text: Optional[str]):
@@ -325,7 +325,7 @@ class WebPageContent(BaseContent, PageContent):
     @property  # Override
     def url(self) -> URI:
         # TODO: convert str to URI
-        return self.get_str(key='URL', default=None)
+        return self.get_str(key='URL')
 
     @url.setter  # Override
     def url(self, locator: URI):
@@ -338,7 +338,7 @@ class WebPageContent(BaseContent, PageContent):
 
     @property  # Override
     def html(self) -> Optional[str]:
-        return self.get_str(key='desc', default=None)
+        return self.get_str(key='desc')
 
     @html.setter  # Override
     def html(self, content: Optional[str]):

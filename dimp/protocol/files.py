@@ -341,7 +341,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
     def thumbnail(self) -> Optional[PortableNetworkFile]:
         img = self.__thumbnail
         if img is None:
-            base64 = self.get_str(key='thumbnail', default=None)
+            base64 = self.get_str(key='thumbnail')
             img = self.__thumbnail = PortableNetworkFile.parse(base64)
         return img
 
@@ -365,7 +365,7 @@ class AudioFileContent(BaseFileContent, AudioContent):
 
     @property  # Override
     def text(self) -> Optional[str]:
-        return self.get_str(key='text', default=None)
+        return self.get_str(key='text')
 
     @text.setter  # Override
     def text(self, asr: str):
@@ -387,7 +387,7 @@ class VideoFileContent(BaseFileContent, VideoContent):
     def snapshot(self) -> Optional[PortableNetworkFile]:
         img = self.__snapshot
         if img is None:
-            base64 = self.get_str(key='snapshot', default=None)
+            base64 = self.get_str(key='snapshot')
             img = self.__snapshot = PortableNetworkFile.parse(base64)
         return img
 

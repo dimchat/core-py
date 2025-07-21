@@ -100,7 +100,7 @@ class BaseFileWrapper(Dictionary):
 
     @property
     def filename(self) -> Optional[str]:
-        return self.get_str(key='filename', default=None)
+        return self.get_str(key='filename')
 
     @filename.setter
     def filename(self, name: Optional[str]):
@@ -117,7 +117,7 @@ class BaseFileWrapper(Dictionary):
     def url(self) -> Optional[URI]:
         remote = self.__url
         if remote is None:
-            remote = self.get_str(key='URL', default=None)
+            remote = self.get_str(key='URL')
             # TODO: convert str to URI
             self.__url = remote
         return remote

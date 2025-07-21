@@ -253,4 +253,4 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
 
     @property  # Override
     def last_time(self) -> Optional[DateTime]:
-        return self.get_datetime(key='last_time', default=None)
+        return self.get_datetime(key='last_time')

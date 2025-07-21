@@ -114,7 +114,7 @@ class BaseDocument(Dictionary, Document):
         :return: JsON string
         """
         if self.__json is None:
-            self.__json = self.get_str(key='data', default=None)
+            self.__json = self.get_str(key='data')
         return self.__json
 
     @property  # private
@@ -259,12 +259,12 @@ class BaseDocument(Dictionary, Document):
     @property  # Override
     def time(self) -> Optional[DateTime]:
         seconds = self.get_property(name='time')
-        return Converter.get_datetime(value=seconds, default=None)
+        return Converter.get_datetime(value=seconds)
 
     @property  # Override
     def name(self) -> Optional[str]:
         text = self.get_property(name='name')
-        return Converter.get_str(value=text, default=None)
+        return Converter.get_str(value=text)
 
     @name.setter  # Override
     def name(self, text: str):

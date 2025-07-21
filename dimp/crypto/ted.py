@@ -69,10 +69,10 @@ class BaseDataWrapper(Dictionary):
 
     # Override
     def __str__(self) -> str:
-        text = self.get_str(key='data', default=None)
+        text = self.get_str(key='data')
         if text is None:  # or len(text) == 0:
             return ''
-        alg = self.get_str(key='algorithm', default=None)
+        alg = self.get_str(key='algorithm')
         if alg is None or alg == EncodeAlgorithms.DEFAULT:
             alg = ''
         if len(alg) == 0:
@@ -85,7 +85,7 @@ class BaseDataWrapper(Dictionary):
     def encode(self, mime_type: str) -> str:
         """ toString(mimeType) """
         # get encoded data
-        text = self.get_str(key='data', default=None)
+        text = self.get_str(key='data')
         if text is None:  # or len(text) == 0:
             return ''
         alg = self.algorithm
@@ -98,7 +98,7 @@ class BaseDataWrapper(Dictionary):
 
     @property
     def algorithm(self) -> str:
-        alg = self.get_str(key='algorithm', default=None)
+        alg = self.get_str(key='algorithm')
         if alg is None or len(alg) == 0:
             alg = EncodeAlgorithms.DEFAULT
         return alg
@@ -118,7 +118,7 @@ class BaseDataWrapper(Dictionary):
     def data(self) -> Optional[bytes]:
         binary = self.__data
         if binary is None:
-            text = self.get_str(key='data', default=None)
+            text = self.get_str(key='data')
             if text is None or len(text) == 0:
                 # assert False, 'TED data empty: %s' % self.dictionary
                 return None

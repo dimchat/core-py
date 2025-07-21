@@ -31,8 +31,9 @@
   3. (S-C) handshake success
 
 ```python
+from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 
 from dimp import Command, BaseCommand
 
@@ -44,7 +45,20 @@ class HandshakeState(IntEnum):
     Success = 3  # S -> C, handshake accepted
 
 
-class HandshakeCommand(BaseCommand):
+def handshake_state(title: str, session: str = None) -> HandshakeState:
+    # Server -> Client
+    if title == 'DIM!':  # or title == 'OK!':
+        return HandshakeState.Success
+    if title == 'DIM?':
+        return HandshakeState.Again
+    # Client -> Server: "Hello world!"
+    if session is None or len(session) == 0:
+        return HandshakeState.Start
+    else:
+        return HandshakeState.Restart
+
+
+class HandshakeCommand(Command, ABC):
     """
         Handshake Command
         ~~~~~~~~~~~~~~~~~
@@ -60,7 +74,63 @@ class HandshakeCommand(BaseCommand):
     """
     HANDSHAKE = 'handshake'
 
-    def __init__(self, content: Dict[str, Any] = None, title: str = None, session: str = None):
+    @property
+    @abstractmethod
+    def title(self) -> str:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def session(self) -> Optional[str]:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def state(self) -> HandshakeState:
+        raise NotImplemented
+
+    #
+    #   Factories
+    #
+
+    @classmethod
+    def offer(cls, session: str = None) -> Command:
+        """
+        Create client-station handshake offer
+
+        :param session: Old session key
+        :return: HandshakeCommand object
+        """
+        return BaseHandshakeCommand(title='Hello world!', session=session)
+
+    @classmethod
+    def ask(cls, session: str) -> Command:
+        """
+        Create station-client handshake again with new session
+
+        :param session: New session key
+        :return: HandshakeCommand object
+        """
+        return BaseHandshakeCommand(title='DIM?', session=session)
+
+    @classmethod
+    def accepted(cls, session: str = None) -> Command:
+        """
+        Create station-client handshake success notice
+
+        :return: HandshakeCommand object
+        """
+        return BaseHandshakeCommand(title='DIM!', session=session)
+
+    start = offer       # (1. C->S) first handshake, without session
+    again = ask         # (2. S->C) ask client to handshake with new session key
+    restart = offer     # (3. C->S) handshake with new session key
+    success = accepted  # (4. S->C) notice the client that handshake accepted
+
+
+class BaseHandshakeCommand(BaseCommand, HandshakeCommand):
+
+    def __init__(self, content: Dict = None, title: str = None, session: str = None):
         if content is None:
             # 1. new command with title & session key
             assert title is not None, 'handshake command error: %s' % session
@@ -77,67 +147,15 @@ class HandshakeCommand(BaseCommand):
 
     @property
     def title(self) -> str:
-        # TODO: modify after all clients upgraded
-        text = self.get_str(key='title', default=None)
-        if text is None:
-            # compatible with v1.0
-            text = self.get_str(key='message', default='')
-        return text
+        return self.get_str(key='title', default='')
 
     @property
     def session(self) -> Optional[str]:
-        return self.get_str(key='session', default=None)
+        return self.get_str(key='session')
 
     @property
     def state(self) -> HandshakeState:
         return handshake_state(title=self.title, session=self.session)
-
-    @classmethod
-    def offer(cls, session: str = None) -> Command:
-        """
-        Create client-station handshake offer
-
-        :param session: Old session key
-        :return: HandshakeCommand object
-        """
-        return HandshakeCommand(title='Hello world!', session=session)
-
-    @classmethod
-    def ask(cls, session: str) -> Command:
-        """
-        Create station-client handshake again with new session
-
-        :param session: New session key
-        :return: HandshakeCommand object
-        """
-        return HandshakeCommand(title='DIM?', session=session)
-
-    @classmethod
-    def accepted(cls, session: str = None) -> Command:
-        """
-        Create station-client handshake success notice
-
-        :return: HandshakeCommand object
-        """
-        return HandshakeCommand(title='DIM!', session=session)
-
-    start = offer       # (1. C->S) first handshake, without session
-    again = ask         # (2. S->C) ask client to handshake with new session key
-    restart = offer     # (3. C->S) handshake with new session key
-    success = accepted  # (4. S->C) notice the client that handshake accepted
-
-
-def handshake_state(title: str, session: str = None) -> HandshakeState:
-    # Server -> Client
-    if title == 'DIM!':  # or title == 'OK!':
-        return HandshakeState.Success
-    if title == 'DIM?':
-        return HandshakeState.Again
-    # Client -> Server: "Hello world!"
-    if session is None or len(session) == 0:
-        return HandshakeState.Start
-    else:
-        return HandshakeState.Restart
 ```
 
 ### extends Content
@@ -157,7 +175,7 @@ class AppContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xCC,
+            type : 0xA0,
             sn   : 123,
 
             app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
@@ -185,6 +203,9 @@ class AppContent(Content, ABC):
         """ Action Name """
         raise NotImplemented
 
+    #
+    #   Factory
+    #
     @classmethod
     def create(cls, app: str, mod: str, act: str):
         return ApplicationContent(app=app, mod=mod, act=act)
@@ -193,14 +214,14 @@ class AppContent(Content, ABC):
 class ApplicationContent(BaseContent, AppContent):
 
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: int = None,
+                 msg_type: str = None,
                  app: str = None, mod: str = None, act: str = None):
         if content is None:
             # 1. new content with type, application, module & action
             assert app is not None and mod is not None and act is not None, \
                 'customized content error: %s, %s, %s, %s' % (msg_type, app, mod, act)
             if msg_type is None:
-                msg_type = ContentType.CUSTOMIZED.value
+                msg_type = ContentType.APPLICATION
             super().__init__(None, msg_type)
             self['app'] = app
             self['mod'] = mod

@@ -60,7 +60,7 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
     @classmethod
     def get_key_algorithm(cls, key: Dict) -> str:
         ext = SharedCryptoExtensions()
-        algorithm = ext.helper.get_key_algorithm(key=key, default=None)
+        algorithm = ext.helper.get_key_algorithm(key=key)
         return '' if algorithm is None else algorithm
 
     @classmethod

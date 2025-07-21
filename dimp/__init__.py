@@ -119,6 +119,8 @@ __all__ = [
     'Meta',
     'Document', 'Visa', 'Bulletin',
 
+    'MetaType', 'DocumentType',
+
     'AddressFactory',
     'IDFactory',
     'MetaFactory',
@@ -131,8 +133,6 @@ __all__ = [
 
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',
-
-    'MetaType', 'DocumentType',
 
     #
     #   DaoKeDao
