@@ -35,17 +35,17 @@ from ..protocol.base import BaseContent
 from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
 from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
 from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
-from ..protocol.money import BaseMoneyContent, TransferMoneyContent
+from ..protocol.assets import BaseMoneyContent, TransferMoneyContent
 from ..protocol.quote import BaseQuoteContent
-from ..protocol.customized import AppCustomizedContent
+from ..protocol.app import AppCustomizedContent
 
 from ..protocol.base import BaseCommand
 from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
 from ..protocol.receipt import BaseReceiptCommand
 
 from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
-from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand
-from ..protocol.groups import QuitGroupCommand, QueryGroupCommand, ResetGroupCommand
+from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand
+from ..protocol.groups import JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
 from ..protocol.groups import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
 # from ..protocol.base import CommandHelper
@@ -78,7 +78,7 @@ __all__ = [
 
     # group history
     'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
 
     #
@@ -109,8 +109,8 @@ __all__ = [
 
     # group history
     'BaseHistoryCommand', 'BaseGroupCommand',
-    'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
-    'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
+    'InviteGroupCommand', 'ExpelGroupCommand',
+    'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
     'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
     #

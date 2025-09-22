@@ -37,7 +37,7 @@ from mkm.types import Dictionary
 from mkm import ID
 from dkd import Content
 from dkd import InstantMessage
-from dkd.plugins import SharedMessageExtensions
+from dkd.ext import SharedMessageExtensions
 
 from .helpers import CommandExtensions
 from .types import ContentType

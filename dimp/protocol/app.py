@@ -37,7 +37,28 @@ from .types import ContentType
 from .base import BaseContent
 
 
-class CustomizedContent(Content, ABC):
+class AppContent(Content, ABC):
+    """
+        Content for Application 0nly
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : i2s(0xA0),
+            sn   : 123,
+
+            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
+            extra : info         // action parameters
+        }
+    """
+
+    @property
+    @abstractmethod
+    def application(self) -> str:
+        """ App ID """
+        raise NotImplemented
+
+
+class CustomizedContent(AppContent, ABC):
     """
         Application Customized message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,12 +73,6 @@ class CustomizedContent(Content, ABC):
             extra : info         // action parameters
         }
     """
-
-    @property
-    @abstractmethod
-    def application(self) -> str:
-        """ App ID """
-        raise NotImplemented
 
     @property
     @abstractmethod
@@ -77,6 +92,13 @@ class CustomizedContent(Content, ABC):
     @classmethod
     def create(cls, app: str, mod: str, act: str):
         return AppCustomizedContent(app=app, mod=mod, act=act)
+
+
+###############################
+#                             #
+#   DaoKeDao Implementation   #
+#                             #
+###############################
 
 
 class AppCustomizedContent(BaseContent, CustomizedContent):

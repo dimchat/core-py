@@ -40,7 +40,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict
 
-from mkm.types import DateTime
 from mkm import ID
 
 from .types import ContentType
@@ -81,7 +80,7 @@ class GroupCommand(HistoryCommand, ABC):
             sn   : 123,
 
             command : "reset",   // "invite", "quit", "query", ...
-            time    : 0,         // timestamp
+            time    : 123.456,   // command timestamp
 
             group   : "{GROUP_ID}",
             member  : "{MEMBER_ID}",
@@ -95,11 +94,11 @@ class GroupCommand(HistoryCommand, ABC):
     ABDICATE = "abdicate"
     # member
     INVITE = "invite"
-    EXPEL = "expel"  # Deprecated (use 'reset' instead)
+    EXPEL = "expel"    # Deprecated (use 'reset' instead)
     JOIN = "join"
     QUIT = "quit"
+    # QUERY = "query"  # Deprecated
     RESET = "reset"
-    QUERY = "query"  # (not history command)
     # administrator/assistant
     HIRE = "hire"
     FIRE = "fire"
@@ -159,10 +158,6 @@ class GroupCommand(HistoryCommand, ABC):
         return QuitGroupCommand(group=group)
 
     @classmethod
-    def query(cls, group: ID, last_time: DateTime = None):
-        return QueryGroupCommand(group=group, last_time=last_time)
-
-    @classmethod
     def reset(cls, group: ID, members: List[ID]):
         return ResetGroupCommand(group=group, members=members)
 
@@ -200,20 +195,6 @@ class JoinCommand(GroupCommand, ABC):
 # noinspection PyAbstractClass
 class QuitCommand(GroupCommand, ABC):
     pass
-
-
-class QueryCommand(GroupCommand, ABC):
-    """
-    NOTICE:
-        This command is just for querying group info,
-        should not be saved in group history
-    """
-
-    @property
-    @abstractmethod
-    def last_time(self) -> Optional[DateTime]:
-        """ Last group history time for querying """
-        raise NotImplemented
 
 
 # noinspection PyAbstractClass
@@ -373,19 +354,6 @@ class QuitGroupCommand(BaseGroupCommand, QuitCommand):
     def __init__(self, content: Dict = None, group: ID = None):
         cmd = GroupCommand.QUIT if content is None else None
         super().__init__(content, cmd=cmd, group=group)
-
-
-class QueryGroupCommand(BaseGroupCommand, QueryCommand):
-
-    def __init__(self, content: Dict = None, group: ID = None, last_time: DateTime = None):
-        cmd = GroupCommand.QUERY if content is None else None
-        super().__init__(content, cmd=cmd, group=group)
-        if last_time is not None:
-            self.set_datetime(key='last_time', value=last_time)
-
-    @property  # Override
-    def last_time(self) -> Optional[DateTime]:
-        return self.get_datetime(key='last_time')
 
 
 class ResetGroupCommand(BaseGroupCommand, ResetCommand):

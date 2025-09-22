@@ -50,16 +50,16 @@ from .docs import Visa, Bulletin
 from .contents import TextContent, PageContent, NameCard
 from .forward import ForwardContent, CombineContent, ArrayContent
 from .files import FileContent, ImageContent, AudioContent, VideoContent
-from .money import MoneyContent, TransferContent
+from .assets import MoneyContent, TransferContent
 from .quote import QuoteContent
-from .customized import CustomizedContent
+from .app import CustomizedContent
 
 from .base import Command, CommandFactory
 from .commands import MetaCommand, DocumentCommand
 from .receipt import ReceiptCommand
 
 from .groups import HistoryCommand, GroupCommand
-from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, QueryCommand, ResetCommand
+from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, ResetCommand
 from .groups import HireCommand, FireCommand, ResignCommand
 
 # from .base import CommandHelper, GeneralCommandHelper, SharedCommandExtensions
@@ -118,7 +118,7 @@ __all__ = [
 
     # group history
     'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
 
     #

@@ -192,7 +192,6 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
                 'params error: %s, %s, %s, %s' % (content, cmd, identifier, meta)
             super().__init__(content)
         # lazy load
-        self.__id = identifier
         self.__meta = meta
 
     #
@@ -200,9 +199,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
     #
     @property  # Override
     def identifier(self) -> ID:
-        if self.__id is None:
-            self.__id = ID.parse(identifier=self.get('did'))
-        return self.__id
+        return ID.parse(identifier=self.get('did'))
 
     #
     #   Meta

@@ -127,7 +127,7 @@ class BaseFileWrapper(Dictionary):
         if remote is None:
             self.pop('URL', None)
         else:
-            # convert URI to str
+            # TODO: convert URI to str
             self['URL'] = remote
         self.__url = remote
 

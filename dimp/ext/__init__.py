@@ -28,8 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from mkm.plugins import *
-from dkd.plugins import *
+from mkm.ext import *
+from dkd.ext import *
 
 from ..protocol.base import CommandHelper
 # from ..protocol.helpers import CommandExtensions

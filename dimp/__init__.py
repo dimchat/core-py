@@ -65,7 +65,6 @@ __all__ = [
     'DataCoder', 'Hex', 'Base58', 'Base64',
     'ObjectCoder', 'JSON',
     'MapCoder', 'JSONMap',
-    'ListCoder', 'JSONList',
     'StringCoder', 'UTF8',
 
     'hex_encode', 'hex_decode',
@@ -81,10 +80,9 @@ __all__ = [
     #   Digest
     #
 
-    'DataDigester',
-    'MD5', 'SHA1', 'SHA256', 'KECCAK256', 'RIPEMD160',
-
-    'md5', 'sha1', 'sha256', 'keccak256', 'ripemd160',
+    'MessageDigester',
+    'SHA256', 'KECCAK256', 'RIPEMD160',
+    'sha256', 'keccak256', 'ripemd160',
 
     #
     #   Crypto
@@ -159,7 +157,7 @@ __all__ = [
 
     # group history
     'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'QueryCommand', 'ResetCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
     'HireCommand', 'FireCommand', 'ResignCommand',
 
     # extend contents
@@ -178,8 +176,8 @@ __all__ = [
 
     # extend group history
     'BaseHistoryCommand', 'BaseGroupCommand',
-    'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand',
-    'QuitGroupCommand', 'QueryGroupCommand', 'ResetGroupCommand',
+    'InviteGroupCommand', 'ExpelGroupCommand',
+    'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
     'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
     #

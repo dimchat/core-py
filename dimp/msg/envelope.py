@@ -107,12 +107,12 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property  # Override
     def group(self) -> Optional[ID]:
-        identifier = self.get('group')
-        return ID.parse(identifier=identifier)
+        gid = self.get('group')
+        return ID.parse(identifier=gid)
 
     @group.setter  # Override
-    def group(self, value: ID):
-        self.set_string(key='group', value=value)
+    def group(self, gid: ID):
+        self.set_string(key='group', value=gid)
 
     @property  # Override
     def type(self) -> Optional[str]:

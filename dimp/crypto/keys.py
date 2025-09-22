@@ -34,7 +34,7 @@ from typing import Dict
 from mkm.types import Mapper, Dictionary
 from mkm.crypto import CryptographyKey, EncryptKey, DecryptKey, SignKey, VerifyKey
 from mkm.crypto import SymmetricKey, AsymmetricKey, PublicKey, PrivateKey
-from mkm.plugins import SharedCryptoExtensions
+from mkm.ext import SharedCryptoExtensions
 
 
 """
@@ -46,8 +46,8 @@ from mkm.plugins import SharedCryptoExtensions
 # noinspection PyAbstractClass
 class BaseKey(Dictionary, CryptographyKey, ABC):
 
-    def __init__(self, key: Dict):
-        super().__init__(dictionary=key)
+    # def __init__(self, key: Dict):
+    #     super().__init__(key)
 
     @property  # Override
     def algorithm(self) -> str:
@@ -97,8 +97,8 @@ class BaseKey(Dictionary, CryptographyKey, ABC):
 # noinspection PyAbstractClass
 class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 
-    def __init__(self, key: Dict):
-        super().__init__(dictionary=key)
+    # def __init__(self, key: Dict):
+    #     super().__init__(key)
 
     # Override
     def __eq__(self, other) -> bool:
@@ -136,8 +136,8 @@ class BaseSymmetricKey(Dictionary, SymmetricKey, ABC):
 # noinspection PyAbstractClass
 class BaseAsymmetricKey(Dictionary, AsymmetricKey, ABC):
 
-    def __init__(self, key: Dict):
-        super().__init__(dictionary=key)
+    # def __init__(self, key: Dict):
+    #     super().__init__(key)
 
     @property  # Override
     def algorithm(self) -> str:
@@ -147,8 +147,8 @@ class BaseAsymmetricKey(Dictionary, AsymmetricKey, ABC):
 # noinspection PyAbstractClass
 class BasePublicKey(Dictionary, PublicKey, ABC):
 
-    def __init__(self, key: Dict):
-        super().__init__(dictionary=key)
+    # def __init__(self, key: Dict):
+    #     super().__init__(key)
 
     @property  # Override
     def algorithm(self) -> str:
@@ -162,8 +162,8 @@ class BasePublicKey(Dictionary, PublicKey, ABC):
 # noinspection PyAbstractClass
 class BasePrivateKey(Dictionary, PrivateKey, ABC):
 
-    def __init__(self, key: Dict):
-        super().__init__(dictionary=key)
+    # def __init__(self, key: Dict):
+    #     super().__init__(key)
 
     # Override
     def __eq__(self, other) -> bool:

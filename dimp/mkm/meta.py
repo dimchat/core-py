@@ -35,7 +35,7 @@ from mkm.format import utf8_encode
 from mkm.format import TransportableData
 from mkm.crypto import VerifyKey, PublicKey
 from mkm.types import Dictionary
-from mkm.plugins import SharedAccountExtensions
+from mkm.ext import SharedAccountExtensions
 from mkm import Meta
 
 

@@ -369,14 +369,11 @@ class NameCardContent(BaseContent, NameCard):
                 'params error: %s, %s, %s, %s' % (content, identifier, name, avatar)
             super().__init__(content=content)
         # lazy load
-        self.__id = identifier
         self.__avatar = avatar
 
     @property  # Override
     def identifier(self) -> ID:
-        if self.__id is None:
-            self.__id = ID.parse(identifier=self.get('did'))
-        return self.__id
+        return ID.parse(identifier=self.get('did'))
 
     @property  # Override
     def name(self) -> str:

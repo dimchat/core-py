@@ -4,7 +4,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/core-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/core-py/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/core-py)](https://github.com/dimchat/core-py/issues)
-[![Repo Size](https://img.shields.io/github/repo-size/dimchat/core-py)](https://github.com/dimchat/core-py/archive/refs/heads/main.zip)
+[![Repo Size](https://img.shields.io/github/repo-size/dimchat/core-py)](https://github.com/dimchat/core-py/archive/refs/heads/master.zip)
 [![Tags](https://img.shields.io/github/tag/dimchat/core-py)](https://github.com/dimchat/core-py/tags)
 [![Version](https://img.shields.io/pypi/v/dimp)](https://pypi.org/project/dimp)
 
@@ -22,7 +22,7 @@
 
 ## Examples
 
-### extends Command
+### Extends Command
 
 * _Handshake Command Protocol_
   0. (C-S) handshake start
@@ -158,94 +158,48 @@ class BaseHandshakeCommand(BaseCommand, HandshakeCommand):
         return handshake_state(title=self.title, session=self.session)
 ```
 
-### extends Content
+### Extends Content
 
 ```python
-from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from dimp import ContentType
-from dimp import Content
-from dimp import BaseContent
+from dimp import *
 
 
-class AppContent(Content, ABC):
+class ApplicationContent(BaseContent, AppContent):
     """
         Application Customized message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : 0xA0,
+            type : i2s(0xA0),
             sn   : 123,
 
             app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
-            mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
-            act   : "{ACTION}",  // action name (e.g.: "throw")
             extra : info         // action parameters
         }
     """
 
-    @property
-    @abstractmethod
-    def application(self) -> str:
-        """ App ID """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def module(self) -> str:
-        """ Module Name """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def action(self) -> str:
-        """ Action Name """
-        raise NotImplemented
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def create(cls, app: str, mod: str, act: str):
-        return ApplicationContent(app=app, mod=mod, act=act)
-
-
-class ApplicationContent(BaseContent, AppContent):
-
     def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: str = None,
-                 app: str = None, mod: str = None, act: str = None):
+                 msg_type: str = None, app: str = None):
         if content is None:
-            # 1. new content with type, application, module & action
-            assert app is not None and mod is not None and act is not None, \
-                'customized content error: %s, %s, %s, %s' % (msg_type, app, mod, act)
+            # 1. new content with type, app_id
+            assert app is not None, 'customized content error: %s, %s' % (msg_type, app)
             if msg_type is None:
                 msg_type = ContentType.APPLICATION
             super().__init__(None, msg_type)
             self['app'] = app
-            self['mod'] = mod
-            self['act'] = act
         else:
             # 2. content info from network
-            assert msg_type is None and app is None and mod is None and act is None, \
-                'params error: %s, %s, %s, %s, %s' % (content, msg_type, app, mod, act)
+            assert msg_type is None and app is None, 'params error: %s, %s, %s' % (content, msg_type, app)
             super().__init__(content)
 
     @property  # Override
     def application(self) -> str:
         return self.get_str(key='app', default='')
-
-    @property  # Override
-    def module(self) -> str:
-        return self.get_str(key='mod', default='')
-
-    @property  # Override
-    def action(self) -> str:
-        return self.get_str(key='act', default='')
 ```
 
-### extends ID Address
+### Extends ID Address
 
 * Examples in [dim plugins](https://pypi.org/project/dimplugins)
 
