@@ -14,7 +14,7 @@ import io
 
 from setuptools import setup, find_packages
 
-__version__ = '2.3.4'
+__version__ = '2.3.5'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
@@ -39,6 +39,6 @@ setup(
     ],
     install_requires=[
         'dkd>=2.3.4',
-        'mkm>=2.3.4',
+        'mkm>=2.3.5',
     ]
 )

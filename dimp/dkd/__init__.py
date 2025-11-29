@@ -46,7 +46,6 @@ from ..protocol.receipt import BaseReceiptCommand
 from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
 from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand
 from ..protocol.groups import JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
-from ..protocol.groups import HireGroupCommand, FireGroupCommand, ResignGroupCommand
 
 # from ..protocol.base import CommandHelper
 # from ..protocol.helpers import CommandExtensions
@@ -79,7 +78,6 @@ __all__ = [
     # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
-    'HireCommand', 'FireCommand', 'ResignCommand',
 
     #
     #   Factories
@@ -111,7 +109,6 @@ __all__ = [
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand',
     'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
-    'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
     #
     #   Plugins

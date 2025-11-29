@@ -158,7 +158,6 @@ __all__ = [
     # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
-    'HireCommand', 'FireCommand', 'ResignCommand',
 
     # extend contents
     'BaseContent',
@@ -178,7 +177,6 @@ __all__ = [
     'BaseHistoryCommand', 'BaseGroupCommand',
     'InviteGroupCommand', 'ExpelGroupCommand',
     'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
-    'HireGroupCommand', 'FireGroupCommand', 'ResignGroupCommand',
 
     #
     #   Message

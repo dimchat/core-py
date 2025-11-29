@@ -60,7 +60,7 @@ __all__ = [
     #   Account
     #
 
-    'AddressHelper', 'IdentifierHelper',
+    'AddressHelper', 'IDHelper',
     'MetaHelper', 'DocumentHelper',
     # 'AccountExtensions',
 

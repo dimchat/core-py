@@ -60,7 +60,6 @@ from .receipt import ReceiptCommand
 
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, ResetCommand
-from .groups import HireCommand, FireCommand, ResignCommand
 
 # from .base import CommandHelper, GeneralCommandHelper, SharedCommandExtensions
 # from .helpers import CommandExtensions
@@ -119,7 +118,6 @@ __all__ = [
     # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
-    'HireCommand', 'FireCommand', 'ResignCommand',
 
     #
     #   Plugins
