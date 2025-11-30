@@ -48,6 +48,27 @@ class Visa(Document, ABC):
 
     @property
     @abstractmethod
+    def name(self) -> Optional[str]:
+        """
+        Get nickname
+
+        :return: user name
+        """
+        raise NotImplemented
+
+    @name.setter
+    @abstractmethod
+    def name(self, nickname: str):
+        """
+        Set nickname
+
+        :param nickname: user name
+        :return:
+        """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
     def public_key(self) -> Optional[EncryptKey]:
         """
         Get public key to encrypt message for user
@@ -92,6 +113,27 @@ class Bulletin(Document, ABC):
         Group Document
         ~~~~~~~~~~~~~~
     """
+
+    @property
+    @abstractmethod
+    def name(self) -> Optional[str]:
+        """
+        Get title
+
+        :return: group name
+        """
+        raise NotImplemented
+
+    @name.setter
+    @abstractmethod
+    def name(self, title: str):
+        """
+        Set title
+
+        :param title: group name
+        :return:
+        """
+        raise NotImplemented
 
     @property
     @abstractmethod

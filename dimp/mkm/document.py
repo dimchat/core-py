@@ -260,12 +260,3 @@ class BaseDocument(Dictionary, Document):
     def time(self) -> Optional[DateTime]:
         seconds = self.get_property(name='time')
         return Converter.get_datetime(value=seconds)
-
-    @property  # Override
-    def name(self) -> Optional[str]:
-        text = self.get_property(name='name')
-        return Converter.get_str(value=text)
-
-    @name.setter  # Override
-    def name(self, text: str):
-        self.set_property(name='name', value=text)

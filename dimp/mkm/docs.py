@@ -30,6 +30,7 @@
 
 from typing import Optional, Dict, List
 
+from mkm.types import Converter
 from mkm.crypto import PublicKey, EncryptKey
 from mkm.format import TransportableData
 from mkm.format import PortableNetworkFile
@@ -58,6 +59,15 @@ class BaseVisa(BaseDocument, Visa):
         # lazy
         self.__key: Optional[EncryptKey] = None
         self.__avatar: Optional[PortableNetworkFile] = None
+
+    @property  # Override
+    def name(self) -> Optional[str]:
+        nickname = self.get_property(name='name')
+        return Converter.get_str(value=nickname)
+
+    @name.setter  # Override
+    def name(self, nickname: str):
+        self.set_property(name='name', value=nickname)
 
     """
         Public Key for encryption
@@ -128,6 +138,15 @@ class BaseBulletin(BaseDocument, Bulletin):
             super().__init__(document)
         # lazy
         self.__bots: Optional[List[ID]] = None
+
+    @property  # Override
+    def name(self) -> Optional[str]:
+        title = self.get_property(name='name')
+        return Converter.get_str(value=title)
+
+    @name.setter  # Override
+    def name(self, title: str):
+        self.set_property(name='name', value=title)
 
     @property  # Override
     def founder(self) -> Optional[ID]:

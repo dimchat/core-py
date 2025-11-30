@@ -79,11 +79,10 @@ class GroupCommand(HistoryCommand, ABC):
             type : i2s(0x89),
             sn   : 123,
 
-            command : "reset",   // "invite", "quit", "query", ...
+            command : "reset",   // "invite", "quit", ...
             time    : 123.456,   // command timestamp
 
             group   : "{GROUP_ID}",
-            member  : "{MEMBER_ID}",
             members : ["{MEMBER_ID}",]
         }
     """
@@ -105,23 +104,6 @@ class GroupCommand(HistoryCommand, ABC):
     RESIGN = "resign"
     # -------- command names end --------
 
-    #
-    #   group (group ID already fetched in Content)
-    #
-
-    #
-    #   member/members
-    #
-    @property
-    @abstractmethod
-    def member(self) -> Optional[ID]:
-        raise NotImplemented
-
-    @member.setter
-    @abstractmethod
-    def member(self, user: Optional[ID]):
-        raise NotImplemented
-
     @property
     @abstractmethod
     def members(self) -> Optional[List[ID]]:
@@ -137,17 +119,17 @@ class GroupCommand(HistoryCommand, ABC):
     #
 
     @classmethod
-    def create(cls, cmd: str, group: ID, member: ID = None, members: List[ID] = None):
-        return BaseGroupCommand(cmd=cmd, group=group, member=member, members=members)
+    def create(cls, cmd: str, group: ID, members: List[ID] = None):
+        return BaseGroupCommand(cmd=cmd, group=group, members=members)
 
     @classmethod
-    def invite(cls, group: ID, member: ID = None, members: List[ID] = None):
-        return InviteGroupCommand(group=group, member=member, members=members)
+    def invite(cls, group: ID, members: List[ID]):
+        return InviteGroupCommand(group=group, members=members)
 
     @classmethod
-    def expel(cls, group: ID, member: ID = None, members: List[ID] = None):
+    def expel(cls, group: ID, members: List[ID]):
         """ Deprecated (use 'reset' instead) """
-        return ExpelGroupCommand(group=group, member=member, members=members)
+        return ExpelGroupCommand(group=group, members=members)
 
     @classmethod
     def join(cls, group: ID):
@@ -209,31 +191,12 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
 class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 
     def __init__(self, content: Dict = None,
-                 cmd: str = None, group: ID = None,
-                 member: ID = None, members: List[ID] = None):
+                 cmd: str = None, group: ID = None, members: List[ID] = None):
         super().__init__(content, None, cmd=cmd)
         if group is not None:
             self.group = group
-        if member is not None:
-            self.member = member
-        elif members is not None:
+        if members is not None:
             self.members = members
-
-    #
-    #   group (group ID already fetched in Content)
-    #
-
-    #
-    #   member/members
-    #
-    @property  # Override
-    def member(self) -> Optional[ID]:
-        return ID.parse(identifier=self.get('member'))
-
-    @member.setter  # Override
-    def member(self, user: ID):
-        self.set_string(key='member', value=user)
-        self.pop('members', None)
 
     @property  # Override
     def members(self) -> Optional[List[ID]]:
@@ -242,8 +205,10 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
             # convert all items to ID objects
             return ID.convert(array=array)
         # get from 'member'
-        single = self.member
-        return [] if single is None else [single]
+        single = ID.parse(identifier=self.get('member'))
+        if single is not None:
+            return [single]
+        # assert False, 'failed to get group members'
 
     @members.setter  # Override
     def members(self, users: List[ID]):
@@ -257,18 +222,18 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 
     def __init__(self, content: Dict = None,
-                 group: ID = None, member: ID = None, members: List[ID] = None):
+                 group: ID = None, members: List[ID] = None):
         cmd = GroupCommand.INVITE if content is None else None
-        super().__init__(content, cmd=cmd, group=group, member=member, members=members)
+        super().__init__(content, cmd=cmd, group=group, members=members)
 
 
 class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
     """ Deprecated, use 'reset' instead """
 
     def __init__(self, content: Dict = None,
-                 group: ID = None, member: ID = None, members: List[ID] = None):
+                 group: ID = None, members: List[ID] = None):
         cmd = GroupCommand.EXPEL if content is None else None
-        super().__init__(content, cmd=cmd, group=group, member=member, members=members)
+        super().__init__(content, cmd=cmd, group=group, members=members)
 
 
 class JoinGroupCommand(BaseGroupCommand, JoinCommand):
