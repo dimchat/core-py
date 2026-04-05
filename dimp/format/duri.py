@@ -58,6 +58,11 @@ class Header:
         return self.__encoding
 
     @property
+    def extra(self) -> Optional[Dict[str, str]]:
+        """ extra parameters """
+        return self.__extra
+
+    @property
     def charset(self) -> Optional[str]:
         return self.extra_value(name='charset')
 
@@ -189,11 +194,18 @@ class DataURI:
 
     @property
     def head(self) -> Header:
+        """ data head """
         return self.__head
 
     @property
     def body(self) -> str:
+        """ data body """
         return self.__body
+
+    @property
+    def parameters(self) -> Optional[Dict[str, str]]:
+        """ extra parameters """
+        return self.head.extra
 
     @property
     def content(self) -> bytes:

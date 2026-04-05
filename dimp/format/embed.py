@@ -23,13 +23,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Dict
 
 from mkm.format import base64_encode
 
 from .base import EncodeAlgorithms
 from .base import BaseData
-from .uri import DataURI
+from .duri import DataURI
 
 
 class EmbedData(BaseData):
@@ -46,10 +46,16 @@ class EmbedData(BaseData):
         # lazy load
         self.__data_uri: Optional[DataURI] = None
         self.__mime_type: Optional[str] = None     # default is "text/plain"
+        self.__parameters: Optional[Dict[str, str]] = None
 
     @property
     def encoding(self) -> Optional[str]:
-        return EncodeAlgorithms.BASE_64
+        uri = self.data_uri
+        if uri is not None and uri.is_base64:
+            return EncodeAlgorithms.BASE_64
+        assert uri is not None, 'data uri error'
+        # plaintext
+        return ''
 
     @property
     def binary(self) -> Optional[bytes]:
@@ -71,12 +77,63 @@ class EmbedData(BaseData):
                 self._string = txt
         return txt
 
+    #
+    #   URI Headers
+    #
+
+    def header_value(self, name: str) -> Optional[str]:
+        extra = self.parameters
+        if extra is not None:
+            value = extra[name]
+            if value is not None:
+                # charset
+                # filename
+                return value
+        lo = name.lower()
+        if lo == 'mime-type':
+            return self.mime_type
+        elif lo == 'content-type':
+            return self.mime_type
+        # elif lo == 'encoding':
+        #     return self.encoding
+
     @property
-    def mime_type(self) -> str:
-        return self.__mime_type
+    def parameters(self) -> Optional[Dict[str, str]]:
+        extra = self.__parameters
+        if extra is not None:
+            return extra
+        uri = self.data_uri
+        if uri is not None:
+            return uri.parameters
+
+    @property
+    def mime_type(self) -> Optional[str]:
+        content_type = self.__mime_type
+        if content_type is not None:
+            return content_type
+        uri = self.data_uri
+        if uri is not None:
+            return uri.mime_type
+
+    @property
+    def charset(self) -> Optional[str]:
+        extra = self.parameters
+        if extra is not None:
+            value = extra.get('charset')
+            if value is not None:
+                return value
+        uri = self.data_uri
+        if uri is not None:
+            return uri.charset
+
+    @property
+    def filename(self) -> Optional[str]:
+        extra = self.parameters
+        if extra is not None:
+            return extra.get('filename')
 
     #
-    #  "data:.../...;base64,..."
+    #  Build Data URI: "data:.../...;base64,..."
     #
 
     @property
@@ -97,7 +154,11 @@ class EmbedData(BaseData):
             # build header
             mime_type = self.__mime_type
             header = 'text/plain' if mime_type is None else mime_type
-            # TODO: append other parameters
+            extra = self.__parameters
+            if extra is not None:
+                for key in extra:
+                    value = extra[key]
+                    header += ';%s=%s' % (key, value)
             txt = 'data:%s;base64,%s' % (header, body)
             # self._string = txt
         # parse for data URI
@@ -111,41 +172,53 @@ class EmbedData(BaseData):
 
     @classmethod
     def new(cls, string: Optional[str], binary: Optional[bytes],
-            uri: DataURI = None, mime_type: str = None):
+            uri: DataURI = None, mime_type: str = None, parameters: Dict[str, str] = None):
+        if parameters is None and uri is not None:
+            parameters = uri.parameters
         embed = EmbedData(string=string, binary=binary)
         embed.__data_uri = uri
         embed.__mime_type = mime_type
+        embed.__parameters = parameters
         return embed
 
     @classmethod
     def create(cls, string: Optional[str], binary: Optional[bytes], uri: DataURI = None):
         if uri is None:
             mime_type = None
+            parameters = None
         else:
             mime_type = uri.mime_type
-        return cls.new(string=string, binary=binary, uri=uri, mime_type=mime_type)
+            parameters = uri.parameters
+        return cls.new(string=string, binary=binary, uri=uri, mime_type=mime_type, parameters=parameters)
 
     @classmethod
     def create_with_uri(cls, uri: DataURI):
-        return cls.new(string=uri.string, binary=None, uri=uri, mime_type=uri.mime_type)
+        return cls.new(string=uri.string, binary=None, uri=uri, mime_type=uri.mime_type, parameters=uri.parameters)
 
     @classmethod
     def create_with_string(cls, string: str):
         return cls.new(string=string, binary=None)
 
     @classmethod
-    def create_with_bytes(cls, binary: bytes, mime_type: str):
-        return cls.new(string='', binary=binary, mime_type=mime_type)
+    def create_with_bytes(cls, binary: bytes, mime_type: str, filename: str = None):
+        if filename is None or len(filename) == 0:
+            return cls.new(string='', binary=binary, mime_type=mime_type)
+        # create with 'filename'
+        return cls.new(string='', binary=binary, mime_type=mime_type, parameters={
+            'filename': filename,
+        })
 
-    # Data URI:
+    #
+    #  File Data URI:
     #
     #     "data:image/jpg;base64,{BASE64_ENCODE}"
     #     "data:audio/mp4;base64,{BASE64_ENCODE}"
+    #
 
     @classmethod
-    def image(cls, jpeg: bytes):
-        return cls.create_with_bytes(binary=jpeg, mime_type='image/jpeg')
+    def image(cls, jpeg: bytes, filename: str = None):
+        return cls.create_with_bytes(binary=jpeg, mime_type='image/jpeg', filename=filename)
 
     @classmethod
-    def audio(cls, mp4: bytes):
-        return cls.create_with_bytes(binary=mp4, mime_type='audio/mp4')
+    def audio(cls, mp4: bytes, filename: str = None):
+        return cls.create_with_bytes(binary=mp4, mime_type='audio/mp4', filename=filename)

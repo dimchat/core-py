@@ -23,13 +23,19 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .uri import Header, DataURI
+from .duri import Header, DataURI
 
 from .base import EncodeAlgorithms
 from .base import BaseString, BaseData
 
 from .data import Base64Data, PlainData
 from .embed import EmbedData
+
+from .file import TransportableFile, TransportableFileFactory
+# from .file import TransportableFileHelper
+from .file_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
+from .pnf import PortableNetworkFile
+from .pnf_wrapper import PortableNetworkFileWrapper
 
 
 __all__ = [
@@ -46,5 +52,15 @@ __all__ = [
 
     'Base64Data', 'PlainData',
     'EmbedData',
+
+    #
+    #   TransportableFile
+    #
+
+    'TransportableFile', 'TransportableFileFactory',
+    # 'TransportableFileHelper',
+    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+
+    'PortableNetworkFile', 'PortableNetworkFileWrapper',
 
 ]
