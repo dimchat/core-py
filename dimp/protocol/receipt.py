@@ -39,10 +39,12 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
 from mkm.types import Converter
-from dkd import Envelope, Content
+from dkd.protocol import Envelope, Content
+from dkd.ext import shared_message_extensions
 
 from .base import BaseCommand
 from .commands import Command
+from .quote import QuoteHelper
 
 
 class ReceiptCommand(Command, ABC):
@@ -51,18 +53,18 @@ class ReceiptCommand(Command, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x88),
-            sn   : 456,
+            "type" : i2s(0x88),
+            "sn"   : 67890,
 
-            command : "receipt",
-            text    : "...",  // text message
-            origin  : {       // original message envelope
-                sender    : "...",
-                receiver  : "...",
-                time      : 0,
+            "command" : "receipt",
 
-                sn        : 123,
-                signature : "..."
+            "text"    : "...",  // text message
+            "origin"  : {       // original message envelope
+                "sender"    : "...",
+                "receiver"  : "...",
+                "time"      : 123.45,
+                "sn"        : 12345,
+                "signature" : "..."
             }
         }
     """
@@ -101,16 +103,10 @@ class ReceiptCommand(Command, ABC):
         :param content:  original message body
         :return: ReceiptCommand
         """
-        # get original info
-        if envelope is None:
-            info = None
-        elif content is None:
-            info = cls.purify(envelope=envelope)
-        else:
-            info = cls.purify(envelope=envelope)
-            info['sn'] = content.sn
+        helper = quote_helper()
+        origin = helper.purify_for_receipt(envelope=envelope, content=content)
         # create receipt with text & original info
-        command = BaseReceiptCommand(text=text, origin=info)
+        command = BaseReceiptCommand(text=text, origin=origin)
         # check group in original content
         if content is not None:
             group = content.group
@@ -119,16 +115,11 @@ class ReceiptCommand(Command, ABC):
         # OK
         return command
 
-    @classmethod
-    def purify(cls, envelope: Envelope) -> Dict:
-        info = envelope.copy_dictionary(deep_copy=False)
-        if 'data' in info:
-            info.pop('data', None)
-            info.pop('key', None)
-            info.pop('keys', None)
-            info.pop('meta', None)
-            info.pop('visa', None)
-        return info
+
+def quote_helper():
+    helper = shared_message_extensions.quote_helper
+    assert isinstance(helper, QuoteHelper), 'quote helper error: %s' % helper
+    return helper
 
 
 ###############################

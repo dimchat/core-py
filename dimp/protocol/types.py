@@ -33,88 +33,39 @@ def i2s(value: int) -> str:
     return '%d' % value
 
 
-class MetaType:
-    """
-        @enum MKMMetaVersion
-
-        @abstract Defined for algorithm that generating address.
-
-        @discussion Generate and check ID/Address
-
-            MKMMetaVersion_MKM give a seed string first, and sign this seed to get
-            fingerprint; after that, use the fingerprint to generate address.
-            This will get a firmly relationship between (username, address and key).
-
-            MKMMetaVersion_BTC use the key data to generate address directly.
-            This can build a BTC address for the entity ID (no username).
-
-            MKMMetaVersion_ExBTC use the key data to generate address directly, and
-            sign the seed to get fingerprint (just for binding username and key).
-            This can build a BTC address, and bind a username to the entity ID.
-
-        Bits:
-            0000 0001 - this meta contains seed as ID.name
-            0000 0010 - this meta generate BTC address
-            0000 0100 - this meta generate ETH address
-            ...
-    """
-
-    DEFAULT = i2s(0x01)
-    MKM = i2s(0x01)      # 0000 0001: username@address
-
-    # Bitcoin
-    BTC = i2s(0x02)      # 0000 0010: btc_address
-    ExBTC = i2s(0x03)    # 0000 0011: username@btc_address (RESERVED)
-
-    # Ethereum
-    ETH = i2s(0x04)      # 0000 0100: eth_address
-    ExETH = i2s(0x05)    # 0000 0101: username@eth_address (RESERVED)
-
-    # ...
-
-
-class DocumentType:
-
-    VISA = 'visa'          # for user info (communicate key)
-
-    PROFILE = 'profile'    # for user profile (reserved)
-
-    BULLETIN = 'bulletin'  # for group info (owner, administrators and assistants)
-
-
 class ContentType:
     """
-        @enum DKDContentType
+        @enum ContentType
 
         @abstract A flag to indicate what kind of message content this is.
 
         @discussion A message is something send from one place to another one,
             it can be an instant message, a system command, or something else.
 
-            DKDContentType_Text indicates this is a normal message with plaintext.
+            ContentType_Text indicates this is a normal message with plaintext.
 
-            DKDContentType_File indicates this is a file, it may include filename
+            ContentType_File indicates this is a file, it may include filename
             and file data, but usually the file data will encrypted and upload to
             somewhere and here is just a URL to retrieve it.
 
-            DKDContentType_Image indicates this is an image, it may send the image
-            data directly(encrypt the image data with Base64), but we suggest to
+            ContentType_Image indicates this is an image, it may send the image
+            data directly(encode the image data with Base64), but we suggest to
             include a URL for this image just like the 'File' message, of course
-            you can get a snapshot of this image here.
+            you can get a thumbnail of this image here.
 
-            DKDContentType_Audio indicates this is a voice message, you can get
+            ContentType_Audio indicates this is a voice message, you can get
             a URL to retrieve the voice data just like the 'File' message.
 
-            DKDContentType_Video indicates this is a video file.
+            ContentType_Video indicates this is a video file.
 
-            DKDContentType_Page indicates this is a web page.
+            ContentType_Page indicates this is a web page.
 
-            DKDContentType_Quote indicates this message has quoted another message
+            ContentType_Quote indicates this message has quoted another message
             and the message content should be a plaintext.
 
-            DKDContentType_Command indicates this is a command message.
+            ContentType_Command indicates this is a command message.
 
-            DKDContentType_Forward indicates here contains a TOP-SECRET message
+            ContentType_Forward indicates here contains a TOP-SECRET message
             which needs your help to redirect it to the true receiver.
 
         Bits:

@@ -32,7 +32,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Dict
 
 from mkm.types import DateTime
-from mkm import ID, Meta, Document
+from mkm.protocol import ID, Meta, Document
 
 from .base import Command
 from .base import BaseCommand
@@ -51,12 +51,12 @@ class MetaCommand(Command, ABC):
         ~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x88),
-            sn   : 123,
+            "type" : i2s(0x88),
+            "sn"   : 12345,
 
-            command : "meta", // command name
-            did     : "{ID}", // contact's ID
-            meta    : {...}   // When meta is empty, means query meta for ID
+            "command" : "meta", // command name
+            "did"     : "{ID}", // contact's ID
+            "meta"    : {...}   // When meta is empty, means query meta for ID
         }
     """
 
@@ -108,14 +108,14 @@ class DocumentCommand(MetaCommand, ABC):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x88),
-            sn   : 123,
+            "type" : i2s(0x88),
+            "sn"   : 12345,
 
-            command   : "documents", // command name
-            did       : "{ID}",      // entity ID
-            meta      : {...},       // only for handshaking with new friend
-            documents : [...],       // when this is null, means to query
-            last_time : 12345        // old document time for querying
+            "command"   : "documents", // command name
+            "did"       : "{ID}",      // entity ID
+            "meta"      : {...},       // only for handshaking with new friend
+            "documents" : [...],       // when this is null, means to query
+            "last_time" : 123.45       // old document time for querying
         }
 
     """

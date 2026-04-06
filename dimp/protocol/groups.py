@@ -40,7 +40,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict
 
-from mkm import ID
+from mkm.protocol import ID
 
 from .types import ContentType
 from .commands import Command
@@ -54,12 +54,12 @@ class HistoryCommand(Command, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x89),
-            sn   : 123,
+            "type" : i2s(0x89),
+            "sn"   : 12345,
 
-            command : "...", // command name
-            time    : 0,     // command timestamp
-            extra   : info   // command parameters
+            "command" : "...",   // command name
+            "time"    : 123.45,  // command timestamp
+            "extra"   : info     // command parameters
         }
     """
 
@@ -76,14 +76,14 @@ class GroupCommand(HistoryCommand, ABC):
         ~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x89),
-            sn   : 123,
+            "type" : i2s(0x89),
+            "sn"   : 12345,
 
-            command : "reset",   // "invite", "quit", ...
-            time    : 123.456,   // command timestamp
+            "command" : "reset",   // "invite", "quit", ...
+            "time"    : 123.45,    // command timestamp
 
-            group   : "{GROUP_ID}",
-            members : ["{MEMBER_ID}",]
+            "group"   : "{GROUP_ID}",
+            "members" : ["{MEMBER_ID}",]
         }
     """
 

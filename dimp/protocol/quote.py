@@ -32,7 +32,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
 from mkm.types import Converter
-from dkd import Content, Envelope
+from dkd.protocol import Content, Envelope
+from dkd.ext import MessageExtensions, shared_message_extensions
 
 from .types import ContentType
 from .base import BaseContent
@@ -44,16 +45,16 @@ class QuoteContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x37),
-            sn   : 456,
+            "type" : i2s(0x37),
+            "sn"   : 67890,
 
-            text    : "...",  // text message
-            origin  : {       // original message envelope
-                sender   : "...",
-                receiver : "...",
+            "text"    : "...",  // text message
+            "origin"  : {       // original message envelope
+                "sender"   : "...",
+                "receiver" : "...",
 
-                type     : 0x01,
-                sn       : 123,
+                "type"     : i2s(0x01),
+                "sn"       : 12345,
             }
         }
     """
@@ -87,27 +88,15 @@ class QuoteContent(Content, ABC):
         :param content:  original message body
         :return: ReceiptCommand
         """
-        info = cls.purify(envelope=envelope)
-        info['type'] = content.type
-        info['sn'] = content.sn
-        # update: receiver -> group
-        group = content.group
-        if group is not None:
-            info['receiver'] = str(group)
-        return BaseQuoteContent(text=text, origin=info)
+        helper = quote_helper()
+        origin = helper.purify_for_quote(envelope=envelope, content=content)
+        return BaseQuoteContent(text=text, origin=origin)
 
-    @classmethod
-    def purify(cls, envelope: Envelope) -> Dict:
-        source = envelope.sender
-        target = envelope.group
-        if target is None:
-            target = envelope.receiver
-        # build origin info
-        info = {
-            'sender': str(source),
-            'receiver': str(target),
-        }
-        return info
+
+def quote_helper():
+    helper = shared_message_extensions.quote_helper
+    assert isinstance(helper, QuoteHelper), 'quote helper error: %s' % helper
+    return helper
 
 
 ###############################
@@ -133,7 +122,7 @@ class BaseQuoteContent(BaseContent, QuoteContent):
             assert text is None and origin is None, 'quote error: %s, %s' % (text, origin)
             super().__init__(content=content)
         # lazy load
-        self.__env = None
+        self.__env: Optional[Envelope] = None
 
     @property  # Override
     def text(self) -> str:
@@ -145,10 +134,12 @@ class BaseQuoteContent(BaseContent, QuoteContent):
 
     @property  # Override
     def original_envelope(self) -> Optional[Envelope]:
-        if self.__env is None:
+        env = self.__env
+        if env is None:
             # origin: { sender: "...", receiver: "...", time: 0 }
-            self.__env = Envelope.parse(envelope=self.origin)
-        return self.__env
+            env = Envelope.parse(envelope=self.origin)
+            self.__env = env
+        return env
 
     @property  # Override
     def original_sn(self) -> Optional[int]:
@@ -156,3 +147,66 @@ class BaseQuoteContent(BaseContent, QuoteContent):
         if origin is not None:
             sn = origin.get('sn')
             return Converter.get_int(value=sn)
+
+
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
+
+
+class QuoteHelper(ABC):
+
+    @abstractmethod
+    def purify_for_quote(self, envelope: Envelope, content: Content) -> Dict:
+        raise NotImplemented
+
+    @abstractmethod
+    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
+        raise NotImplemented
+
+
+class QuotePurifier(QuoteHelper):
+
+    # Override
+    def purify_for_quote(self, envelope: Envelope, content: Content) -> Dict:
+        source = envelope.sender
+        target = content.group
+        if target is None:
+            target = envelope.receiver
+        # build origin info
+        return {
+            'sender': str(source),
+            'receiver': str(target),
+            'type': content.type,
+            'sn': content.sn,
+        }
+
+    # Override
+    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
+        if envelope is None:
+            return None
+        origin = envelope.copy_dictionary(deep_copy=False)
+        if 'data' in origin:
+            origin.pop('data', None)
+            origin.pop('key', None)
+            origin.pop('keys', None)
+            origin.pop('meta', None)
+            origin.pop('visa', None)
+        if content is not None:
+            origin['sn'] = content.sn
+        return origin
+
+
+class _QuoteExt:
+    _quote_helper: QuoteHelper = QuotePurifier()
+
+    @property
+    def quote_helper(self) -> QuoteHelper:
+        return _QuoteExt._quote_helper
+
+    @quote_helper.setter
+    def quote_helper(self, helper: QuoteHelper):
+        _QuoteExt._quote_helper = helper
+
+
+MessageExtensions.quote_helper = _QuoteExt.quote_helper

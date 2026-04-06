@@ -38,9 +38,9 @@ from .file_wrapper import TransportableFileWrapper
 class PortableNetworkFile(Dictionary, TransportableFile):
 
     def __init__(self, dictionary: Optional[Dict],
-                 data: Optional[TransportableData], filename: Optional[str],
-                 url: Optional[URI], password: Optional[DecryptKey],
-                 wrapper: Optional[TransportableFileWrapper]):
+                 data: Optional[TransportableData] = None, filename: Optional[str] = None,
+                 url: Optional[URI] = None, password: Optional[DecryptKey] = None,
+                 wrapper: Optional[TransportableFileWrapper] = None):
         super().__init__(dictionary=dictionary)
         if wrapper is None:
             wrapper = TransportableFileWrapper.create(self.dictionary,

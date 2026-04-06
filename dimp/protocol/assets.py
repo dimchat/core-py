@@ -32,8 +32,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union, Dict
 
 from mkm.types import Converter
-from mkm import ID
-from dkd import Content
+from mkm.protocol import ID
+from dkd.protocol import Content
 
 from .types import ContentType
 from .base import BaseContent
@@ -45,11 +45,11 @@ class MoneyContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x40),
-            sn   : 123,
+            "type" : i2s(0x40),
+            "sn"   : 12345,
 
-            currency : "RMB", // USD, USDT, ...
-            amount   : 100.00
+            "currency" : "RMB", // USD, USDT, ...
+            "amount"   : 100.00
         }
     """
 
@@ -86,13 +86,13 @@ class TransferContent(MoneyContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x41),
-            sn   : 123,
+            "type" : i2s(0x41),
+            "sn"   : 12345,
 
-            currency : "RMB",    // USD, USDT, ...
-            amount   : 100.00,
-            remitter : "{FROM}", // sender ID
-            remittee : "{TO}"    // receiver ID
+            "currency" : "RMB",    // USD, USDT, ...
+            "amount"   : 100.00,
+            "remitter" : "{FROM}", // sender ID
+            "remittee" : "{TO}"    // receiver ID
         }
     """
 

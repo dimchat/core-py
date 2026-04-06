@@ -31,8 +31,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict
 
-from dkd import Content
-from dkd import InstantMessage, ReliableMessage
+from dkd.protocol import Content
+from dkd.protocol import InstantMessage, ReliableMessage
 
 from .types import ContentType
 from .base import BaseContent
@@ -44,11 +44,11 @@ class ForwardContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0xFF),
-            sn   : 456,
+            "type" : i2s(0xFF),
+            "sn"   : 67890,
 
-            forward : {...}  // reliable (secure + certified) message
-            secrets : [...]  // reliable (secure + certified) messages
+            "forward" : {...}  // reliable (secure + certified) message
+            "secrets" : [...]  // reliable (secure + certified) messages
         }
     """
 
@@ -79,11 +79,11 @@ class CombineContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0xCF),
-            sn   : 456,
+            "type" : i2s(0xCF),
+            "sn"   : 67890,
 
-            title    : "...",  // chat title
-            messages : [...]   // chat history
+            "title"    : "...",  // chat title
+            "messages" : [...]   // chat history
         }
     """
 
@@ -111,10 +111,10 @@ class ArrayContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0xCA),
-            sn   : 123,
+            "type" : i2s(0xCA),
+            "sn"   : 12345,
 
-            contents : [...]  // content array
+            "contents" : [...]  // content array
         }
     """
 

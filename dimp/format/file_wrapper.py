@@ -104,8 +104,8 @@ class TransportableFileWrapper(ABC):
 
     @classmethod
     def create(cls, content: Dict,
-               data: Optional[TransportableData], filename: Optional[str],
-               url: Optional[URI], password: Optional[DecryptKey]):
+               data: Optional[TransportableData] = None, filename: Optional[str] = None,
+               url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         factory = wrapper_factory()
         return factory.create_transportable_file_wrapper(content,
                                                          data=data, filename=filename,

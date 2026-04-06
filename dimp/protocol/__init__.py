@@ -35,94 +35,130 @@
     Define universal message types as contents and commands
 """
 
-from mkm.types import *
-from mkm.format import *
-from mkm.crypto import *
-
 from mkm.protocol import *
 from dkd.protocol import *
 
-from mkm import ANYWHERE, EVERYWHERE, ANYONE, EVERYONE, FOUNDER
-
-from .types import MetaType, DocumentType, ContentType
+from .version import MetaType, DocumentType
 from .docs import Visa, Bulletin
 
-from .contents import TextContent, PageContent, NameCard
-from .forward import ForwardContent, CombineContent, ArrayContent
-from .files import FileContent, ImageContent, AudioContent, VideoContent
-from .assets import MoneyContent, TransferContent
-from .quote import QuoteContent
-from .app import CustomizedContent
+from .types import ContentType
 
 from .base import Command, CommandFactory
+# from .base import BaseContent, BaseCommand
+# from .base import CommandHelper, GeneralCommandHelper
+
+from .contents import TextContent, PageContent, NameCard
+# from .contents import BaseTextContent, WebPageContent, NameCardContent
+
+from .assets import MoneyContent, TransferContent
+# from .assets import BaseMoneyContent, TransferMoneyContent
+
+from .files import FileContent, ImageContent, AudioContent, VideoContent
+# from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+
+from .forward import ForwardContent, CombineContent, ArrayContent
+# from .forward import SecretContent, CombineForwardContent, ListContent
+
+from .quote import QuoteContent
+# from .quote import BaseQuoteContent
+# from .quote import QuoteHelper, QuotePurifier
+
 from .commands import MetaCommand, DocumentCommand
+# from .commands import BaseMetaCommand, BaseDocumentCommand
+
 from .receipt import ReceiptCommand
+# from .receipt import BaseReceiptCommand
 
 from .groups import HistoryCommand, GroupCommand
 from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, ResetCommand
-
-# from .base import CommandHelper, GeneralCommandHelper, SharedCommandExtensions
-# from .helpers import CommandExtensions
+# from .groups import BaseHistoryCommand, BaseGroupCommand
+# from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
 
 
 __all__ = [
-
-    'URI', 'DateTime',
-    'TransportableData', 'PortableNetworkFile',
-
-    'CryptographyKey',
-    'EncryptKey', 'DecryptKey', 'SignKey', 'VerifyKey',
-    'SymmetricKey', 'AsymmetricKey',
-    'PrivateKey', 'PublicKey',
 
     #
     #   MingKeMing
     #
 
     'EntityType',
-    'Address',   # 'AddressFactory',
-    'ID',        # 'IDFactory',
-    'Meta',      # 'MetaFactory',
-    'Document',  # 'DocumentFactory',
-    'Visa', 'Bulletin',
+    'Address', 'ID',
+    'Meta', 'TAI', 'Document',
 
-    'ANYWHERE', 'EVERYWHERE', 'ANYONE', 'EVERYONE', 'FOUNDER',
+    'AddressFactory', 'IDFactory',
+    'MetaFactory', 'DocumentFactory',
 
-    'MetaType', 'DocumentType',
+    'ANYWHERE', 'EVERYWHERE',
+    'ANYONE', 'EVERYONE', 'FOUNDER',
+    # 'BroadcastAddress', 'Identifier',
+
+    # 'AddressHelper', 'IDHelper',
+    # 'MetaHelper', 'DocumentHelper',
+    # 'AccountExtensions', 'shared_account_extensions',
 
     #
     #   DaoKeDao
     #
 
-    'ContentType',
-    'Content',          # 'ContentFactory',
-    'Envelope',         # 'EnvelopeFactory',
+    'Content', 'Envelope',
     'Message',
-    'InstantMessage',   # 'InstantMessageFactory',
-    'SecureMessage',    # 'SecureMessageFactory',
-    'ReliableMessage',  # 'ReliableMessageFactory',
+    'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
-    # contents
+    'ContentFactory', 'EnvelopeFactory',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    # 'ContentHelper', 'EnvelopeHelper',
+    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'MessageExtensions', 'shared_message_extensions',
+
+    #
+    #  Extends
+    #
+
+    'MetaType',
+    'DocumentType',
+    'Visa', 'Bulletin',
+
+    'ContentType',
+
+    'Command', 'CommandFactory',
+    # 'CommandHelper', 'GeneralCommandHelper',
+
+    #
+    #  Content Extends
+    #
+
     'TextContent', 'PageContent', 'NameCard',
-    'ForwardContent', 'CombineContent', 'ArrayContent',
-    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'MoneyContent', 'TransferContent',
-    'QuoteContent',
-    'CustomizedContent',
+    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'ForwardContent', 'CombineContent', 'ArrayContent',
+    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier',
 
-    # commands
-    'Command',          # 'CommandFactory',
+    #
+    #  Command Extends
+    #
+
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
 
-    # group history
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
 
     #
-    #   Plugins
+    #   Implementations
     #
 
-    # 'CommandHelper', 'CommandExtensions',
+    # 'BaseContent', 'BaseCommand',
+
+    # 'BaseTextContent', 'WebPageContent', 'NameCardContent',
+    # 'BaseMoneyContent', 'TransferMoneyContent',
+    # 'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
+    # 'SecretContent', 'CombineForwardContent', 'ListContent',
+    # 'BaseQuoteContent',
+
+    # 'BaseMetaCommand', 'BaseDocumentCommand',
+    # 'BaseReceiptCommand',
+    # 'BaseHistoryCommand', 'BaseGroupCommand',
+    # 'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
 
 ]

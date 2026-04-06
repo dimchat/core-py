@@ -32,9 +32,10 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
 from mkm.types import URI
-from mkm.format import PortableNetworkFile
-from mkm import ID
-from dkd import Content
+from mkm.protocol import ID
+from dkd.protocol import Content
+
+from ..format import TransportableFile
 
 from .types import ContentType
 from .base import BaseContent
@@ -46,10 +47,10 @@ class TextContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x01),
-            sn   : 123,
+            "type" : i2s(0x01),
+            "sn"   : 12345,
 
-            text : "..."
+            "text" : "..."
         }
     """
 
@@ -75,19 +76,19 @@ class PageContent(Content, ABC):
         ~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x20),
-            sn   : 123,
+            "type" : i2s(0x20),
+            "sn"   : 12345,
 
-            title : "...",                // Web title
-            desc  : "...",
-            icon  : "data:image/x-icon;base64,...",
+            "title" : "...",                // Web title
+            "desc"  : "...",
+            "icon"  : "data:image/x-icon;base64,...",
 
-            URL   : "https://github.com/moky/dimp",
+            "URL"   : "https://github.com/moky/dimp",
 
-            HTML      : "...",            // Web content
-            mime_type : "text/html",      // Content-Type
-            encoding  : "utf8",
-            base      : "about:blank"     // Base URL
+            "HTML"      : "...",            // Web content
+            "mime_type" : "text/html",      // Content-Type
+            "encoding"  : "utf8",
+            "base"      : "about:blank"     // Base URL
         }
     """
 
@@ -111,12 +112,12 @@ class PageContent(Content, ABC):
 
     @property
     @abstractmethod
-    def icon(self) -> Optional[PortableNetworkFile]:
+    def icon(self) -> Optional[TransportableFile]:
         raise NotImplemented
 
     @icon.setter
     @abstractmethod
-    def icon(self, img: PortableNetworkFile):
+    def icon(self, img: TransportableFile):
         raise NotImplemented
 
     #
@@ -166,15 +167,15 @@ class PageContent(Content, ABC):
     #
     @classmethod
     def create(cls, url: Optional[URI], html: Optional[str], title: str,
-               desc: Optional[str], icon: Optional[PortableNetworkFile]):
+               desc: Optional[str], icon: Optional[TransportableFile]):
         return WebPageContent(url=url, html=html, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Optional[PortableNetworkFile]):
+    def create_with_url(cls, url: URI, title: str, desc: Optional[str], icon: Optional[TransportableFile]):
         return cls.create(url=url, html=None, title=title, desc=desc, icon=icon)
 
     @classmethod
-    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Optional[PortableNetworkFile]):
+    def create_with_html(cls, html: str, title: str, desc: Optional[str], icon: Optional[TransportableFile]):
         return cls.create(url=None, html=html, title=title, desc=desc, icon=icon)
 
 
@@ -184,12 +185,12 @@ class NameCard(Content, ABC):
         ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x33),
-            sn   : 123,
+            "type" : i2s(0x33),
+            "sn"   : 12345,
 
-            did    : "{ID}",        // contact's ID
-            name   : "{nickname}}", // contact's name
-            avatar : "{URL}"        // avatar - PNF(URL)
+            "did"    : "{ID}",        // contact's ID
+            "name"   : "{nickname}}", // contact's name
+            "avatar" : "{URL}"        // avatar - PNF(URL)
         }
     """
 
@@ -205,14 +206,14 @@ class NameCard(Content, ABC):
 
     @property
     @abstractmethod
-    def avatar(self) -> Optional[PortableNetworkFile]:
+    def avatar(self) -> Optional[TransportableFile]:
         raise NotImplemented
 
     #
     #   Factory method
     #
     @classmethod
-    def create(cls, identifier: ID, name: str, avatar: Optional[PortableNetworkFile]):
+    def create(cls, identifier: ID, name: str, avatar: Optional[TransportableFile]):
         return NameCardContent(identifier=identifier, name=name, avatar=avatar)
 
 
@@ -249,7 +250,7 @@ class WebPageContent(BaseContent, PageContent):
 
     def __init__(self, content: Dict = None,
                  url: URI = None, html: str = None, title: str = None,
-                 desc: Optional[str] = None, icon: Optional[PortableNetworkFile] = None):
+                 desc: Optional[str] = None, icon: Optional[TransportableFile] = None):
         if content is None:
             # 1. new content with url, title, desc & icon
             assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
@@ -258,7 +259,7 @@ class WebPageContent(BaseContent, PageContent):
         else:
             # 2. content info from network
             super().__init__(content)
-        self.__icon = None  # PNF
+        self.__icon: Optional[TransportableFile] = None  # PNF
         # URL or HTML
         if url is not None:
             self.url = url
@@ -270,6 +271,15 @@ class WebPageContent(BaseContent, PageContent):
             self.desc = desc
         if icon is not None:
             self.icon = icon
+
+    @property  # Override
+    def dictionary(self) -> Dict:
+        # serialize 'icon'
+        img = self.__icon
+        if img is not None and self.get('icon') is None:
+            self['icon'] = img.serialize()
+        # OK
+        return super().dictionary
 
     #
     #   Web Title
@@ -288,19 +298,18 @@ class WebPageContent(BaseContent, PageContent):
     #
 
     @property  # Override
-    def icon(self) -> Optional[PortableNetworkFile]:
+    def icon(self) -> Optional[TransportableFile]:
         img = self.__icon
         if img is None:
-            base64 = self.get_str(key='icon')
-            img = self.__icon = PortableNetworkFile.parse(base64)
+            base64 = self.get('icon')
+            img = TransportableFile.parse(base64)
+            self.__icon = img
         return img
 
     @icon.setter  # Override
-    def icon(self, img: PortableNetworkFile):
-        if img is None:
-            self.pop('icon', None)
-        else:
-            self['icon'] = img.object
+    def icon(self, img: TransportableFile):
+        self.pop('icon', None)
+        # self['icon'] = None if img is None else img.serialize()
         self.__icon = img
 
     #
@@ -328,9 +337,12 @@ class WebPageContent(BaseContent, PageContent):
         return self.get_str(key='URL')
 
     @url.setter  # Override
-    def url(self, locator: URI):
+    def url(self, remote: URI):
         # TODO: convert URI to str
-        self['URL'] = locator
+        if remote is None:
+            self.pop('URL', None)
+        else:
+            self['URL'] = remote
 
     #
     #   Page content
@@ -352,17 +364,19 @@ class NameCardContent(BaseContent, NameCard):
 
     def __init__(self, content: Dict = None,
                  identifier: ID = None,
-                 name: str = None, avatar: Optional[PortableNetworkFile] = None):
+                 name: str = None, avatar: Optional[TransportableFile] = None):
         if content is None:
             # 1. new content with ID, name & avatar
             assert identifier is not None and name is not None, \
                 'name card info error: %s, %s, %s' % (identifier, name, avatar)
             msg_type = ContentType.NAME_CARD
             super().__init__(None, msg_type)
+            # ID
             self.set_string(key='did', value=identifier)
+            # name
             self['name'] = name
-            if avatar is not None:
-                self['avatar'] = avatar.object
+            # if avatar is not None:
+            #     self['avatar'] = avatar.serialize()
         else:
             # 2. content info from network
             assert identifier is None and name is None and avatar is None, \
@@ -372,17 +386,28 @@ class NameCardContent(BaseContent, NameCard):
         self.__avatar = avatar
 
     @property  # Override
+    def dictionary(self) -> Dict:
+        # serialize 'avatar'
+        img = self.__avatar
+        if img is not None and self.get('avatar') is None:
+            self['avatar'] = img.serialize()
+        # OK
+        return super().dictionary
+
+    @property  # Override
     def identifier(self) -> ID:
-        return ID.parse(identifier=self.get('did'))
+        did = self.get('did')
+        return ID.parse(identifier=did)
 
     @property  # Override
     def name(self) -> str:
         return self.get_str(key='name', default='')
 
     @property  # Override
-    def avatar(self) -> Optional[PortableNetworkFile]:
+    def avatar(self) -> Optional[TransportableFile]:
         img = self.__avatar
         if img is None:
             url = self.get('avatar')
-            img = self.__avatar = PortableNetworkFile.parse(url)
+            img = TransportableFile.parse(url)
+            self.__avatar = img
         return img

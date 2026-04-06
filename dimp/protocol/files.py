@@ -33,11 +33,12 @@ from typing import Optional, Dict
 
 from mkm.types import URI
 from mkm.format import TransportableData
-from mkm.format import PortableNetworkFile
 from mkm.crypto import DecryptKey
-from dkd import Content
+from dkd.protocol import Content
 
-from ..crypto import BaseFileWrapper
+from ..format import TransportableFile
+from ..format import TransportableFileWrapper
+from ..format import PortableNetworkFile
 
 from .types import ContentType
 from .base import BaseContent
@@ -49,18 +50,18 @@ class FileContent(Content, ABC):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x10),
-            sn   : 123,
+            "type" : i2s(0x10),
+            "sn"   : 12345,
 
-            data     : "...",        // base64_encode(fileContent)
-            filename : "photo.png",
+            "data"     : "...",        // base64_encode(fileContent)
+            "filename" : "photo.png",
 
-            URL      : "http://...", // download from CDN
+            "URL"      : "http://...", // download from CDN
             // before fileContent uploaded to a public CDN,
             // it should be encrypted by a symmetric key
-            key      : {             // symmetric key to decrypt file content
-                algorithm : "AES",   // "DES", ...
-                data      : "{BASE64_ENCODE}",
+            "key"      : {             // symmetric key to decrypt file content
+                "algorithm" : "AES",   // "DES", ...
+                "data"      : "{BASE64_ENCODE}",
                 ...
             }
         }
@@ -68,13 +69,13 @@ class FileContent(Content, ABC):
 
     @property
     @abstractmethod
-    def data(self) -> Optional[bytes]:
+    def data(self) -> Optional[TransportableData]:
         # file data (it's too big to set in the dictionary)
         raise NotImplemented
 
     @data.setter
     @abstractmethod
-    def data(self, attachment: Optional[bytes]):
+    def data(self, attachment: Optional[TransportableData]):
         raise NotImplemented
 
     @property
@@ -106,6 +107,15 @@ class FileContent(Content, ABC):
     @password.setter
     @abstractmethod
     def password(self, key: DecryptKey):
+        raise NotImplemented
+
+    #
+    #   PNF transforming
+    #
+
+    @property
+    @abstractmethod
+    def transportable_file(self) -> TransportableFile:
         raise NotImplemented
 
     #
@@ -152,33 +162,33 @@ class ImageContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x12),
-            sn   : 123,
+            "type" : i2s(0x12),
+            "sn"   : 12345,
 
-            data     : "...",        // base64_encode(fileContent)
-            filename : "photo.png",
+            "data"     : "...",        // base64_encode(fileContent)
+            "filename" : "photo.png",
 
-            URL      : "http://...", // download from CDN
+            "URL"      : "http://...", // download from CDN
             // before fileContent uploaded to a public CDN,
             // it should be encrypted by a symmetric key
-            key      : {             // symmetric key to decrypt file content
-                algorithm : "AES",   // "DES", ...
-                data      : "{BASE64_ENCODE}",
+            "key"      : {             // symmetric key to decrypt file content
+                "algorithm" : "AES",   // "DES", ...
+                "data"      : "{BASE64_ENCODE}",
                 ...
             },
-            thumbnail : "data:image/jpeg;base64,..."
+            "thumbnail" : "data:image/jpeg;base64,..."
         }
     """
 
     @property
     @abstractmethod
-    def thumbnail(self) -> Optional[PortableNetworkFile]:
+    def thumbnail(self) -> Optional[TransportableFile]:
         # thumbnail of image
         raise NotImplemented
 
     @thumbnail.setter
     @abstractmethod
-    def thumbnail(self, img: PortableNetworkFile):
+    def thumbnail(self, img: TransportableFile):
         raise NotImplemented
 
 
@@ -188,27 +198,27 @@ class AudioContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x14),
-            sn   : 123,
+            "type" : i2s(0x14),
+            "sn"   : 12345,
 
-            data     : "...",        // base64_encode(fileContent)
-            filename : "photo.png",
+            "data"     : "...",        // base64_encode(fileContent)
+            "filename" : "photo.png",
 
-            URL      : "http://...", // download from CDN
+            "URL"      : "http://...", // download from CDN
             // before fileContent uploaded to a public CDN,
             // it should be encrypted by a symmetric key
-            key      : {             // symmetric key to decrypt file content
-                algorithm : "AES",   // "DES", ...
-                data      : "{BASE64_ENCODE}",
+            "key"      : {             // symmetric key to decrypt file content
+                "algorithm" : "AES",   // "DES", ...
+                "data"      : "{BASE64_ENCODE}",
                 ...
             },
-            text     : "..."         // Automatic Speech Recognition
+            "text"     : "..."         // Automatic Speech Recognition
         }
     """
 
     @property
     @abstractmethod
-    def text(self) -> Optional[bytes]:
+    def text(self) -> Optional[str]:
         # Automatic Speech Recognition
         raise NotImplemented
 
@@ -224,33 +234,33 @@ class VideoContent(FileContent, ABC):
         ~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x16),
-            sn   : 123,
+            "type" : i2s(0x16),
+            "sn"   : 12345,
 
-            data     : "...",        // base64_encode(fileContent)
-            filename : "photo.png",
+            "data"     : "...",        // base64_encode(fileContent)
+            "filename" : "photo.png",
 
-            URL      : "http://...", // download from CDN
+            "URL"      : "http://...", // download from CDN
             // before fileContent uploaded to a public CDN,
             // it should be encrypted by a symmetric key
-            key      : {             // symmetric key to decrypt file content
-                algorithm : "AES",   // "DES", ...
-                data      : "{BASE64_ENCODE}",
+            "key"      : {             // symmetric key to decrypt file content
+                "algorithm" : "AES",   // "DES", ...
+                "data"      : "{BASE64_ENCODE}",
                 ...
             },
-            snapshot : "data:image/jpeg;base64,..."
+            "snapshot" : "data:image/jpeg;base64,..."
         }
     """
 
     @property
     @abstractmethod
-    def snapshot(self) -> Optional[PortableNetworkFile]:
+    def snapshot(self) -> Optional[TransportableFile]:
         # snapshot of video
         raise NotImplemented
 
     @snapshot.setter
     @abstractmethod
-    def snapshot(self, img: PortableNetworkFile):
+    def snapshot(self, img: TransportableFile):
         raise NotImplemented
 
 
@@ -273,57 +283,68 @@ class BaseFileContent(BaseContent, FileContent):
             if msg_type is None:
                 msg_type = ContentType.FILE
             super().__init__(None, msg_type)
-            # access via the wrapper
-            wrapper = BaseFileWrapper(dictionary=self.dictionary)
-            if data is not None:
-                wrapper.data = data
-            if filename is not None:
-                wrapper.filename = filename
-            if url is not None:
-                wrapper.url = url
-            if password is not None:
-                wrapper.password = password
         else:
             # 2. content from network
             assert msg_type is None and data is None and filename is None and url is None and password is None, \
                 'params error: %s, %s, %s, %s, %s, %s' % (content, msg_type, data, filename, url, password)
             super().__init__(content)
-            wrapper = BaseFileWrapper(dictionary=self.dictionary)
-        self.__wrapper = wrapper
+        # access via the wrapper
+        self.__wrapper = TransportableFileWrapper.create(super().dictionary,
+                                                         data=data, filename=filename,
+                                                         url=url, password=password)
 
     @property  # Override
-    def data(self) -> Optional[bytes]:
-        ted = self.__wrapper.data
-        if ted is not None:
-            return ted.data
+    def dictionary(self) -> Dict:
+        """ call wrapper to serialize 'data' & 'key" """
+        wrapper = self.__wrapper
+        return wrapper.dictionary
+
+    @property  # Override
+    def transportable_file(self) -> TransportableFile:
+        """ clone without serializations """
+        info = super().dictionary
+        wrapper = self.__wrapper
+        return PortableNetworkFile(dictionary=info, wrapper=wrapper)
+
+    @property  # Override
+    def data(self) -> Optional[TransportableData]:
+        wrapper = self.__wrapper
+        return wrapper.data
 
     @data.setter  # Override
-    def data(self, attachment: bytes):
-        self.__wrapper.set_data(attachment)
+    def data(self, attachment: TransportableData):
+        wrapper = self.__wrapper
+        wrapper.data = attachment
 
     @property  # Override
     def filename(self) -> Optional[str]:
-        return self.__wrapper.filename
+        wrapper = self.__wrapper
+        return wrapper.filename
 
     @filename.setter  # Override
     def filename(self, name: str):
-        self.__wrapper.filename = name
+        wrapper = self.__wrapper
+        wrapper.filename = name
 
     @property  # Override
     def url(self) -> Optional[URI]:
-        return self.__wrapper.url
+        wrapper = self.__wrapper
+        return wrapper.url
 
     @url.setter  # Override
     def url(self, remote: str):
-        self.__wrapper.url = remote
+        wrapper = self.__wrapper
+        wrapper.url = remote
 
     @property  # Override
     def password(self) -> Optional[DecryptKey]:
-        return self.__wrapper.password
+        wrapper = self.__wrapper
+        return wrapper.password
 
     @password.setter  # Override
     def password(self, key: DecryptKey):
-        self.__wrapper.password = key
+        wrapper = self.__wrapper
+        wrapper.password = key
 
 
 class ImageFileContent(BaseFileContent, ImageContent):
@@ -335,22 +356,39 @@ class ImageFileContent(BaseFileContent, ImageContent):
         msg_type = ContentType.IMAGE if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # small image
-        self.__thumbnail: Optional[PortableNetworkFile] = None
+        self.__thumbnail: Optional[TransportableFile] = None
 
     @property  # Override
-    def thumbnail(self) -> Optional[PortableNetworkFile]:
+    def dictionary(self) -> Dict:
+        # serialize 'thumbnail'
+        img = self.__thumbnail
+        if img is not None and self.get('thumbnail') is None:
+            self['thumbnail'] = img.serialize()
+        # OK
+        return super().dictionary
+
+    @property  # Override
+    def transportable_file(self) -> TransportableFile:
+        # serialize 'thumbnail'
+        img = self.__thumbnail
+        if img is not None and self.get('thumbnail') is None:
+            self['thumbnail'] = img.serialize()
+        # clone without other serializations
+        return super().transportable_file
+
+    @property  # Override
+    def thumbnail(self) -> Optional[TransportableFile]:
         img = self.__thumbnail
         if img is None:
-            base64 = self.get_str(key='thumbnail')
-            img = self.__thumbnail = PortableNetworkFile.parse(base64)
+            base64 = self.get('thumbnail')
+            img = TransportableFile.parse(base64)
+            self.__thumbnail = img
         return img
 
     @thumbnail.setter  # Override
-    def thumbnail(self, img: PortableNetworkFile):
-        if img is None:
-            self.pop('thumbnail', None)
-        else:
-            self['thumbnail'] = img.object
+    def thumbnail(self, img: TransportableFile):
+        self.pop('thumbnail', None)
+        # self['thumbnail'] = None if img is None else img.serialize()
         self.__thumbnail = img
 
 
@@ -381,20 +419,37 @@ class VideoFileContent(BaseFileContent, VideoContent):
         msg_type = ContentType.VIDEO if content is None else None
         super().__init__(content, msg_type, data=data, filename=filename, url=url, password=password)
         # small image
-        self.__snapshot: Optional[PortableNetworkFile] = None
+        self.__snapshot: Optional[TransportableFile] = None
 
     @property  # Override
-    def snapshot(self) -> Optional[PortableNetworkFile]:
+    def dictionary(self) -> Dict:
+        # serialize 'snapshot'
+        img = self.__snapshot
+        if img is not None and self.get('snapshot') is None:
+            self['snapshot'] = img.serialize()
+        # OK
+        return super().dictionary
+
+    @property  # Override
+    def transportable_file(self) -> TransportableFile:
+        # serialize 'snapshot'
+        img = self.__snapshot
+        if img is not None and self.get('snapshot') is None:
+            self['snapshot'] = img.serialize()
+        # clone without other serializations
+        return super().transportable_file
+
+    @property  # Override
+    def snapshot(self) -> Optional[TransportableFile]:
         img = self.__snapshot
         if img is None:
-            base64 = self.get_str(key='snapshot')
-            img = self.__snapshot = PortableNetworkFile.parse(base64)
+            base64 = self.get('snapshot')
+            img = TransportableFile.parse(base64)
+            self.__snapshot = img
         return img
 
     @snapshot.setter  # Override
-    def snapshot(self, img: PortableNetworkFile):
-        if img is None:
-            self.pop('snapshot', None)
-        else:
-            self['snapshot'] = img.object
+    def snapshot(self, img: TransportableFile):
+        self.pop('snapshot', None)
+        # self['snapshot'] = None if img is None else img.serialize()
         self.__snapshot = img

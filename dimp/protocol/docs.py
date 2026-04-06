@@ -29,13 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional
 
 from mkm.crypto import EncryptKey
-from mkm.format import PortableNetworkFile
+from mkm.protocol import ID
+from mkm.protocol import Document
 
-from mkm import ID
-from mkm import Document
+from ..format import TransportableFile
 
 
 class Visa(Document, ABC):
@@ -89,7 +89,7 @@ class Visa(Document, ABC):
 
     @property
     @abstractmethod
-    def avatar(self) -> Optional[PortableNetworkFile]:
+    def avatar(self) -> Optional[TransportableFile]:
         """
         Get avatar URL
 
@@ -99,7 +99,7 @@ class Visa(Document, ABC):
 
     @avatar.setter
     @abstractmethod
-    def avatar(self, url: PortableNetworkFile):
+    def avatar(self, url: TransportableFile):
         """
         Set avatar URL
 
@@ -142,25 +142,5 @@ class Bulletin(Document, ABC):
         Get group founder
 
         :return: user ID
-        """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def assistants(self) -> Optional[List[ID]]:
-        """
-        Get group assistants
-
-        :return: bot ID list
-        """
-        raise NotImplemented
-
-    @assistants.setter
-    @abstractmethod
-    def assistants(self, bots: List[ID]):
-        """
-        Set group assistants
-
-        :param bots: bot ID list
         """
         raise NotImplemented
