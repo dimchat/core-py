@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-#   DIMP : Decentralized Instant Messaging Protocol
-#
-#                                Written in 2025 by Moky <albert.moky@gmail.com>
-#
 # ==============================================================================
 # MIT License
 #
@@ -45,13 +40,3 @@ class SymmetricAlgorithms:
     # Symmetric key algorithm for broadcast message,
     # which will do nothing when en/decoding message data
     PLAIN = 'PLAIN'
-
-
-class EncodeAlgorithms:
-    """ Algorithms for Encoding Data """
-
-    DEFAULT = 'base64'
-
-    BASE_64 = 'base64'
-    BASE_58 = 'base58'
-    HEX = 'hex'
