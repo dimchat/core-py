@@ -67,7 +67,7 @@ class Base64Data(BaseData):
     def create(cls, string: str = None, binary: bytes = None):
         assert not (string is None and binary is None), \
             'encoded string and binary data should not be empty at the same time'
-        return BaseData(string=string, binary=binary)
+        return Base64Data(string=string, binary=binary)
 
 
 class PlainData(BaseData):

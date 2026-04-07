@@ -35,7 +35,9 @@ from mkm.types import Dictionary, Converter
 from mkm.crypto import VerifyKey, SignKey
 from mkm.format import TransportableData
 from mkm.format import json_encode, json_decode, utf8_encode
-from mkm import ID, Document
+from mkm.protocol import Document
+
+from ..format import Base64Data
 
 
 """
@@ -49,25 +51,24 @@ from mkm import ID, Document
 class BaseDocument(Dictionary, Document):
 
     def __init__(self, document: Dict = None,
-                 doc_type: str = None, identifier: ID = None,
+                 doc_type: str = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         # check parameters
         if document is not None:
             # 0. document info from network
-            assert doc_type is None and identifier is None and data is None and signature is None, \
-                'params error: %s, %s, %s, %s, %s' % (document, doc_type, identifier, data, signature)
+            assert doc_type is None and data is None and signature is None, \
+                'params error: %s, %s, %s, %s' % (document, doc_type, data, signature)
             properties = None  # lazy
             # waiting to verify
             # all documents must be verified before saving into local storage
             status = 0
         elif data is None or signature is None:
             # 1. new empty document
-            assert doc_type is not None and doc_type != '*' and identifier is not None, \
-                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
+            assert doc_type is not None and doc_type != '*', \
+                'document info error: %s, %s, %s' % (doc_type, data, signature)
             assert data is None and signature is None, \
-                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
+                'document info error: %s, %s, %s' % (doc_type, data, signature)
             document = {
-                'did': str(identifier),
                 'type': doc_type,
             }
             # new properties with created time
@@ -79,13 +80,12 @@ class BaseDocument(Dictionary, Document):
             status = 0
         else:
             # 2. document with data and signature loaded from local storage
-            assert doc_type is not None and doc_type != '*' and identifier is not None, \
-                'document info error: %s, %s, %s, %s' % (doc_type, identifier, data, signature)
+            assert doc_type is not None and doc_type != '*', \
+                'document info error: %s, %s, %s' % (doc_type, data, signature)
             document = {
-                'did': str(identifier),
                 'type': doc_type,
                 'data': data,
-                'signature': signature.object,
+                'signature': signature.serialize(),
             }
             properties = None  # lazy
             # document loaded from local storage,
@@ -94,17 +94,10 @@ class BaseDocument(Dictionary, Document):
         # initialize with document info
         super().__init__(dictionary=document)
         # lazy load
-        self.__identifier = identifier
         self.__json = data      # JsON.encode(properties)
         self.__sig = signature  # LocalUser(identifier).sign(data)
         self.__properties = properties
         self.__status = status  # 1 for valid, -1 for invalid
-
-    @property  # Override
-    def identifier(self) -> ID:
-        if self.__identifier is None:
-            self.__identifier = ID.parse(identifier=self.get('did'))
-        return self.__identifier
 
     @property  # private
     def data(self) -> Optional[str]:
@@ -127,9 +120,10 @@ class BaseDocument(Dictionary, Document):
         ted = self.__sig
         if ted is None:
             base64 = self.get('signature')
-            self.__sig = ted = TransportableData.parse(base64)
+            ted = TransportableData.parse(base64)
+            self.__sig = ted
         if ted is not None:
-            return ted.data
+            return ted.binary
 
     @property  # Override
     def valid(self) -> bool:
@@ -147,25 +141,29 @@ class BaseDocument(Dictionary, Document):
         :param public_key: public key in meta.key
         :return: True on signature matched
         """
-        if self.__status > 0:
-            # already verify OK
-            return True
+        # if self.__status > 0:
+        #     # already verify OK
+        #     return True
         data = self.data
         signature = self.signature
-        if data is None:
+        if data is None or len(data) == 0:
             # NOTICE: if data is empty, signature should be empty at the same time
             #         this happen while document not found
-            if signature is None:
+            if signature is None or len(signature) == 0:
                 self.__status = 0
             else:
                 # data signature error
                 self.__status = -1
-        elif signature is None:
+        elif signature is None or len(signature) == 0:
             # signature error
             self.__status = -1
         elif public_key.verify(data=utf8_encode(string=data), signature=signature):
             # signature matched
             self.__status = 1
+        else:
+            # public key not matched,
+            # no need to affect the status here
+            return False
         # NOTICE: if status is 0, it doesn't mean the document is invalid,
         #         try another key
         return self.__status == 1
@@ -178,12 +176,12 @@ class BaseDocument(Dictionary, Document):
         :param private_key: private key match meta.key
         :return: signature, None on error
         """
-        if self.__status > 0:
-            # already signed/verified
-            assert self.__json is not None, 'document data error: %s' % self
-            signature = self.signature
-            assert signature is not None, 'document signature error: %s' % self
-            return signature
+        # if self.__status > 0:
+        #     # already signed/verified
+        #     assert self.__json is not None, 'document data error: %s' % self
+        #     signature = self.signature
+        #     assert signature is not None, 'document signature error: %s' % self
+        #     return signature
         # 1. update sign time
         self.set_property(name='time', value=DateTime.current_timestamp())
         # 2. encode & sign
@@ -195,10 +193,10 @@ class BaseDocument(Dictionary, Document):
         assert len(data) > 0, 'should not happen: %s' % info
         signature = private_key.sign(data=utf8_encode(string=data))
         assert len(signature) > 0, 'should not happen: %s' % info
-        ted = TransportableData.create(data=signature)
+        ted = Base64Data.create(binary=signature)
         # 3. update 'data' & 'signature' fields
-        self['data'] = data             # JsON string
-        self['signature'] = ted.object  # BASE-64
+        self['data'] = data                  # JsON string
+        self['signature'] = ted.serialize()  # BASE-64
         self.__json = data
         self.__sig = ted
         # 4. update status
@@ -215,16 +213,18 @@ class BaseDocument(Dictionary, Document):
         if self.__status < 0:
             # invalid
             return None
-        if self.__properties is None:
+        info = self.__properties
+        if info is None:
             data = self.data
             if data is None:
                 # create new properties
-                self.__properties = {}
+                info = {}
             else:
                 # get properties from data
-                self.__properties = json_decode(string=data)
+                info = json_decode(string=data)
                 assert isinstance(self.__properties, Dict), 'document data error: %s' % data
-        return self.__properties
+            self.__properties = info
+        return info
 
     # Override
     def get_property(self, name: str) -> Optional[Any]:

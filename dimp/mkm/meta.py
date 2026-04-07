@@ -31,12 +31,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
-from mkm.format import utf8_encode
-from mkm.format import TransportableData
-from mkm.crypto import VerifyKey, PublicKey
 from mkm.types import Dictionary
-from mkm.ext import SharedAccountExtensions
-from mkm import Meta
+from mkm.format import TransportableData
+from mkm.format import utf8_encode
+from mkm.crypto import VerifyKey, PublicKey
+from mkm.protocol import Meta
+from mkm.ext import GeneralAccountHelper, shared_account_extensions
 
 
 """
@@ -45,10 +45,10 @@ from mkm import Meta
     This class is used to generate entity ID
 
     data format: {
-        type        : 1,              // meta version
-        key         : "{public key}", // PK = secp256k1(SK);
-        seed        : "moKy",         // user/group name
-        fingerprint : "..."           // CT = sign(seed, SK);
+        "type"        : i2s(1),         // meta version
+        "key"         : "{public key}", // PK = secp256k1(SK);
+        "seed"        : "moKy",         // user/group name
+        "fingerprint" : "..."           // CT = sign(seed, SK);
     }
 
     algorithm:
@@ -92,7 +92,7 @@ class BaseMeta(Dictionary, Meta, ABC):
                 'type': version,
                 'key': public_key.dictionary,
                 'seed': seed,
-                'fingerprint': fingerprint.object,
+                'fingerprint': fingerprint.serialize(),
             }
             # generated meta, or loaded from local storage,
             # no need to verify again.
@@ -109,8 +109,9 @@ class BaseMeta(Dictionary, Meta, ABC):
     @property  # Override
     def type(self) -> str:
         if self.__type is None:
-            ext = SharedAccountExtensions()
-            self.__type = ext.helper.get_meta_type(meta=self.dictionary, default='')
+            helper = account_helper()
+            info = super().dictionary
+            self.__type = helper.get_meta_type(meta=info, default='')
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
 
@@ -138,15 +139,14 @@ class BaseMeta(Dictionary, Meta, ABC):
         return self.__seed
 
     @property  # Override
-    def fingerprint(self) -> Optional[bytes]:
+    def fingerprint(self) -> Optional[TransportableData]:
         ted = self.__fingerprint
         if ted is None and self.has_seed:
             base64 = self.get('fingerprint')
-            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % self.dictionary
+            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().dictionary
             self.__fingerprint = ted = TransportableData.parse(base64)
             assert ted is not None, 'meta.fingerprint error: %s' % base64
-        if ted is not None:
-            return ted.data
+        return ted
 
     #
     #   Validation
@@ -183,7 +183,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         seed = self.seed
         fingerprint = self.fingerprint
         # check meta seed & signature
-        if fingerprint is None or len(fingerprint) == 0:
+        if fingerprint is None or fingerprint.empty:
             # meta error
             return False
         elif seed is None or len(seed) == 0:
@@ -191,4 +191,14 @@ class BaseMeta(Dictionary, Meta, ABC):
             return False
         # verify fingerprint
         data = utf8_encode(string=seed)
-        return key.verify(data=data, signature=fingerprint)
+        signature = fingerprint.binary
+        if signature is None or len(signature) == 0:
+            # TED error
+            return False
+        return key.verify(data=data, signature=signature)
+
+
+def account_helper():
+    helper = shared_account_extensions.helper
+    assert isinstance(helper, GeneralAccountHelper), 'account helper error: %s' % helper
+    return helper

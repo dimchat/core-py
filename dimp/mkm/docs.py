@@ -28,14 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 from mkm.types import Converter
 from mkm.crypto import PublicKey, EncryptKey
 from mkm.format import TransportableData
-from mkm.format import PortableNetworkFile
-from mkm import ID
+from mkm.protocol import ID
 
+from ..format import TransportableFile
 from ..protocol import DocumentType
 from ..protocol import Visa, Bulletin
 
@@ -45,20 +45,18 @@ from .document import BaseDocument
 class BaseVisa(BaseDocument, Visa):
 
     def __init__(self, document: Optional[Dict] = None,
-                 identifier: ID = None, data: Optional[str] = None, signature: Optional[TransportableData] = None):
-        if document is None:
-            # 1. document from local
-            assert identifier is not None, 'visa info error: %s, %s' % (data, signature)
-            doc_type = DocumentType.VISA
-            super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
-        else:
-            # 2. document from network
-            assert identifier is None and data is None and signature is None, \
-                'params error: %s, %s, %s, %s' % (document, identifier, data, signature)
+                 data: Optional[str] = None, signature: Optional[TransportableData] = None):
+        if document is not None:
+            # 0. document from network
+            assert data is None and signature is None,  'params error: %s, %s, %s' % (document, data, signature)
             super().__init__(document)
-        # lazy
+        else:
+            # 1. document from local
+            doc_type = DocumentType.VISA
+            super().__init__(None, doc_type, data=data, signature=signature)
+        # lazy load
         self.__key: Optional[EncryptKey] = None
-        self.__avatar: Optional[PortableNetworkFile] = None
+        self.__avatar: Optional[TransportableFile] = None
 
     @property  # Override
     def name(self) -> Optional[str]:
@@ -102,21 +100,21 @@ class BaseVisa(BaseDocument, Visa):
     """
 
     @property  # Override
-    def avatar(self) -> Optional[PortableNetworkFile]:
+    def avatar(self) -> Optional[TransportableFile]:
         img = self.__avatar
         if img is None:
             url = self.get_property(name='avatar')
             if isinstance(url, str) and len(url) == 0:
                 # ignore empty URL
-                pass
-            else:
-                img = PortableNetworkFile.parse(url)
-                self.__avatar = img
+                # FIXME: handle it in PNF parser?
+                return None
+            img = TransportableFile.parse(url)
+            self.__avatar = img
         return img
 
     @avatar.setter  # Override
-    def avatar(self, img: PortableNetworkFile):
-        info = None if img is None else img.object
+    def avatar(self, img: TransportableFile):
+        info = None if img is None else img.serialize()
         self.set_property(name='avatar', value=info)
         self.__avatar = img
 
@@ -124,20 +122,15 @@ class BaseVisa(BaseDocument, Visa):
 class BaseBulletin(BaseDocument, Bulletin):
 
     def __init__(self, document: Optional[Dict] = None,
-                 identifier: ID = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
-        if document is None:
-            # 1. document from local
-            assert identifier is not None, 'bulletin info error: %s, %s' % (data, signature)
-            doc_type = DocumentType.BULLETIN
-            super().__init__(None, doc_type, identifier=identifier, data=data, signature=signature)
-        else:
-            # 2. document from network
-            assert identifier is None and data is None and signature is None, \
-                'params error: %s, %s, %s, %s' % (document, identifier, data, signature)
+        if document is not None:
+            # 0. document from network
+            assert data is None and signature is None, 'params error: %s, %s, %s' % (document, data, signature)
             super().__init__(document)
-        # lazy
-        self.__bots: Optional[List[ID]] = None
+        else:
+            # 1. document from local
+            doc_type = DocumentType.BULLETIN
+            super().__init__(None, doc_type, data=data, signature=signature)
 
     @property  # Override
     def name(self) -> Optional[str]:
@@ -150,25 +143,5 @@ class BaseBulletin(BaseDocument, Bulletin):
 
     @property  # Override
     def founder(self) -> Optional[ID]:
-        identifier = self.get_property(name='founder')
-        return ID.parse(identifier=identifier)
-
-    @property  # Override
-    def assistants(self) -> Optional[List[ID]]:
-        if self.__bots is None:
-            bots = self.get_property(name='assistants')
-            if isinstance(bots, List):
-                self.__bots = ID.convert(array=bots)
-            else:
-                # get from 'assistant'
-                single = self.get_property(name='assistant')
-                single = ID.parse(identifier=single)
-                self.__bots = [] if single is None else [single]
-        return self.__bots
-
-    @assistants.setter  # Override
-    def assistants(self, bots: List[ID]):
-        array = None if bots is None else ID.revert(identifiers=bots)
-        self.set_property(name='assistants', value=array)
-        self.set_property(name='assistant', value=None)
-        self.__bots = bots
+        uid = self.get_property(name='founder')
+        return ID.parse(identifier=uid)
