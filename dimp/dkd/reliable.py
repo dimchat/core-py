@@ -31,8 +31,7 @@
 from typing import Optional, Dict
 
 from mkm.format import TransportableData
-
-from dkd import ReliableMessage
+from dkd.protocol import ReliableMessage
 
 from .secure import EncryptedMessage
 
@@ -45,17 +44,18 @@ from .secure import EncryptedMessage
 
     data format: {
         //-- envelope
-        sender   : "moki@xxx",
-        receiver : "hulk@yyy",
-        time     : 123,
+        "sender"   : "moki@xxx",
+        "receiver" : "hulk@yyy",
+        "time"     : 123.45,
+        
         //-- content data and key/keys
-        data     : "...",  // base64_encode( symmetric_encrypt(content))
-        key      : "...",  // base64_encode(asymmetric_encrypt(password))
-        keys     : {
-            "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
+        "data"     : "...",    // base64_encode( symmetric_encrypt(content))
+        "keys"     : {
+            "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))
+            "digest" : "..."   // hash(pwd.data)
         },
         //-- signature
-        signature: "..."   // base64_encode(asymmetric_sign(data))
+        "signature:" "..."     // base64_encode(asymmetric_sign(data))
     }
 """
 
@@ -68,12 +68,13 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
         self.__signature: Optional[TransportableData] = None
 
     @property  # Override
-    def signature(self) -> bytes:
+    def signature(self) -> TransportableData:
         ted = self.__signature
         if ted is None:
             base64 = self.get('signature')
             assert base64 is not None, 'message signature cannot be empty: %s' % self
-            self.__signature = ted = TransportableData.parse(base64)
+            ted = TransportableData.parse(base64)
             assert ted is not None, 'failed to decode message signature: %s' % base64
-        if ted is not None:
-            return ted.data
+            self.__signature = ted
+        assert ted is not None, 'message signature error: %s' % self.get('signature')
+        return ted

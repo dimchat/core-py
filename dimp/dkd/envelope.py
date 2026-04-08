@@ -32,9 +32,8 @@ from typing import Optional, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
-from mkm import ID, ANYONE
-
-from dkd import Envelope
+from mkm.protocol import ID, ANYONE
+from dkd.protocol import Envelope
 
 
 """
@@ -44,9 +43,9 @@ from dkd import Envelope
     which contains 'sender', 'receiver' and 'time'
     
     data format: {
-        sender   : "moki@xxx",
-        receiver : "hulk@yyy",
-        time     : 123
+        "sender"   : "moki@xxx",
+        "receiver" : "hulk@yyy",
+        "time"     : 123.45
     }
 """
 

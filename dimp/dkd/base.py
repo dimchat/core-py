@@ -54,9 +54,8 @@ from typing import Optional, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
-from mkm import ID
-
-from dkd import Envelope, Message
+from mkm.protocol import ID
+from dkd.protocol import Envelope, Message
 
 
 class BaseMessage(Dictionary, Message):
@@ -75,10 +74,12 @@ class BaseMessage(Dictionary, Message):
 
     @property  # Override
     def envelope(self) -> Envelope:
-        if self.__envelope is None:
+        env = self.__envelope
+        if env is None:
             # let envelope share the same dictionary with message
-            self.__envelope = Envelope.parse(envelope=self.dictionary)
-        return self.__envelope
+            env = Envelope.parse(envelope=self.dictionary)
+            self.__envelope = env
+        return env
 
     @property  # Override
     def sender(self) -> ID:

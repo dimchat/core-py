@@ -31,11 +31,10 @@
 from typing import Optional, Dict
 
 from mkm.types import DateTime
-from mkm import ID
-
-from dkd import Content
-from dkd import Envelope
-from dkd import InstantMessage
+from mkm.protocol import ID
+from dkd.protocol import Content
+from dkd.protocol import Envelope
+from dkd.protocol import InstantMessage
 
 from .base import BaseMessage
 
@@ -46,11 +45,12 @@ from .base import BaseMessage
 
     data format: {
         //-- envelope
-        sender   : "moki@xxx",
-        receiver : "hulk@yyy",
-        time     : 123,
+        "sender"   : "moki@xxx",
+        "receiver" : "hulk@yyy",
+        "time"     : 123.45,
+        
         //-- content
-        content  : {...}
+        "content"  : {...}
     }
 """
 
@@ -63,28 +63,13 @@ class PlainMessage(BaseMessage, InstantMessage):
             # 1. new instant message with envelope & content
             assert head is not None and body is not None, 'instant message error: %s, %s' % (head, body)
             super().__init__(None, head)
-            self['content'] = body.dictionary
+            # self['content'] = body.dictionary
         else:
             # 2. message info from network
             assert head is None and body is None, 'params error: %s, %s, %s' % (msg, head, body)
             super().__init__(msg, head)
         # lazy
         self.__content = body
-
-    @property  # Override
-    def content(self) -> Content:
-        body = self.__content
-        if body is None:
-            info = self.get('content')
-            body = Content.parse(content=info)
-            assert body is not None, 'message content error: %s' % self.dictionary
-            self.__content = body
-        return body
-
-    @content.setter  # protected
-    def content(self, value: Content):
-        self.set_map(key='content', value=value)
-        self.__content = value
 
     @property  # Override
     def time(self) -> Optional[DateTime]:
@@ -101,3 +86,28 @@ class PlainMessage(BaseMessage, InstantMessage):
     @property  # Override
     def type(self) -> Optional[str]:
         return self.content.type
+
+    @property  # Override
+    def content(self) -> Content:
+        body = self.__content
+        if body is None:
+            info = self.get('content')
+            body = Content.parse(content=info)
+            assert body is not None, 'message content error: %s' % self.dictionary
+            self.__content = body
+        return body
+
+    @content.setter  # protected
+    def content(self, value: Content):
+        self.pop('content', None)
+        # self.set_map(key='content', value=value)
+        self.__content = value
+
+    @property  # Override
+    def dictionary(self) -> Dict:
+        # serialize 'content'
+        body = self.__content
+        if body is not None and self.get('content') is None:
+            self['content'] = body.dictionary
+        # OK
+        return super().dictionary

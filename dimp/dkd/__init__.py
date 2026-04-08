@@ -28,27 +28,30 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd import *
+from dkd.protocol import *
+
 from ..protocol import *
 
-from ..protocol.base import BaseContent
+from ..protocol.base import BaseContent, BaseCommand
+# from ..protocol.base import CommandHelper, GeneralCommandHelper
 from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
-from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
-from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 from ..protocol.assets import BaseMoneyContent, TransferMoneyContent
+from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
+from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
 from ..protocol.quote import BaseQuoteContent
-from ..protocol.app import AppCustomizedContent
-
-from ..protocol.base import BaseCommand
+# from ..protocol.quote import QuoteHelper, QuotePurifier
 from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
 from ..protocol.receipt import BaseReceiptCommand
-
 from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
 from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand
 from ..protocol.groups import JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
 
-# from ..protocol.base import CommandHelper
-# from ..protocol.helpers import CommandExtensions
+from .envelope import MessageEnvelope
+from .base import BaseMessage
+from .instant import PlainMessage
+from .secure import EncryptedMessage
+from .reliable import NetworkMessage
+
 
 __all__ = [
 
@@ -56,64 +59,61 @@ __all__ = [
     #   Protocol
     #
 
-    'ContentType',
-    'Content',
-    'Envelope',
+    'Content', 'Envelope',
     'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
-    # contents
-    'TextContent', 'PageContent', 'NameCard',
-    'ForwardContent', 'CombineContent', 'ArrayContent',
-    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
-    'MoneyContent', 'TransferContent',
-    'QuoteContent',
-    'CustomizedContent',
-
-    # commands
-    'Command',
-    'MetaCommand', 'DocumentCommand',
-    'ReceiptCommand',
-
-    # group history
-    'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
-
-    #
-    #   Factories
-    #
-
-    'ContentFactory',
-    'EnvelopeFactory',
+    'ContentFactory', 'EnvelopeFactory',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    # 'ContentHelper', 'EnvelopeHelper',
+    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'MessageExtensions', 'shared_message_extensions',
 
     #
     #   Extends
     #
 
-    # contents
-    'BaseContent',
-    'BaseTextContent', 'WebPageContent', 'NameCardContent',
-    'SecretContent', 'CombineForwardContent', 'ListContent',
-    'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
-    'BaseMoneyContent', 'TransferMoneyContent',
-    'BaseQuoteContent',
-    'AppCustomizedContent',
+    'ContentType',
 
-    # commands
-    'BaseCommand',
+    'Command', 'CommandFactory',
+    # 'CommandHelper', 'GeneralCommandHelper',
+
+    'TextContent', 'PageContent', 'NameCard',
+    'MoneyContent', 'TransferContent',
+    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
+    'ForwardContent', 'CombineContent', 'ArrayContent',
+    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier',
+
+    'MetaCommand', 'DocumentCommand',
+    'ReceiptCommand',
+
+    'HistoryCommand', 'GroupCommand',
+    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
+
+    #
+    #   Implementations
+    #
+
+    'BaseContent', 'BaseCommand',
+
+    'BaseTextContent', 'WebPageContent', 'NameCardContent',
+    'BaseMoneyContent', 'TransferMoneyContent',
+    'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
+    'SecretContent', 'CombineForwardContent', 'ListContent',
+    'BaseQuoteContent',
+
     'BaseMetaCommand', 'BaseDocumentCommand',
     'BaseReceiptCommand',
-
-    # group history
     'BaseHistoryCommand', 'BaseGroupCommand',
-    'InviteGroupCommand', 'ExpelGroupCommand',
-    'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
+    'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
 
     #
-    #   Plugins
+    #   Messages
     #
 
-    # 'CommandHelper', 'CommandExtensions',
+    'MessageEnvelope',
+    'BaseMessage',
+    'PlainMessage', 'EncryptedMessage', 'NetworkMessage',
 
 ]

@@ -30,10 +30,10 @@
 
 from typing import Optional, Dict
 
-from mkm.format import utf8_encode
 from mkm.format import TransportableData
+from dkd.protocol import SecureMessage
 
-from dkd import SecureMessage
+from ..format import PlainData
 
 from .base import BaseMessage
 
@@ -45,14 +45,15 @@ from .base import BaseMessage
 
     data format: {
         //-- envelope
-        sender   : "moki@xxx",
-        receiver : "hulk@yyy",
-        time     : 123,
+        "sender"   : "moki@xxx",
+        "receiver" : "hulk@yyy",
+        "time"     : 123.45,
+        
         //-- content data and key/keys
-        data     : "...",  // base64_encode( symmetric_encrypt(content))
-        key      : "...",  // base64_encode(asymmetric_encrypt(password))
-        keys     : {
-            "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
+        "data"     : "...",    // base64_encode( symmetric_encrypt(content))
+        "keys"     : {
+            "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))
+            "digest" : "..."   // hash(pwd.data)
         }
     }
 """
@@ -63,52 +64,38 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     def __init__(self, msg: Dict):
         super().__init__(msg=msg)
         # lazy
-        self.__data: Optional[bytes] = None
-        self.__key: Optional[TransportableData] = None
+        self.__data: Optional[TransportableData] = None
         self.__keys: Optional[Dict] = None
 
     @property  # Override
-    def data(self) -> bytes:
-        binary = self.__data
-        if binary is None:
+    def data(self) -> TransportableData:
+        ted = self.__data
+        if ted is None:
             text = self.get('data')
             if text is None:
                 assert False, 'message data not found: %s' % self.dictionary
             elif not BaseMessage.is_broadcast(msg=self):
                 # message content had been encrypted by a symmetric key,
                 # so the data should be encoded here (with algorithm 'base64' as default).
-                binary = TransportableData.decode(text)
+                ted = TransportableData.parse(text)
             elif isinstance(text, str):
                 # broadcast message content will not be encrypted (just encoded to JsON),
                 # so return the string data directly
-                binary = utf8_encode(string=text)  # JsON
+                ted = PlainData.create(string=text)  # JsON
             else:
                 assert False, 'content data error: %s' % text
-            self.__data = binary
-        return binary
-
-    @property  # Override
-    def encrypted_key(self) -> Optional[bytes]:
-        ted = self.__key
-        if ted is None:
-            base64 = self.get('key')
-            if base64 is None:
-                # check 'keys'
-                keys = self.encrypted_keys
-                if keys is not None:
-                    receiver = str(self.receiver)
-                    base64 = keys.get(receiver)
-            self.__key = ted = TransportableData.parse(base64)
-        # decode data
-        if ted is not None:
-            return ted.data
+            self.__data = ted
+        assert ted is not None, 'message data error: %s' % self.get('data')
+        return ted
 
     @property  # Override
     def encrypted_keys(self) -> Optional[Dict]:
-        if self.__keys is None:
+        keys = self.__keys
+        if keys is None:
             keys = self.get('keys')
             if isinstance(keys, Dict):
                 self.__keys = keys
             else:
                 assert keys is None, 'message keys error: %s' % keys
-        return self.__keys
+                # TODO: get from 'key'
+        return keys
