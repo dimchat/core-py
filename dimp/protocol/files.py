@@ -283,15 +283,15 @@ class BaseFileContent(BaseContent, FileContent):
             if msg_type is None:
                 msg_type = ContentType.FILE
             super().__init__(None, msg_type)
+            content = super().dictionary
         else:
             # 2. content from network
             assert msg_type is None and data is None and filename is None and url is None and password is None, \
                 'params error: %s, %s, %s, %s, %s, %s' % (content, msg_type, data, filename, url, password)
             super().__init__(content)
         # access via the wrapper
-        self.__wrapper = TransportableFileWrapper.create(super().dictionary,
-                                                         data=data, filename=filename,
-                                                         url=url, password=password)
+        wrapper = TransportableFileWrapper.create(content, data=data, filename=filename, url=url, password=password)
+        self.__wrapper = wrapper
 
     @property  # Override
     def dictionary(self) -> Dict:

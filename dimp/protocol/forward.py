@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict
+from typing import List, Dict
 
 from dkd.protocol import Content
 from dkd.protocol import InstantMessage, ReliableMessage
@@ -52,14 +52,6 @@ class ForwardContent(Content, ABC):
         }
     """
 
-    #
-    #   forward (top-secret message)
-    #
-    @property
-    @abstractmethod
-    def forward(self) -> Optional[ReliableMessage]:
-        raise NotImplemented
-
     @property
     @abstractmethod
     def secrets(self) -> List[ReliableMessage]:
@@ -69,8 +61,8 @@ class ForwardContent(Content, ABC):
     #   Factory methods
     #
     @classmethod
-    def create(cls, message: ReliableMessage = None, messages: List[ReliableMessage] = None):
-        return SecretContent(message=message, messages=messages)
+    def create(cls, messages: List[ReliableMessage]):
+        return SecretContent(messages=messages)
 
 
 class CombineContent(Content, ABC):
@@ -141,34 +133,28 @@ class ArrayContent(Content, ABC):
 class SecretContent(BaseContent, ForwardContent):
 
     def __init__(self, content: Dict = None,
-                 message: ReliableMessage = None,
                  messages: List[ReliableMessage] = None):
         if content is None:
             # 1. new content with message(s)
             msg_type = ContentType.FORWARD
             super().__init__(None, msg_type)
-            if message is not None:
-                self['forward'] = message.dictionary
-            if messages is not None:
-                self['secrets'] = ReliableMessage.revert(messages=messages)
+            # if messages is not None:
+            #     self['secrets'] = ReliableMessage.revert(messages=messages)
         else:
             # 2. content info from network
-            assert message is None and messages is None, 'params error: %s, %s, %s' % (content, message, messages)
+            assert messages is None, 'params error: %s, %s' % (content, messages)
             super().__init__(content)
         # lazy
-        self.__forward = message
         self.__secrets = messages
 
-    #
-    #   forward (top-secret message)
-    #
     @property  # Override
-    def forward(self) -> ReliableMessage:
-        if self.__forward is None:
-            msg = self.get('forward')
-            self.__forward = ReliableMessage.parse(msg=msg)
-            # assert msg is not None, 'forward message not found: %s' % self.dictionary
-        return self.__forward
+    def dictionary(self) -> Dict:
+        # serialize secret messages
+        messages = self.__secrets
+        if messages is not None and self.get('secrets') is None:
+            self['secrets'] = ReliableMessage.revert(messages=messages)
+        # OK
+        return super().dictionary
 
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:
@@ -181,8 +167,12 @@ class SecretContent(BaseContent, ForwardContent):
             else:
                 assert info is None, 'secret messages error: %s' % info
                 # get from 'forward'
-                msg = self.forward
-                messages = [] if msg is None else [msg]
+                forward = self.get('forward')
+                msg = ReliableMessage.parse(msg=forward)
+                if msg is None:
+                    messages = []
+                else:
+                    messages = [msg]
             self.__secrets = messages
         return messages
 

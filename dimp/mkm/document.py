@@ -222,7 +222,7 @@ class BaseDocument(Dictionary, Document):
             else:
                 # get properties from data
                 info = json_decode(string=data)
-                assert isinstance(self.__properties, Dict), 'document data error: %s' % data
+                assert isinstance(info, Dict), 'document data error: %s' % data
             self.__properties = info
         return info
 
