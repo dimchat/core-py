@@ -34,9 +34,8 @@ from mkm.ext import shared_format_extensions
 
 class TransportableFileWrapper(ABC):
 
-    @property
     @abstractmethod
-    def dictionary(self) -> Dict:
+    def to_dict(self) -> Dict:
         """ serialize to map """
         raise NotImplemented
 

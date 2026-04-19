@@ -119,9 +119,8 @@ class TransportableFile(Mapper, TransportableResource, ABC):
         raise NotImplemented
 
     # Override
-    @property
     @abstractmethod
-    def dictionary(self) -> Dict:
+    def to_dict(self) -> Dict:
         """ serialize to map """
         raise NotImplemented
 

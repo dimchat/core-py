@@ -63,7 +63,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             # 1. new instant message with envelope & content
             assert head is not None and body is not None, 'instant message error: %s, %s' % (head, body)
             super().__init__(None, head)
-            # self['content'] = body.dictionary
+            # self['content'] = body.to_dict()
         else:
             # 2. message info from network
             assert head is None and body is None, 'params error: %s, %s, %s' % (msg, head, body)
@@ -93,7 +93,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         if body is None:
             info = self.get('content')
             body = Content.parse(content=info)
-            assert body is not None, 'message content error: %s' % self.dictionary
+            assert body is not None, 'message content error: %s' % self.to_dict()
             self.__content = body
         return body
 
@@ -103,11 +103,11 @@ class PlainMessage(BaseMessage, InstantMessage):
         # self.set_map(key='content', value=value)
         self.__content = value
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize 'content'
         body = self.__content
         if body is not None and self.get('content') is None:
-            self['content'] = body.dictionary
+            self['content'] = body.to_dict()
         # OK
-        return super().dictionary
+        return super().to_dict()

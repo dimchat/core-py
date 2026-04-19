@@ -82,14 +82,13 @@ class Header:
 
     # Override
     def __str__(self) -> str:
-        return self.string
+        return self.to_str()
 
     # Override
     def __repr__(self) -> str:
-        return self.string
+        return self.to_str()
 
-    @property
-    def string(self) -> str:
+    def to_str(self) -> str:
         text = self.__head_string
         if text is None:
             items = []
@@ -216,7 +215,7 @@ class DataURI:
             return utf8_encode(string=self.body)
 
     @property
-    def empty(self) -> bool:
+    def is_empty(self) -> bool:
         return len(self.body) == 0
 
     @property
@@ -248,17 +247,16 @@ class DataURI:
 
     # Override
     def __str__(self) -> str:
-        return self.string
+        return self.to_str()
 
     # Override
     def __repr__(self) -> str:
-        return self.string
+        return self.to_str()
 
-    @property
-    def string(self) -> str:
+    def to_str(self) -> str:
         text = self.__uri_string
         if text is None:
-            header = self.head.string
+            header = self.head.to_str()
             if len(header) == 0:
                 text = 'data:,%s' % self.body
             else:

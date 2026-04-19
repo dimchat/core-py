@@ -51,20 +51,22 @@ class BaseString(Stringer):
     def inner_string(self) -> Optional[str]:
         return self._string
 
-    @property  # Override
-    def string(self) -> str:
+    # Override
+    def to_str(self) -> str:
         s = self._string
         return '' if s is None else s
 
     # Override
     def __hash__(self) -> int:
         """ Return hash(self). """
-        return self.string.__hash__()
+        s = self.to_str()
+        return s.__hash__()
 
     # Override
     def __len__(self) -> int:
         """ Return len(self). """
-        return self.string.__len__()
+        s = self.to_str()
+        return s.__len__()
 
     # Override
     def __eq__(self, x: str) -> bool:
@@ -73,9 +75,10 @@ class BaseString(Stringer):
             if self is x:
                 # same object
                 return True
-            x = x.string
+            x = x.to_str()
         # check inner string
-        return self.string.__eq__(x)
+        s = self.to_str()
+        return s.__eq__(x)
 
     # Override
     def __ne__(self, x: str) -> bool:
@@ -84,20 +87,21 @@ class BaseString(Stringer):
             if self is x:
                 # same object
                 return False
-            x = x.string
+            x = x.to_str()
         # check inner string
-        return self.string.__ne__(x)
+        s = self.to_str()
+        return s.__ne__(x)
 
     # Override
     def __str__(self) -> str:
         """ Return str(self). """
-        return self.string
+        return self.to_str()
 
     # Override
     def __repr__(self) -> str:
         """ Return repr(self). """
         clazz = self.__class__.__name__
-        return '<%s>%s</%s>' % (clazz, self.string, clazz)
+        return '<%s>%s</%s>' % (clazz, self.to_str(), clazz)
 
 
 class BaseData(BaseString, TransportableData, ABC):
@@ -111,13 +115,13 @@ class BaseData(BaseString, TransportableData, ABC):
     def inner_binary(self) -> Optional[bytes]:
         return self._binary
 
-    @property  # Override
+    # Override
     @abstractmethod
-    def string(self) -> str:
+    def to_str(self) -> str:
         raise NotImplemented
 
     @property
-    def empty(self) -> bool:
+    def is_empty(self) -> bool:
         binary = self.inner_binary
         if binary is not None and len(binary) > 0:
             return False
@@ -126,17 +130,17 @@ class BaseData(BaseString, TransportableData, ABC):
 
     # Override
     def serialize(self) -> str:
-        return self.string
+        return self.to_str()
 
     # Override
     def __len__(self) -> int:
         """ Return len(self). """
-        return len(self.binary)
+        return len(self.to_bytes())
 
     # Override
     def __hash__(self) -> int:
         """ Return hash(self). """
-        return hash(self.string)
+        return hash(self.to_str())
 
     # Override
     def __eq__(self, x: str) -> bool:
@@ -152,9 +156,9 @@ class BaseData(BaseString, TransportableData, ABC):
             return _ted_equals(this=self, that=x)
         elif isinstance(x, Stringer):
             # compare with inner string
-            return self.string == x.string
+            return self.to_str() == x.to_str()
         # check inner string
-        return self.string == x
+        return self.to_str() == x
 
     # Override
     def __ne__(self, x: str) -> bool:
@@ -170,14 +174,14 @@ class BaseData(BaseString, TransportableData, ABC):
             return not _ted_equals(this=self, that=x)
         elif isinstance(x, Stringer):
             # compare with inner string
-            return self.string != x.string
+            return self.to_str() != x.to_str()
         # check inner string
-        return self.string != x
+        return self.to_str() != x
 
 
 def _data_equals(this: BaseData, that: BaseData) -> bool:
-    if that is None or that.empty:
-        return this.empty
+    if that is None or that.is_empty:
+        return this.is_empty
     # compare with inner string
     this_string = this.inner_string
     that_string = that.inner_string
@@ -190,15 +194,15 @@ def _data_equals(this: BaseData, that: BaseData) -> bool:
     if this_bytes is not None and that_bytes is not None:
         return this_bytes == that_bytes
     # compare with decoded bytes
-    return this.binary == that.binary
+    return this.to_bytes() == that.to_bytes()
 
 
 def _ted_equals(this: BaseData, that: TransportableData) -> bool:
-    if that is None or that.empty:
-        return this.empty
+    if that is None or that.is_empty:
+        return this.is_empty
     # compare with encoded string
     this_string = this.inner_string
     if this_string is not None and len(this_string) > 0:
-        return this_string == that.string
+        return this_string == that.to_str()
     # compare with encoded bytes
-    return this.inner_binary == that.binary
+    return this.inner_binary == that.to_str()

@@ -73,7 +73,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         if ted is None:
             text = self.get('data')
             if text is None:
-                assert False, 'message data not found: %s' % self.dictionary
+                assert False, 'message data not found: %s' % super().to_dict()
             elif not BaseMessage.is_broadcast(msg=self):
                 # message content had been encrypted by a symmetric key,
                 # so the data should be encoded here (with algorithm 'base64' as default).

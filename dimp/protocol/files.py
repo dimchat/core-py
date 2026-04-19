@@ -283,7 +283,7 @@ class BaseFileContent(BaseContent, FileContent):
             if msg_type is None:
                 msg_type = ContentType.FILE
             super().__init__(None, msg_type)
-            content = super().dictionary
+            content = super().to_dict()
         else:
             # 2. content from network
             assert msg_type is None and data is None and filename is None and url is None and password is None, \
@@ -293,16 +293,16 @@ class BaseFileContent(BaseContent, FileContent):
         wrapper = TransportableFileWrapper.create(content, data=data, filename=filename, url=url, password=password)
         self.__wrapper = wrapper
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         """ call wrapper to serialize 'data' & 'key" """
         wrapper = self.__wrapper
-        return wrapper.dictionary
+        return wrapper.to_dict()
 
     @property  # Override
     def transportable_file(self) -> TransportableFile:
         """ clone without serializations """
-        info = super().dictionary
+        info = super().to_dict()
         wrapper = self.__wrapper
         return PortableNetworkFile(dictionary=info, wrapper=wrapper)
 
@@ -358,14 +358,14 @@ class ImageFileContent(BaseFileContent, ImageContent):
         # small image
         self.__thumbnail: Optional[TransportableFile] = None
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize 'thumbnail'
         img = self.__thumbnail
         if img is not None and self.get('thumbnail') is None:
             self['thumbnail'] = img.serialize()
         # OK
-        return super().dictionary
+        return super().to_dict()
 
     @property  # Override
     def transportable_file(self) -> TransportableFile:
@@ -421,14 +421,14 @@ class VideoFileContent(BaseFileContent, VideoContent):
         # small image
         self.__snapshot: Optional[TransportableFile] = None
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize 'snapshot'
         img = self.__snapshot
         if img is not None and self.get('snapshot') is None:
             self['snapshot'] = img.serialize()
         # OK
-        return super().dictionary
+        return super().to_dict()
 
     @property  # Override
     def transportable_file(self) -> TransportableFile:

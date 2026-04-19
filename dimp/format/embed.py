@@ -57,8 +57,8 @@ class EmbedData(BaseData):
         # plaintext
         return ''
 
-    @property
-    def binary(self) -> Optional[bytes]:
+    # Override
+    def to_bytes(self) -> Optional[bytes]:
         data = self._binary
         if data is None:
             uri = self.data_uri
@@ -67,13 +67,13 @@ class EmbedData(BaseData):
                 self._binary = data
         return data
 
-    @property
-    def string(self) -> str:
+    # Override
+    def to_str(self) -> str:
         txt = self._string
         if txt is None or len(txt) == 0:
             uri = self.data_uri
             if uri is not None:
-                txt = uri.string
+                txt = uri.to_str()
                 self._string = txt
         return txt
 
@@ -193,7 +193,7 @@ class EmbedData(BaseData):
 
     @classmethod
     def create_with_uri(cls, uri: DataURI):
-        return cls.new(string=uri.string, binary=None, uri=uri, mime_type=uri.mime_type, parameters=uri.parameters)
+        return cls.new(string=uri.to_str(), binary=None, uri=uri, mime_type=uri.mime_type, parameters=uri.parameters)
 
     @classmethod
     def create_with_string(cls, string: str):

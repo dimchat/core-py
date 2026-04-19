@@ -39,7 +39,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     def __init__(self, dictionary: Dict):
         super().__init__()
         if isinstance(dictionary, Mapper):
-            dictionary = dictionary.dictionary
+            dictionary = dictionary.to_dict()
         self.__dictionary = dictionary
         # lazy load
         self.__attachment: Optional[TransportableData] = None
@@ -53,7 +53,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
         if value is None:
             self.__dictionary.pop(key, None)
         else:
-            self.__dictionary[key] = value.dictionary
+            self.__dictionary[key] = value.to_dict()
 
     # Override
     def get(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
@@ -95,8 +95,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     __hash__ = None
 
     # Override
-    @property
-    def dictionary(self) -> Dict:
+    def to_dict(self) -> Dict:
         info = self.__dictionary
         # serialize 'data'
         ted = self.__attachment
@@ -105,7 +104,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
         # serialize 'key'
         pwd = self.__password
         if pwd is not None and info.get('key') is None:
-            info['key'] = pwd.dictionary
+            info['key'] = pwd.to_dict()
         # OK
         return info
 
@@ -184,7 +183,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     @password.setter
     def password(self, key: Optional[DecryptKey]):
         self.__dictionary.pop('key', None)
-        # self.__dictionary['key'] = None if key is None else key.dictionary
+        # self.__dictionary['key'] = None if key is None else key.to_dict()
         # self.set_map(key='key', value=key)
         self.__password = key
 

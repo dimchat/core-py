@@ -146,7 +146,7 @@ class BaseContent(Dictionary, Content):
         """ message content type: text, image, ... """
         if self.__type is None:
             helper = message_helper()
-            self.__type = helper.get_content_type(content=self.dictionary, default='')
+            self.__type = helper.get_content_type(content=super().to_dict(), default='')
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
 
@@ -197,7 +197,7 @@ class BaseCommand(BaseContent, Command):
     @property  # Override
     def cmd(self) -> str:
         helper = cmd_helper()
-        return helper.get_cmd(content=self.dictionary, default='')
+        return helper.get_cmd(content=super().to_dict(), default='')
         # return self.get_str(key='command', default='')
 
 

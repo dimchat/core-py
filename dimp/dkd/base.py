@@ -64,7 +64,7 @@ class BaseMessage(Dictionary, Message):
         if msg is None:
             # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'
-            msg = head.dictionary
+            msg = head.to_dict()
         else:
             # 2. message info from network
             assert head is None, 'params error: %s, %s' % (msg, head)
@@ -77,7 +77,7 @@ class BaseMessage(Dictionary, Message):
         env = self.__envelope
         if env is None:
             # let envelope share the same dictionary with message
-            env = Envelope.parse(envelope=self.dictionary)
+            env = Envelope.parse(envelope=super().to_dict())
             self.__envelope = env
         return env
 

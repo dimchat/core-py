@@ -43,7 +43,7 @@ class PortableNetworkFile(Dictionary, TransportableFile):
                  wrapper: Optional[TransportableFileWrapper] = None):
         super().__init__(dictionary=dictionary)
         if wrapper is None:
-            wrapper = TransportableFileWrapper.create(self.dictionary,
+            wrapper = TransportableFileWrapper.create(super().to_dict(),
                                                       data=data, filename=filename,
                                                       url=url, password=password)
         self.__wrapper = wrapper
@@ -53,7 +53,7 @@ class PortableNetworkFile(Dictionary, TransportableFile):
     def uri_string(self) -> Optional[str]:
         # serialize
         wrapper = self.__wrapper
-        info = wrapper.dictionary
+        info = wrapper.to_dict()
         # check 'URL'
         remote = self.url
         if remote is not None and len(remote) > 0:
@@ -98,15 +98,14 @@ class PortableNetworkFile(Dictionary, TransportableFile):
             return uri_string
         # return JSON string
         wrapper = self.__wrapper
-        info = wrapper.dictionary
+        info = wrapper.to_dict()
         return json_encode(info)
 
     # Override
-    @property
-    def dictionary(self) -> Dict:
+    def to_dict(self) -> Dict:
         """ call wrapper to serialize 'data' & 'key" """
         wrapper = self.__wrapper
-        return wrapper.dictionary
+        return wrapper.to_dict()
         # return self.__dictionary
 
     # Override
@@ -116,7 +115,7 @@ class PortableNetworkFile(Dictionary, TransportableFile):
             return uri_string
         # return inner map
         wrapper = self.__wrapper
-        return wrapper.dictionary
+        return wrapper.to_dict()
 
     #
     #   File data

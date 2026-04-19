@@ -79,7 +79,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             assert seed is None and fingerprint is None, 'meta seed/fingerprint error'
             meta = {
                 'type': version,
-                'key': public_key.dictionary,
+                'key': public_key.to_dict(),
             }
             # generated meta, or loaded from local storage,
             # no need to verify again.
@@ -90,7 +90,7 @@ class BaseMeta(Dictionary, Meta, ABC):
                 'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
             meta = {
                 'type': version,
-                'key': public_key.dictionary,
+                'key': public_key.to_dict(),
                 'seed': seed,
                 'fingerprint': fingerprint.serialize(),
             }
@@ -110,7 +110,7 @@ class BaseMeta(Dictionary, Meta, ABC):
     def type(self) -> str:
         if self.__type is None:
             helper = account_helper()
-            info = super().dictionary
+            info = super().to_dict()
             self.__type = helper.get_meta_type(meta=info, default='')
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
@@ -143,7 +143,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         ted = self.__fingerprint
         if ted is None and self.has_seed:
             base64 = self.get('fingerprint')
-            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().dictionary
+            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().to_dict()
             self.__fingerprint = ted = TransportableData.parse(base64)
             assert ted is not None, 'meta.fingerprint error: %s' % base64
         return ted
@@ -153,7 +153,7 @@ class BaseMeta(Dictionary, Meta, ABC):
     #
 
     @property
-    def valid(self) -> bool:
+    def is_valid(self) -> bool:
         if self.__status == 0:
             # meta from network, try to verify
             if self._check_valid():
@@ -172,7 +172,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         elif self.has_seed:
             # check 'seed' & 'fingerprint'
             pass
-        elif 'seed' in self.dictionary or 'fingerprint' in self.dictionary:
+        elif 'seed' in self.to_dict() or 'fingerprint' in self.to_dict():
             # this meta has no seed, so
             # it should not contains 'seed' or 'fingerprint'
             return False
@@ -183,7 +183,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         seed = self.seed
         fingerprint = self.fingerprint
         # check meta seed & signature
-        if fingerprint is None or fingerprint.empty:
+        if fingerprint is None or fingerprint.is_empty:
             # meta error
             return False
         elif seed is None or len(seed) == 0:
@@ -191,7 +191,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             return False
         # verify fingerprint
         data = utf8_encode(string=seed)
-        signature = fingerprint.binary
+        signature = fingerprint.to_bytes()
         if signature is None or len(signature) == 0:
             # TED error
             return False

@@ -123,10 +123,10 @@ class BaseDocument(Dictionary, Document):
             ted = TransportableData.parse(base64)
             self.__sig = ted
         if ted is not None:
-            return ted.binary
+            return ted.to_bytes()
 
     @property  # Override
-    def valid(self) -> bool:
+    def is_valid(self) -> bool:
         return self.__status > 0
 
     #
@@ -187,7 +187,7 @@ class BaseDocument(Dictionary, Document):
         # 2. encode & sign
         info = self.properties
         if info is None:
-            # assert False, 'document invalid: %s' % self.dictionary
+            # assert False, 'document invalid: %s' % self.to_dict()
             return None
         data = json_encode(info)
         assert len(data) > 0, 'should not happen: %s' % info

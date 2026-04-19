@@ -39,8 +39,8 @@ class Base64Data(BaseData):
     def encoding(self) -> str:
         return EncodeAlgorithms.BASE_64
 
-    @property
-    def binary(self) -> Optional[bytes]:
+    # Override
+    def to_bytes(self) -> Optional[bytes]:
         data = self._binary
         if data is None:
             base64 = self._string
@@ -49,8 +49,8 @@ class Base64Data(BaseData):
             self._binary = data
         return data
 
-    @property
-    def string(self) -> str:
+    # Override
+    def to_str(self) -> str:
         base64 = self._string
         if base64 is None or len(base64) == 0:
             data = self._binary
@@ -77,8 +77,8 @@ class PlainData(BaseData):
     def encoding(self) -> str:
         return ''  # 'PLAIN'
 
-    @property
-    def binary(self) -> Optional[bytes]:
+    # Override
+    def to_bytes(self) -> Optional[bytes]:
         data = self._binary
         if data is None:
             txt = self._string
@@ -87,8 +87,8 @@ class PlainData(BaseData):
             self._binary = data
         return data
 
-    @property
-    def string(self) -> str:
+    # Override
+    def to_str(self) -> str:
         txt = self._string
         if txt is None or len(txt) == 0:
             data = self._binary

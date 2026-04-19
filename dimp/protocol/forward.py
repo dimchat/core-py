@@ -147,14 +147,14 @@ class SecretContent(BaseContent, ForwardContent):
         # lazy
         self.__secrets = messages
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize secret messages
         messages = self.__secrets
         if messages is not None and self.get('secrets') is None:
             self['secrets'] = ReliableMessage.revert(messages=messages)
         # OK
-        return super().dictionary
+        return super().to_dict()
 
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:

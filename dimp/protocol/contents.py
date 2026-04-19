@@ -272,14 +272,14 @@ class WebPageContent(BaseContent, PageContent):
         if icon is not None:
             self.icon = icon
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize 'icon'
         img = self.__icon
         if img is not None and self.get('icon') is None:
             self['icon'] = img.serialize()
         # OK
-        return super().dictionary
+        return super().to_dict()
 
     #
     #   Web Title
@@ -385,14 +385,14 @@ class NameCardContent(BaseContent, NameCard):
         # lazy load
         self.__avatar = avatar
 
-    @property  # Override
-    def dictionary(self) -> Dict:
+    # Override
+    def to_dict(self) -> Dict:
         # serialize 'avatar'
         img = self.__avatar
         if img is not None and self.get('avatar') is None:
             self['avatar'] = img.serialize()
         # OK
-        return super().dictionary
+        return super().to_dict()
 
     @property  # Override
     def identifier(self) -> ID:
