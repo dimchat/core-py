@@ -31,7 +31,7 @@ from mkm.types import URI
 from mkm.crypto import DecryptKey
 from mkm.format import TransportableResource
 from mkm.format import TransportableData
-from mkm.ext import FormatExtensions, shared_format_extensions
+from mkm.ext import shared_format_extensions
 
 
 class TransportableFile(Mapper, TransportableResource, ABC):
@@ -168,12 +168,6 @@ class TransportableFile(Mapper, TransportableResource, ABC):
         helper.set_transportable_file_factory(factory=factory)
 
 
-def pnf_helper():
-    helper = shared_format_extensions.pnf_helper
-    assert isinstance(helper, TransportableFileHelper), 'PNF helper error: %s' % helper
-    return helper
-
-
 class TransportableFileFactory(ABC):
     """ PNF factory """
 
@@ -228,16 +222,24 @@ class TransportableFileHelper(ABC):
         raise NotImplemented
 
 
-class _PnfExt:
-    _pnf_helper: Optional[TransportableFileHelper] = None
+class TransportableFileExtension:
 
     @property
     def pnf_helper(self) -> Optional[TransportableFileHelper]:
-        return _PnfExt._pnf_helper
+        raise NotImplemented
 
     @pnf_helper.setter
     def pnf_helper(self, helper: TransportableFileHelper):
-        _PnfExt._pnf_helper = helper
+        raise NotImplemented
 
 
-FormatExtensions.pnf_helper = _PnfExt.pnf_helper
+shared_format_extensions.pnf_helper: Optional[TransportableFileHelper] = None
+
+
+def format_extensions() -> TransportableFileExtension:
+    return shared_format_extensions
+
+
+def pnf_helper() -> TransportableFileHelper:
+    ext = format_extensions()
+    return ext.pnf_helper

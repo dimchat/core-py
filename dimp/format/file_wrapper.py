@@ -111,12 +111,6 @@ class TransportableFileWrapper(ABC):
                                                          url=url, password=password)
 
 
-def wrapper_factory():
-    factory = shared_format_extensions.pnf_wrapper_factory
-    assert isinstance(factory, TransportableFileWrapperFactory), 'PNF wrapper factory error: %s' % factory
-    return factory
-
-
 class TransportableFileWrapperFactory(ABC):
     """ Wrapper factory """
 
@@ -127,3 +121,31 @@ class TransportableFileWrapperFactory(ABC):
                                           url: Optional[URI],
                                           password: Optional[DecryptKey]) -> TransportableFileWrapper:
         raise NotImplemented
+
+
+# -----------------------------------------------------------------------------
+#  Format Extensions
+# -----------------------------------------------------------------------------
+
+
+class TransportableFileWrapperExtension:
+
+    @property
+    def pnf_wrapper_factory(self) -> Optional[TransportableFileWrapperFactory]:
+        raise NotImplemented
+
+    @pnf_wrapper_factory.setter
+    def pnf_wrapper_factory(self, factory: TransportableFileWrapperFactory):
+        raise NotImplemented
+
+
+shared_format_extensions.pnf_wrapper_factory: Optional[TransportableFileWrapperFactory] = None
+
+
+def format_extensions() -> TransportableFileWrapperExtension:
+    return shared_format_extensions
+
+
+def wrapper_factory() -> TransportableFileWrapperFactory:
+    ext = format_extensions()
+    return ext.pnf_wrapper_factory

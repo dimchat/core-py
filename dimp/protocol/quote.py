@@ -33,7 +33,7 @@ from typing import Optional, Dict
 
 from mkm.types import Converter
 from dkd.protocol import Content, Envelope
-from dkd.ext import MessageExtensions, shared_message_extensions
+from dkd.ext import shared_message_extensions
 
 from .types import ContentType
 from .base import BaseContent
@@ -91,12 +91,6 @@ class QuoteContent(Content, ABC):
         helper = quote_helper()
         origin = helper.purify_for_quote(envelope=envelope, content=content)
         return BaseQuoteContent(text=text, origin=origin)
-
-
-def quote_helper():
-    helper = shared_message_extensions.quote_helper
-    assert isinstance(helper, QuoteHelper), 'quote helper error: %s' % helper
-    return helper
 
 
 ###############################
@@ -197,16 +191,24 @@ class QuotePurifier(QuoteHelper):
         return origin
 
 
-class _QuoteExt:
-    _quote_helper: QuoteHelper = QuotePurifier()
+class QuoteExtension:
 
     @property
     def quote_helper(self) -> QuoteHelper:
-        return _QuoteExt._quote_helper
+        raise NotImplemented
 
     @quote_helper.setter
     def quote_helper(self, helper: QuoteHelper):
-        _QuoteExt._quote_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.quote_helper = _QuoteExt.quote_helper
+shared_message_extensions.quote_helper: QuoteHelper = QuotePurifier()
+
+
+def message_extensions() -> QuoteExtension:
+    return shared_message_extensions
+
+
+def quote_helper() -> QuoteHelper:
+    ext = message_extensions()
+    return ext.quote_helper

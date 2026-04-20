@@ -35,8 +35,9 @@ from .data import Base64Data, PlainData
 from .embed import EmbedData
 
 from .file import TransportableFile, TransportableFileFactory
-# from .file import TransportableFileHelper
+# from .file import TransportableFileHelper, TransportableFileExtension
 from .file_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
+# from .file_wrapper import TransportableFileWrapperExtension
 from .pnf import PortableNetworkFile
 from .pnf_wrapper import PortableNetworkFileWrapper
 
@@ -95,8 +96,9 @@ __all__ = [
     #
 
     'TransportableFile', 'TransportableFileFactory',
-    # 'TransportableFileHelper',
+    # 'TransportableFileHelper', 'TransportableFileExtension',
     'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+    # 'TransportableFileWrapperExtension',
 
     'PortableNetworkFile',
     'PortableNetworkFileWrapper',

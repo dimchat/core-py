@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Union, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -37,7 +37,7 @@ from mkm.protocol import ID
 from dkd.protocol import Content
 from dkd.protocol import InstantMessage
 from dkd.ext import GeneralMessageHelper
-from dkd.ext import MessageExtensions, shared_message_extensions
+from dkd.ext import GeneralMessageExtension, shared_message_extensions
 
 from .types import ContentType
 
@@ -86,12 +86,6 @@ class Command(Content, ABC):
     def set_factory(cls, cmd: str, factory):
         helper = command_helper()
         helper.set_command_factory(cmd=cmd, factory=factory)
-
-
-def command_helper():
-    helper = shared_message_extensions.command_helper
-    assert isinstance(helper, CommandHelper), 'command helper error: %s' % helper
-    return helper
 
 
 class CommandFactory(ABC):
@@ -172,12 +166,6 @@ class BaseContent(Dictionary, Content):
         self.set_string(key='group', value=identifier)
 
 
-def message_helper():
-    helper = shared_message_extensions.helper
-    assert isinstance(helper, GeneralMessageHelper), 'message helper error: %s' % helper
-    return helper
-
-
 class BaseCommand(BaseContent, Command):
 
     def __init__(self, content: Dict = None, msg_type: str = None, cmd: str = None):
@@ -199,12 +187,6 @@ class BaseCommand(BaseContent, Command):
         helper = cmd_helper()
         return helper.get_cmd(content=super().to_dict(), default='')
         # return self.get_str(key='command', default='')
-
-
-def cmd_helper():
-    helper = shared_message_extensions.cmd_helper
-    assert isinstance(helper, GeneralCommandHelper), 'cmd helper error: %s' % helper
-    return helper
 
 
 # -----------------------------------------------------------------------------
@@ -241,26 +223,46 @@ class GeneralCommandHelper(ABC):
         raise NotImplemented
 
 
-class _CmdExt:
-    _command_helper: Optional[CommandHelper] = None
-    _cmd_helper: Optional[GeneralCommandHelper] = None
+class CommandExtension:
 
     @property
     def command_helper(self) -> Optional[CommandHelper]:
-        return _CmdExt._command_helper
+        raise NotImplemented
 
     @command_helper.setter
     def command_helper(self, helper: CommandHelper):
-        _CmdExt._command_helper = helper
+        raise NotImplemented
+
+
+class CmdExtension:
 
     @property
     def cmd_helper(self) -> Optional[GeneralCommandHelper]:
-        return _CmdExt._cmd_helper
+        raise NotImplemented
 
     @cmd_helper.setter
     def cmd_helper(self, helper: GeneralCommandHelper):
-        _CmdExt._cmd_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.command_helper = _CmdExt.command_helper
-MessageExtensions.cmd_helper = _CmdExt.cmd_helper
+shared_message_extensions.command_helper: Optional[CommandHelper] = None
+shared_message_extensions.cmd_helper: Optional[GeneralCommandHelper] = None
+
+
+def message_extensions() -> Union[CommandExtension, CmdExtension, GeneralMessageExtension]:
+    return shared_message_extensions
+
+
+def command_helper() -> CommandHelper:
+    ext = message_extensions()
+    return ext.command_helper
+
+
+def cmd_helper() -> GeneralCommandHelper:
+    ext = message_extensions()
+    return ext.cmd_helper
+
+
+def message_helper() -> GeneralMessageHelper:
+    ext = message_extensions()
+    return ext.helper

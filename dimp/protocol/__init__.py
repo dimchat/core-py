@@ -46,6 +46,7 @@ from .types import ContentType
 from .base import Command, CommandFactory
 # from .base import BaseContent, BaseCommand
 # from .base import CommandHelper, GeneralCommandHelper
+# from .base import CommandExtension, CmdExtension
 
 from .contents import TextContent, PageContent, NameCard
 # from .contents import BaseTextContent, WebPageContent, NameCardContent
@@ -62,6 +63,7 @@ from .forward import ForwardContent, CombineContent, ArrayContent
 from .quote import QuoteContent
 # from .quote import BaseQuoteContent
 # from .quote import QuoteHelper, QuotePurifier
+# from .quote import QuoteExtension
 
 from .commands import MetaCommand, DocumentCommand
 # from .commands import BaseMetaCommand, BaseDocumentCommand
@@ -123,6 +125,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     # 'CommandHelper', 'GeneralCommandHelper',
+    # 'CommandExtension', 'CmdExtension',
 
     #
     #  Content Extends
@@ -132,7 +135,7 @@ __all__ = [
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
-    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier',
+    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     #
     #  Command Extends

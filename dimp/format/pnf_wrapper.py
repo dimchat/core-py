@@ -28,10 +28,10 @@ from typing import Optional, Any, Dict
 from mkm.types import URI, Mapper, Converter
 from mkm.crypto import SymmetricKey, DecryptKey
 from mkm.format import TransportableData
-from mkm.ext import FormatExtensions
 
 from .file_wrapper import TransportableFileWrapper
 from .file_wrapper import TransportableFileWrapperFactory
+from .file_wrapper import format_extensions
 
 
 class PortableNetworkFileWrapper(TransportableFileWrapper):
@@ -219,16 +219,4 @@ class _PNFWrapperFactory(TransportableFileWrapperFactory):
         return wrapper
 
 
-class _WrapperExt:
-    _wrapper_factory: TransportableFileWrapperFactory = _PNFWrapperFactory()
-
-    @property
-    def wrapper_factory(self) -> TransportableFileWrapperFactory:
-        return _WrapperExt._wrapper_factory
-
-    @wrapper_factory.setter
-    def wrapper_factory(self, factory: TransportableFileWrapperFactory):
-        _WrapperExt._wrapper_factory = factory
-
-
-FormatExtensions.pnf_wrapper_factory = _WrapperExt.wrapper_factory
+format_extensions().pnf_wrapper_factory = _PNFWrapperFactory()

@@ -92,8 +92,9 @@ __all__ = [
     #   PNF
     #
     'TransportableFile', 'TransportableFileFactory',
-    'TransportableFileHelper',
+    'TransportableFileHelper', 'TransportableFileExtension',
     'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+    'TransportableFileWrapperExtension',
 
     'PortableNetworkFile',
     'PortableNetworkFileWrapper',
@@ -180,6 +181,7 @@ __all__ = [
 
     'Command', 'CommandFactory',
     'CommandHelper', 'GeneralCommandHelper',
+    'CommandExtension', 'CmdExtension',
 
     #
     #  Contents
@@ -190,7 +192,7 @@ __all__ = [
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
     'QuoteContent',
-    'QuoteHelper', 'QuotePurifier',
+    'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     #
     #  Commands

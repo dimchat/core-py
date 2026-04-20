@@ -32,9 +32,14 @@ from mkm.ext import *
 from dkd.ext import *
 
 from ..format.file import TransportableFileHelper
+from ..format.file import TransportableFileExtension
+from ..format.file_wrapper import TransportableFileWrapperExtension
 
 from ..protocol.base import CommandHelper, GeneralCommandHelper
+from ..protocol.base import CommandExtension, CmdExtension
+
 from ..protocol.quote import QuoteHelper, QuotePurifier
+from ..protocol.quote import QuoteExtension
 
 __all__ = [
 
@@ -78,8 +83,13 @@ __all__ = [
     #
 
     'TransportableFileHelper',
+    'TransportableFileExtension',
+    'TransportableFileWrapperExtension',
 
     'CommandHelper', 'GeneralCommandHelper',
+    'CommandExtension', 'CmdExtension',
+
     'QuoteHelper', 'QuotePurifier',
+    'QuoteExtension',
 
 ]
