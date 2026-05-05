@@ -149,3 +149,10 @@ def format_extensions() -> TransportableFileWrapperExtension:
 def wrapper_factory() -> TransportableFileWrapperFactory:
     ext = format_extensions()
     return ext.pnf_wrapper_factory
+    # return shared_format_extensions.pnf_wrapper_factory
+
+
+def set_wrapper_factory(factory: TransportableFileWrapperFactory):
+    ext = format_extensions()
+    ext.pnf_wrapper_factory = factory
+    # shared_format_extensions.pnf_wrapper_factory = factory

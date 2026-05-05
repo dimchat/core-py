@@ -36,7 +36,8 @@ from mkm.format import TransportableData
 from mkm.format import utf8_encode
 from mkm.crypto import VerifyKey, PublicKey
 from mkm.protocol import Meta
-from mkm.ext import GeneralAccountHelper, shared_account_extensions
+from mkm.ext import GeneralAccountHelper
+from mkm.ext import GeneralAccountExtension, shared_account_extensions
 
 
 """
@@ -198,7 +199,10 @@ class BaseMeta(Dictionary, Meta, ABC):
         return key.verify(data=data, signature=signature)
 
 
-def account_helper():
-    helper = shared_account_extensions.helper
-    assert isinstance(helper, GeneralAccountHelper), 'account helper error: %s' % helper
-    return helper
+def account_extensions() -> GeneralAccountExtension:
+    return shared_account_extensions
+
+
+def account_helper() -> GeneralAccountHelper:
+    ext = account_extensions()
+    return ext.helper

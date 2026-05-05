@@ -31,7 +31,7 @@ from mkm.format import TransportableData
 
 from .file_wrapper import TransportableFileWrapper
 from .file_wrapper import TransportableFileWrapperFactory
-from .file_wrapper import format_extensions
+from .file_wrapper import set_wrapper_factory
 
 
 class PortableNetworkFileWrapper(TransportableFileWrapper):
@@ -219,4 +219,4 @@ class _PNFWrapperFactory(TransportableFileWrapperFactory):
         return wrapper
 
 
-format_extensions().pnf_wrapper_factory = _PNFWrapperFactory()
+set_wrapper_factory(factory=_PNFWrapperFactory())

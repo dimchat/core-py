@@ -40,11 +40,10 @@ from typing import Optional, Dict
 
 from mkm.types import Converter
 from dkd.protocol import Envelope, Content
-from dkd.ext import shared_message_extensions
 
 from .base import BaseCommand
 from .commands import Command
-from .quote import QuoteHelper
+from .quote import quote_helper
 
 
 class ReceiptCommand(Command, ABC):
@@ -114,12 +113,6 @@ class ReceiptCommand(Command, ABC):
                 command.group = group
         # OK
         return command
-
-
-def quote_helper():
-    helper = shared_message_extensions.quote_helper
-    assert isinstance(helper, QuoteHelper), 'quote helper error: %s' % helper
-    return helper
 
 
 ###############################

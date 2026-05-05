@@ -31,7 +31,8 @@
 from mkm.protocol import *
 from mkm.protocol.broadcast import BroadcastAddress, Identifier
 
-from ..protocol import MetaType, DocumentType
+from ..protocol import MetaType
+from ..protocol import DocumentType
 from ..protocol import Visa, Bulletin
 
 from .meta import BaseMeta
@@ -58,14 +59,22 @@ __all__ = [
 
     # 'AddressHelper', 'IDHelper',
     # 'MetaHelper', 'DocumentHelper',
+
+    # 'AddressExtension', 'IDExtension',
+    # 'MetaExtension', 'DocumentExtension',
     # 'AccountExtensions', 'shared_account_extensions',
 
-    #
-    #   Extends
-    #
 
-    'MetaType', 'DocumentType',
+    # ----------------------------------------------------------------
+
+
+    'MetaType',
+    'DocumentType',
     'Visa', 'Bulletin',
+
+    #
+    #   Implementations
+    #
 
     'BaseMeta',
     'BaseDocument', 'BaseVisa', 'BaseBulletin',

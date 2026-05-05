@@ -78,10 +78,14 @@ __all__ = [
     # 'TransportableDataHelper',
     # 'FormatExtensions', 'shared_format_extensions',
 
+
+    # ----------------------------------------------------------------
+
+
     'Header', 'DataURI',
 
     #
-    #   TransportableData
+    #   TED
     #
 
     'EncodeAlgorithms',
@@ -92,7 +96,7 @@ __all__ = [
     'EmbedData',
 
     #
-    #   TransportableFile
+    #   PNF
     #
 
     'TransportableFile', 'TransportableFileFactory',

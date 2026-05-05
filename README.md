@@ -35,7 +35,7 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import Optional, Dict
 
-from dimp import Command, BaseCommand
+from dimp import *
 
 
 class HandshakeState(IntEnum):
@@ -64,12 +64,12 @@ class HandshakeCommand(Command, ABC):
         ~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0x88),
-            sn   : 123,
+            "type" : i2s(0x88),
+            "sn"   : 12345,
 
-            command : "handshake",    // command name
-            title   : "Hello world!", // "DIM?", "DIM!"
-            session : "{SESSION_ID}", // session key
+            "command" : "handshake",    // command name
+            "title"   : "Hello world!", // "DIM?", "DIM!"
+            "session" : "{SESSION_ID}", // session key
         }
     """
     HANDSHAKE = 'handshake'
@@ -161,42 +161,106 @@ class BaseHandshakeCommand(BaseCommand, HandshakeCommand):
 ### Extends Content
 
 ```python
-from typing import Any, Dict
+from abc import ABC, abstractmethod
 
 from dimp import *
 
 
-class ApplicationContent(BaseContent, AppContent):
+class AppContent(Content, ABC):
+    """
+        Content for Application 0nly
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            "type" : i2s(0xA0),
+            "sn"   : 12345,
+
+            "app"   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
+            "extra" : info         // action parameters
+        }
+    """
+
+    @property
+    @abstractmethod
+    def application(self) -> str:
+        """ App ID """
+        raise NotImplemented
+
+
+class CustomizedContent(Content, ABC):
     """
         Application Customized message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            type : i2s(0xA0),
-            sn   : 123,
+            "type" : i2s(0xCC),
+            "sn"   : 12345,
 
-            app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
-            extra : info         // action parameters
+            "app"   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
+            "mod"   : "{MODULE}",  // module name (e.g.: "drift_bottle")
+            "act"   : "{ACTION}",  // action name (e.g.: "throw")
+            "extra" : info         // action parameters
         }
     """
 
-    def __init__(self, content: Dict[str, Any] = None,
-                 msg_type: str = None, app: str = None):
+    @property
+    @abstractmethod
+    def module(self) -> str:
+        """ Module Name """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def action(self) -> str:
+        """ Action Name """
+        raise NotImplemented
+
+    #
+    #   Factory method
+    #
+    @classmethod
+    def create(cls, app: str, mod: str, act: str):
+        return AppCustomizedContent(app=app, mod=mod, act=act)
+```
+
+```python
+from typing import Dict
+
+from dimp import *
+
+
+class AppCustomizedContent(BaseContent, AppContent, CustomizedContent):
+
+    def __init__(self, content: Dict = None,
+                 msg_type: str = None,
+                 app: str = None, mod: str = None, act: str = None):
         if content is None:
-            # 1. new content with type, app_id
-            assert app is not None, 'customized content error: %s, %s' % (msg_type, app)
+            # 1. new content with type, application, module & action
+            assert app is not None and mod is not None and act is not None, \
+                'customized content error: %s, %s, %s, %s' % (msg_type, app, mod, act)
             if msg_type is None:
-                msg_type = ContentType.APPLICATION
+                msg_type = ContentType.CUSTOMIZED
             super().__init__(None, msg_type)
             self['app'] = app
+            self['mod'] = mod
+            self['act'] = act
         else:
             # 2. content info from network
-            assert msg_type is None and app is None, 'params error: %s, %s, %s' % (content, msg_type, app)
+            assert msg_type is None and app is None and mod is None and act is None, \
+                'params error: %s, %s, %s, %s, %s' % (content, msg_type, app, mod, act)
             super().__init__(content)
 
     @property  # Override
     def application(self) -> str:
         return self.get_str(key='app', default='')
+
+    @property  # Override
+    def module(self) -> str:
+        return self.get_str(key='mod', default='')
+
+    @property  # Override
+    def action(self) -> str:
+        return self.get_str(key='act', default='')
 ```
 
 ### Extends ID Address
@@ -205,5 +269,5 @@ class ApplicationContent(BaseContent, AppContent):
 
 ----
 
-Copyright &copy; 2018-2025 Albert Moky
+Copyright &copy; 2018-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

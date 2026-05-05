@@ -34,12 +34,15 @@ from ..protocol import *
 
 from ..protocol.base import BaseContent, BaseCommand
 # from ..protocol.base import CommandHelper, GeneralCommandHelper
+# from ..protocol.base import CommandExtension, CmdExtension
+
 from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
 from ..protocol.assets import BaseMoneyContent, TransferMoneyContent
 from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
 from ..protocol.quote import BaseQuoteContent
-# from ..protocol.quote import QuoteHelper, QuotePurifier
+# from ..protocol.quote import QuoteHelper, QuotePurifier, QuoteExtension
+
 from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
 from ..protocol.receipt import BaseReceiptCommand
 from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
@@ -68,22 +71,24 @@ __all__ = [
 
     # 'ContentHelper', 'EnvelopeHelper',
     # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    # 'ContentExtension',
+    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     # 'MessageExtensions', 'shared_message_extensions',
 
-    #
-    #   Extends
-    #
+
+    # ----------------------------------------------------------------
+
 
     'ContentType',
 
     'Command', 'CommandFactory',
-    # 'CommandHelper', 'GeneralCommandHelper',
 
     'TextContent', 'PageContent', 'NameCard',
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
-    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier',
+    'QuoteContent',
 
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
@@ -96,12 +101,15 @@ __all__ = [
     #
 
     'BaseContent', 'BaseCommand',
+    # 'CommandHelper', 'GeneralCommandHelper',
+    # 'CommandExtension', 'CmdExtension',
 
     'BaseTextContent', 'WebPageContent', 'NameCardContent',
     'BaseMoneyContent', 'TransferMoneyContent',
     'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     'SecretContent', 'CombineForwardContent', 'ListContent',
     'BaseQuoteContent',
+    # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     'BaseMetaCommand', 'BaseDocumentCommand',
     'BaseReceiptCommand',

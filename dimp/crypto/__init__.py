@@ -56,11 +56,14 @@ __all__ = [
     'SymmetricKeyFactory', 'PrivateKeyFactory', 'PublicKeyFactory',
 
     # 'SymmetricKeyHelper', 'PublicKeyHelper', 'PrivateKeyHelper',
+
+    # 'SymmetricKeyExtension', 'PublicKeyExtension', 'PrivateKeyExtension',
     # 'CryptoExtensions', 'shared_crypto_extensions',
 
-    #
-    #   Algorithms
-    #
+
+    # ----------------------------------------------------------------
+
+
     'AsymmetricAlgorithms', 'SymmetricAlgorithms',
 
 ]

@@ -38,7 +38,8 @@
 from mkm.protocol import *
 from dkd.protocol import *
 
-from .version import MetaType, DocumentType
+from .version import MetaType
+from .version import DocumentType
 from .docs import Visa, Bulletin
 
 from .types import ContentType
@@ -79,9 +80,12 @@ from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, Reset
 
 __all__ = [
 
+
+    ################################
     #
-    #   MingKeMing
+    #   Ming-Ke-Ming
     #
+    ################################
 
     'EntityType',
     'Address', 'ID',
@@ -96,11 +100,17 @@ __all__ = [
 
     # 'AddressHelper', 'IDHelper',
     # 'MetaHelper', 'DocumentHelper',
+
+    # 'AddressExtension', 'IDExtension',
+    # 'MetaExtension', 'DocumentExtension',
     # 'AccountExtensions', 'shared_account_extensions',
 
+
+    ################################
     #
-    #   DaoKeDao
+    #   Dao-Ke-Dao
     #
+    ################################
 
     'Content', 'Envelope',
     'Message',
@@ -111,11 +121,17 @@ __all__ = [
 
     # 'ContentHelper', 'EnvelopeHelper',
     # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    # 'ContentExtension',
+    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     # 'MessageExtensions', 'shared_message_extensions',
 
+
+    ################################
     #
-    #  Extends
+    #   Core Protocols
     #
+    ################################
 
     'MetaType',
     'DocumentType',
@@ -124,8 +140,6 @@ __all__ = [
     'ContentType',
 
     'Command', 'CommandFactory',
-    # 'CommandHelper', 'GeneralCommandHelper',
-    # 'CommandExtension', 'CmdExtension',
 
     #
     #  Content Extends
@@ -135,7 +149,7 @@ __all__ = [
     'MoneyContent', 'TransferContent',
     'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
-    'QuoteContent',  # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
+    'QuoteContent',
 
     #
     #  Command Extends
@@ -147,17 +161,23 @@ __all__ = [
     'HistoryCommand', 'GroupCommand',
     'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
 
+
+    ################################
     #
-    #   Implementations
+    #   Core Implementations
     #
+    ################################
 
     # 'BaseContent', 'BaseCommand',
+    # 'CommandHelper', 'GeneralCommandHelper',
+    # 'CommandExtension', 'CmdExtension',
 
     # 'BaseTextContent', 'WebPageContent', 'NameCardContent',
     # 'BaseMoneyContent', 'TransferMoneyContent',
     # 'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     # 'SecretContent', 'CombineForwardContent', 'ListContent',
     # 'BaseQuoteContent',
+    # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     # 'BaseMetaCommand', 'BaseDocumentCommand',
     # 'BaseReceiptCommand',

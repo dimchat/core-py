@@ -55,32 +55,40 @@ __all__ = [
     #
 
     'SymmetricKeyHelper', 'PublicKeyHelper', 'PrivateKeyHelper',
+
+    'SymmetricKeyExtension', 'PublicKeyExtension', 'PrivateKeyExtension',
     'CryptoExtensions', 'shared_crypto_extensions',
 
     #
-    #   MingKeMing
+    #   Ming-Ke-Ming
     #
 
     'AddressHelper', 'IDHelper',
     'MetaHelper', 'DocumentHelper',
+
+    'AddressExtension', 'IDExtension',
+    'MetaExtension', 'DocumentExtension',
     'AccountExtensions', 'shared_account_extensions',
 
-    'GeneralCryptoHelper',
-    'GeneralAccountHelper',
+    'GeneralCryptoHelper', 'GeneralCryptoExtension',
+    'GeneralAccountHelper', 'GeneralAccountExtension',
 
     #
-    #   DaoKeDao
+    #   Dao-Ke-Dao
     #
 
     'ContentHelper', 'EnvelopeHelper',
     'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    'ContentExtension',
+    'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     'MessageExtensions', 'shared_message_extensions',
 
-    'GeneralMessageHelper',
+    'GeneralMessageHelper', 'GeneralMessageExtension',
 
-    #
-    #   Extends
-    #
+
+    # ----------------------------------------------------------------
+
 
     'TransportableFileHelper',
     'TransportableFileExtension',
