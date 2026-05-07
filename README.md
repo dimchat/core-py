@@ -77,17 +77,23 @@ class HandshakeCommand(Command, ABC):
     @property
     @abstractmethod
     def title(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.title getter'
+        )
 
     @property
     @abstractmethod
     def session(self) -> Optional[str]:
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.session getter'
+        )
 
     @property
     @abstractmethod
     def state(self) -> HandshakeState:
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.state getter'
+        )
 
     #
     #   Factories
@@ -184,7 +190,9 @@ class AppContent(Content, ABC):
     @abstractmethod
     def application(self) -> str:
         """ App ID """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.application getter'
+        )
 
 
 class CustomizedContent(Content, ABC):
@@ -207,13 +215,17 @@ class CustomizedContent(Content, ABC):
     @abstractmethod
     def module(self) -> str:
         """ Module Name """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.module getter'
+        )
 
     @property
     @abstractmethod
     def action(self) -> str:
         """ Action Name """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.action getter'
+        )
 
     #
     #   Factory method

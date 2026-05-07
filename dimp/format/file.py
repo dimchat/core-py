@@ -63,22 +63,34 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def data(self) -> Optional[TransportableData]:
-        raise NotImplemented
+        """ Get file data """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
+        )
 
     @data.setter
     @abstractmethod
     def data(self, content: Optional[TransportableData]):
-        raise NotImplemented
+        """ Set file data """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data setter'
+        )
 
     @property
     @abstractmethod
     def filename(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename getter'
+        )
 
     @filename.setter
     @abstractmethod
     def filename(self, string: Optional[str]):
-        raise NotImplemented
+        """ Set filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename setter'
+        )
 
     #
     #   Download URL
@@ -86,13 +98,18 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        # download URL from CDN
-        raise NotImplemented
+        """ Get download URL from CDN """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
+        )
 
     @url.setter
     @abstractmethod
     def url(self, string: Optional[URI]):
-        raise NotImplemented
+        """ Set URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url setter'
+        )
 
     #
     #   Password for decrypting the downloaded data from CDN,
@@ -101,12 +118,18 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def password(self) -> Optional[DecryptKey]:
-        raise NotImplemented
+        """ Get password """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password getter'
+        )
 
     @password.setter
     @abstractmethod
     def password(self, key: Optional[DecryptKey]):
-        raise NotImplemented
+        """ Set password """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password setter'
+        )
 
     # Override
     @abstractmethod
@@ -116,13 +139,17 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
         :return: 'URL', or JSON string: '{...}'
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.__str__()'
+        )
 
     # Override
     @abstractmethod
     def to_dict(self) -> Dict:
-        """ serialize to map """
-        raise NotImplemented
+        """ Serialize to map """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_dict()'
+        )
 
     # Override
     @abstractmethod
@@ -132,7 +159,9 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
         :return: str or dict
         """
-        return NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.serialize()'
+        )
 
     #
     #  Factory methods
@@ -183,7 +212,9 @@ class TransportableFileFactory(ABC):
         :param password: decrypt key for downloaded data
         :return: PNF object
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_transportable_file()'
+        )
 
     @abstractmethod
     def parse_transportable_file(self, pnf: Dict) -> Optional[TransportableFile]:
@@ -193,7 +224,9 @@ class TransportableFileFactory(ABC):
         :param pnf: PNF info
         :return: PNF object
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_transportable_file()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -206,31 +239,49 @@ class TransportableFileHelper(ABC):
 
     @abstractmethod
     def set_transportable_file_factory(self, factory: TransportableFileFactory):
-        raise NotImplemented
+        """ Set PNF factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_transportable_file_factory()'
+        )
 
     @abstractmethod
     def get_transportable_file_factory(self) -> Optional[TransportableFileFactory]:
-        raise NotImplemented
+        """ Get PNF factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_transportable_file_factory()'
+        )
 
     @abstractmethod
     def create_transportable_file(self, data: Optional[TransportableData], filename: Optional[str],
                                   url: Optional[URI], password: Optional[DecryptKey]) -> TransportableFile:
-        raise NotImplemented
+        """ Create PNF """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_transportable_file()'
+        )
 
     @abstractmethod
     def parse_transportable_file(self, pnf: Any) -> Optional[TransportableFile]:
-        raise NotImplemented
+        """ Parse any object to PNF """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_transportable_file()'
+        )
 
 
 class TransportableFileExtension:
 
     @property
     def pnf_helper(self) -> Optional[TransportableFileHelper]:
-        raise NotImplemented
+        """ Get PNF helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_helper getter'
+        )
 
     @pnf_helper.setter
     def pnf_helper(self, helper: TransportableFileHelper):
-        raise NotImplemented
+        """ Set PNF helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_helper setter'
+        )
 
 
 shared_format_extensions.pnf_helper: Optional[TransportableFileHelper] = None

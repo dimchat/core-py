@@ -55,7 +55,10 @@ class ForwardContent(Content, ABC):
     @property
     @abstractmethod
     def secrets(self) -> List[ReliableMessage]:
-        raise NotImplemented
+        """ Get forward messages """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.secrets getter'
+        )
 
     #
     #   Factory methods
@@ -82,12 +85,18 @@ class CombineContent(Content, ABC):
     @property
     @abstractmethod
     def title(self) -> str:
-        raise NotImplemented
+        """ Get chat title """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.title getter'
+        )
 
     @property
     @abstractmethod
     def messages(self) -> List[InstantMessage]:
-        raise NotImplemented
+        """ Get chat history """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.messages getter'
+        )
 
     #
     #   Factory methods
@@ -113,7 +122,10 @@ class ArrayContent(Content, ABC):
     @property
     @abstractmethod
     def contents(self) -> List[Content]:
-        raise NotImplemented
+        """ Get content list """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.contents getter'
+        )
 
     #
     #   Factory

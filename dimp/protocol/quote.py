@@ -62,17 +62,26 @@ class QuoteContent(Content, ABC):
     @property
     @abstractmethod
     def text(self) -> str:
-        raise NotImplemented
+        """ Get text """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.text getter'
+        )
 
     @property
     @abstractmethod
     def original_envelope(self) -> Optional[Envelope]:
-        raise NotImplemented
+        """ Get original envelope """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.original_envelope getter'
+        )
 
     @property
     @abstractmethod
     def original_sn(self) -> Optional[int]:
-        raise NotImplemented
+        """ Get original SN """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.original_sn getter'
+        )
 
     #
     #   Factory method
@@ -152,11 +161,17 @@ class QuoteHelper(ABC):
 
     @abstractmethod
     def purify_for_quote(self, envelope: Envelope, content: Content) -> Dict:
-        raise NotImplemented
+        """ Purify message envelope for quoting """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.purify_for_quote()'
+        )
 
     @abstractmethod
     def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
-        raise NotImplemented
+        """ Purify message envelope for receipt """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.purify_for_receipt()'
+        )
 
 
 class QuotePurifier(QuoteHelper):
@@ -195,11 +210,17 @@ class QuoteExtension:
 
     @property
     def quote_helper(self) -> QuoteHelper:
-        raise NotImplemented
+        """ Get quote helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.quote_helper getter'
+        )
 
     @quote_helper.setter
     def quote_helper(self, helper: QuoteHelper):
-        raise NotImplemented
+        """ Set quote helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.quote_helper setter'
+        )
 
 
 shared_message_extensions.quote_helper: QuoteHelper = QuotePurifier()

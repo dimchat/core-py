@@ -54,7 +54,9 @@ class Visa(Document, ABC):
 
         :return: user name
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.name getter'
+        )
 
     @name.setter
     @abstractmethod
@@ -65,7 +67,9 @@ class Visa(Document, ABC):
         :param nickname: user name
         :return:
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.name setter'
+        )
 
     @property
     @abstractmethod
@@ -75,7 +79,9 @@ class Visa(Document, ABC):
 
         :return: public key
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.public_key getter'
+        )
 
     @public_key.setter
     @abstractmethod
@@ -85,7 +91,9 @@ class Visa(Document, ABC):
 
         :param key: public key as visa.key
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.public_key setter'
+        )
 
     @property
     @abstractmethod
@@ -95,7 +103,9 @@ class Visa(Document, ABC):
 
         :return: PNF(URL)
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.avatar getter'
+        )
 
     @avatar.setter
     @abstractmethod
@@ -105,7 +115,9 @@ class Visa(Document, ABC):
 
         :param url: PNF(URL)
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.avatar setter'
+        )
 
 
 class Bulletin(Document, ABC):
@@ -122,7 +134,9 @@ class Bulletin(Document, ABC):
 
         :return: group name
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.name getter'
+        )
 
     @name.setter
     @abstractmethod
@@ -133,7 +147,9 @@ class Bulletin(Document, ABC):
         :param title: group name
         :return:
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.name setter'
+        )
 
     @property
     @abstractmethod
@@ -143,4 +159,6 @@ class Bulletin(Document, ABC):
 
         :return: user ID
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.founder getter'
+        )

@@ -118,7 +118,10 @@ class BaseData(BaseString, TransportableData, ABC):
     # Override
     @abstractmethod
     def to_str(self) -> str:
-        raise NotImplemented
+        """ Convert to string """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_str()'
+        )
 
     @property
     def is_empty(self) -> bool:

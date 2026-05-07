@@ -70,44 +70,66 @@ class FileContent(Content, ABC):
     @property
     @abstractmethod
     def data(self) -> Optional[TransportableData]:
-        # file data (it's too big to set in the dictionary)
-        raise NotImplemented
+        """ Get file data (it's too big to set in the dictionary) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
+        )
 
     @data.setter
     @abstractmethod
     def data(self, attachment: Optional[TransportableData]):
-        raise NotImplemented
+        """ Set file data """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data setter'
+        )
 
     @property
     @abstractmethod
     def filename(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename getter'
+        )
 
     @filename.setter
     @abstractmethod
     def filename(self, name: str):
-        raise NotImplemented
+        """ Set filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename setter'
+        )
 
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        raise NotImplemented
+        """ Get URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
+        )
 
     @url.setter
     @abstractmethod
     def url(self, remote: URI):
-        raise NotImplemented
+        """ Set URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url setter'
+        )
 
     @property
     @abstractmethod
     def password(self) -> Optional[DecryptKey]:
-        """ symmetric key to decrypt the encrypted data from URL """
-        raise NotImplemented
+        """ Get symmetric key to decrypt the encrypted data from URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password getter'
+        )
 
     @password.setter
     @abstractmethod
     def password(self, key: DecryptKey):
-        raise NotImplemented
+        """ Set symmetric key """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password setter'
+        )
 
     #
     #   PNF transforming
@@ -116,7 +138,10 @@ class FileContent(Content, ABC):
     @property
     @abstractmethod
     def transportable_file(self) -> TransportableFile:
-        raise NotImplemented
+        """ Convert to PNF """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.transportable_file getter'
+        )
 
     #
     #  Factories
@@ -183,13 +208,18 @@ class ImageContent(FileContent, ABC):
     @property
     @abstractmethod
     def thumbnail(self) -> Optional[TransportableFile]:
-        # thumbnail of image
-        raise NotImplemented
+        """ Get thumbnail of image """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.thumbnail getter'
+        )
 
     @thumbnail.setter
     @abstractmethod
     def thumbnail(self, img: TransportableFile):
-        raise NotImplemented
+        """ Set thumbnail of image """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.thumbnail setter'
+        )
 
 
 class AudioContent(FileContent, ABC):
@@ -219,13 +249,18 @@ class AudioContent(FileContent, ABC):
     @property
     @abstractmethod
     def text(self) -> Optional[str]:
-        # Automatic Speech Recognition
-        raise NotImplemented
+        """ Get text (Automatic Speech Recognition) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.text getter'
+        )
 
     @text.setter
     @abstractmethod
     def text(self, asr: str):
-        raise NotImplemented
+        """ Set text (Automatic Speech Recognition) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.text setter'
+        )
 
 
 class VideoContent(FileContent, ABC):
@@ -255,13 +290,18 @@ class VideoContent(FileContent, ABC):
     @property
     @abstractmethod
     def snapshot(self) -> Optional[TransportableFile]:
-        # snapshot of video
-        raise NotImplemented
+        """ Get snapshot of video """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.snapshot getter'
+        )
 
     @snapshot.setter
     @abstractmethod
     def snapshot(self, img: TransportableFile):
-        raise NotImplemented
+        """ Set snapshot of video """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.snapshot setter'
+        )
 
 
 ###############################

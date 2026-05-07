@@ -66,7 +66,10 @@ class MetaCommand(Command, ABC):
     @property
     @abstractmethod
     def identifier(self) -> ID:
-        raise NotImplemented
+        """ Get did """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.identifier getter'
+        )
 
     #
     #   Meta
@@ -74,7 +77,10 @@ class MetaCommand(Command, ABC):
     @property
     @abstractmethod
     def meta(self) -> Optional[Meta]:
-        raise NotImplemented
+        """ Get meta """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.meta getter'
+        )
 
     #
     #   Factory methods
@@ -126,13 +132,18 @@ class DocumentCommand(MetaCommand, ABC):
     @property
     @abstractmethod
     def documents(self) -> Optional[List[Document]]:
-        raise NotImplemented
+        """ Get documents """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.documents getter'
+        )
 
     @property
     @abstractmethod
     def last_time(self) -> Optional[DateTime]:
         """ Last document time for querying """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.last_time getter'
+        )
 
     #
     #   Factory methods

@@ -60,7 +60,10 @@ class TextContent(Content, ABC):
     @property
     @abstractmethod
     def text(self) -> str:
-        raise NotImplemented
+        """ Get text """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.text getter'
+        )
 
     #
     #   Factory method
@@ -99,12 +102,18 @@ class PageContent(Content, ABC):
     @property
     @abstractmethod
     def title(self) -> str:
-        raise NotImplemented
+        """ Get title """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.title getter'
+        )
 
     @title.setter
     @abstractmethod
     def title(self, string: str):
-        raise NotImplemented
+        """ Set title """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.title setter'
+        )
 
     #
     #   Fav Icon
@@ -113,12 +122,18 @@ class PageContent(Content, ABC):
     @property
     @abstractmethod
     def icon(self) -> Optional[TransportableFile]:
-        raise NotImplemented
+        """ Get icon """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.icon getter'
+        )
 
     @icon.setter
     @abstractmethod
     def icon(self, img: TransportableFile):
-        raise NotImplemented
+        """ Set icon """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.icon setter'
+        )
 
     #
     #   Description
@@ -127,12 +142,18 @@ class PageContent(Content, ABC):
     @property
     @abstractmethod
     def desc(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get description """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.desc getter'
+        )
 
     @desc.setter
     @abstractmethod
     def desc(self, text: str):
-        raise NotImplemented
+        """ Set description """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.desc setter'
+        )
 
     #
     #   Page URL
@@ -141,12 +162,18 @@ class PageContent(Content, ABC):
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        raise NotImplemented
+        """ Get URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
+        )
 
     @url.setter
     @abstractmethod
     def url(self, locator: URI):
-        raise NotImplemented
+        """ Set URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url setter'
+        )
 
     #
     #   Page content
@@ -155,12 +182,18 @@ class PageContent(Content, ABC):
     @property
     @abstractmethod
     def html(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get HTML """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.html getter'
+        )
 
     @html.setter
     @abstractmethod
     def html(self, content: str):
-        raise NotImplemented
+        """ Set HTML """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.html setter'
+        )
 
     #
     #   Factory methods
@@ -197,17 +230,26 @@ class NameCard(Content, ABC):
     @property
     @abstractmethod
     def identifier(self) -> ID:
-        raise NotImplemented
+        """ Get did """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.identifier getter'
+        )
 
     @property
     @abstractmethod
     def name(self) -> str:
-        raise NotImplemented
+        """ Get name """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.name getter'
+        )
 
     @property
     @abstractmethod
     def avatar(self) -> Optional[TransportableFile]:
-        raise NotImplemented
+        """ Get avatar """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.avatar getter'
+        )
 
     #
     #   Factory method

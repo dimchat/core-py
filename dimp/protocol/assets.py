@@ -56,17 +56,26 @@ class MoneyContent(Content, ABC):
     @property
     @abstractmethod
     def currency(self) -> str:
-        raise NotImplemented
+        """ Get currency """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.currency getter'
+        )
 
     @property
     @abstractmethod
     def amount(self) -> Union[int, float]:
-        raise NotImplemented
+        """ Get amount """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.amount getter'
+        )
 
     @amount.setter
     @abstractmethod
     def amount(self, value: Union[int, float]):
-        raise NotImplemented
+        """ Set amount """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.amount setter'
+        )
 
     #
     #   Factory method
@@ -99,22 +108,34 @@ class TransferContent(MoneyContent, ABC):
     @property
     @abstractmethod
     def remitter(self) -> Optional[ID]:
-        raise NotImplemented
+        """ Get sender """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.remitter getter'
+        )
 
     @remitter.setter
     @abstractmethod
     def remitter(self, sender: ID):
-        raise NotImplemented
+        """ Set sender """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.remitter setter'
+        )
 
     @property
     @abstractmethod
     def remittee(self) -> Optional[ID]:
-        raise NotImplemented
+        """ Get receiver """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.remittee getter'
+        )
 
     @remittee.setter
     @abstractmethod
     def remittee(self, receiver: ID):
-        raise NotImplemented
+        """ Set receiver """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.remittee setter'
+        )
 
     #
     #   Factory method

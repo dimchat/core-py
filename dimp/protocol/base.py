@@ -66,7 +66,9 @@ class Command(Content, ABC):
     @abstractmethod
     def cmd(self) -> str:
         """ command/method/declaration """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd getter'
+        )
 
     #
     #   Factory method
@@ -99,7 +101,9 @@ class CommandFactory(ABC):
         :param content: command content
         :return: Command
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_command()'
+        )
 
 
 ###############################
@@ -199,15 +203,24 @@ class CommandHelper(ABC):
 
     @abstractmethod
     def set_command_factory(self, cmd: str, factory: CommandFactory):
-        raise NotImplemented
+        """ Set command factory for name (cmd) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_command_factory()'
+        )
 
     @abstractmethod
     def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
-        raise NotImplemented
+        """ GEt command factory for name (cmd) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_command_factory()'
+        )
 
     @abstractmethod
     def parse_command(self, content: Any) -> Optional[Command]:
-        raise NotImplemented
+        """ Parse any object to command """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_command()'
+        )
 
 
 # class GeneralCommandHelper(CommandHelper, ABC):
@@ -220,29 +233,44 @@ class GeneralCommandHelper(ABC):
 
     @abstractmethod
     def get_cmd(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
-        raise NotImplemented
+        """ Get command name from content info """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_cmd()'
+        )
 
 
 class CommandExtension:
 
     @property
     def command_helper(self) -> Optional[CommandHelper]:
-        raise NotImplemented
+        """ Get command helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_helper getter'
+        )
 
     @command_helper.setter
     def command_helper(self, helper: CommandHelper):
-        raise NotImplemented
+        """ Set command helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_helper setter'
+        )
 
 
 class CmdExtension:
 
     @property
     def cmd_helper(self) -> Optional[GeneralCommandHelper]:
-        raise NotImplemented
+        """ Get cmd helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd_helper getter'
+        )
 
     @cmd_helper.setter
     def cmd_helper(self, helper: GeneralCommandHelper):
-        raise NotImplemented
+        """ Set cmd helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd_helper setter'
+        )
 
 
 shared_message_extensions.command_helper: Optional[CommandHelper] = None

@@ -71,22 +71,34 @@ class ReceiptCommand(Command, ABC):
     @property
     @abstractmethod
     def text(self) -> str:
-        raise NotImplemented
+        """ Get text """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.text getter'
+        )
 
     @property
     @abstractmethod
     def original_envelope(self) -> Optional[Envelope]:
-        raise NotImplemented
+        """ Get original envelope """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.original_envelope getter'
+        )
 
     @property
     @abstractmethod
     def original_sn(self) -> Optional[int]:
-        raise NotImplemented
+        """ Get original SN """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.original_sn getter'
+        )
 
     @property
     @abstractmethod
     def original_signature(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get original signature (partially maybe) """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.original_signature getter'
+        )
 
     #
     #   Factory method

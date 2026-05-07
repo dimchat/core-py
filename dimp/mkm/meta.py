@@ -130,7 +130,9 @@ class BaseMeta(Dictionary, Meta, ABC):
     def has_seed(self) -> bool:
         # version = self.type
         # return version == 'MKM' or version == '1'
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.has_seed getter'
+        )
 
     @property  # Override
     def seed(self) -> Optional[str]:

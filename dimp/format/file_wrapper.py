@@ -36,8 +36,10 @@ class TransportableFileWrapper(ABC):
 
     @abstractmethod
     def to_dict(self) -> Dict:
-        """ serialize to map """
-        raise NotImplemented
+        """ Serialize to map """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_dict()'
+        )
 
     #
     #   File data
@@ -46,13 +48,18 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def data(self) -> Optional[TransportableData]:
-        """ binary file content """
-        raise NotImplemented
+        """ Get binary file content """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
+        )
 
     @data.setter
     @abstractmethod
     def data(self, content: Optional[TransportableData]):
-        raise NotImplemented
+        """ Set binary file content """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data setter'
+        )
 
     #
     #   File name
@@ -61,12 +68,18 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def filename(self) -> Optional[str]:
-        raise NotImplemented
+        """ Get filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename getter'
+        )
 
     @filename.setter
     @abstractmethod
     def filename(self, string: Optional[str]):
-        raise NotImplemented
+        """ Set filename """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename setter'
+        )
 
     #
     #   Download URL
@@ -75,13 +88,18 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        # download URL from CDN
-        raise NotImplemented
+        """ Get download URL from CDN """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
+        )
 
     @url.setter
     @abstractmethod
     def url(self, string: Optional[URI]):
-        raise NotImplemented
+        """ Set URL """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.url setter'
+        )
 
     #
     #   Decrypt Key
@@ -90,12 +108,18 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def password(self) -> Optional[DecryptKey]:
-        raise NotImplemented
+        """ Get password """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password getter'
+        )
 
     @password.setter
     @abstractmethod
     def password(self, key: Optional[DecryptKey]):
-        raise NotImplemented
+        """ Set password """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.password setter'
+        )
 
     #
     #  Factory method
@@ -120,7 +144,10 @@ class TransportableFileWrapperFactory(ABC):
                                           filename: Optional[str],
                                           url: Optional[URI],
                                           password: Optional[DecryptKey]) -> TransportableFileWrapper:
-        raise NotImplemented
+        """ Create PNF wrapper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_transportable_file_wrapper()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -132,11 +159,17 @@ class TransportableFileWrapperExtension:
 
     @property
     def pnf_wrapper_factory(self) -> Optional[TransportableFileWrapperFactory]:
-        raise NotImplemented
+        """ Get factory for PNF wrapper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_wrapper_factory getter'
+        )
 
     @pnf_wrapper_factory.setter
     def pnf_wrapper_factory(self, factory: TransportableFileWrapperFactory):
-        raise NotImplemented
+        """ Set factory for PNF wrapper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_wrapper_factory setter'
+        )
 
 
 shared_format_extensions.pnf_wrapper_factory: Optional[TransportableFileWrapperFactory] = None

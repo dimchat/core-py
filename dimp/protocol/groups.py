@@ -107,12 +107,18 @@ class GroupCommand(HistoryCommand, ABC):
     @property
     @abstractmethod
     def members(self) -> Optional[List[ID]]:
-        raise NotImplemented
+        """ Get group members """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.members getter'
+        )
 
     @members.setter
     @abstractmethod
     def members(self, users: Optional[List[ID]]):
-        raise NotImplemented
+        """ Set group members """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.members setter'
+        )
 
     #
     #   Factory methods
