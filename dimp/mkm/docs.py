@@ -48,7 +48,7 @@ class BaseVisa(BaseDocument, Visa):
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is not None:
             # 0. document from network
-            assert data is None and signature is None,  'params error: %s, %s, %s' % (document, data, signature)
+            assert data is None and signature is None, f'params error: {document}, {data}, {signature}'
             super().__init__(document)
         else:
             # 1. document from local
@@ -85,7 +85,7 @@ class BaseVisa(BaseDocument, Visa):
                 visa_key = pub
                 self.__key = visa_key
             else:
-                assert info is None, 'visa key error: %s' % info
+                assert info is None, f'visa key error: {info}'
         return visa_key
 
     @public_key.setter  # Override
@@ -125,7 +125,7 @@ class BaseBulletin(BaseDocument, Bulletin):
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is not None:
             # 0. document from network
-            assert data is None and signature is None, 'params error: %s, %s, %s' % (document, data, signature)
+            assert data is None and signature is None, f'params error: {document}, {data}, {signature}'
             super().__init__(document)
         else:
             # 1. document from local

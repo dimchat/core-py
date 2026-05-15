@@ -119,7 +119,7 @@ class BaseContent(Dictionary, Content):
         # check parameters
         if content is None:
             # 1. new content with type
-            assert msg_type is not None and len(msg_type) > 0, 'content type error: %s' % msg_type
+            assert msg_type is not None and len(msg_type) > 0, f'content type error: {msg_type}'
             time = DateTime.now()
             sn = InstantMessage.generate_serial_number(msg_type, time)
             content = {
@@ -129,7 +129,7 @@ class BaseContent(Dictionary, Content):
             }
         else:
             # 2. content info from network
-            assert msg_type is None, 'params error: %s, %s' % (content, msg_type)
+            assert msg_type is None, f'params error: {content}, {msg_type}'
             # lazy load
             sn = None
             time = None
@@ -183,7 +183,7 @@ class BaseCommand(BaseContent, Command):
             self['command'] = cmd
         else:
             # 2. command info from network
-            assert msg_type is None and cmd is None, 'params error: %s, %s' % (msg_type, cmd)
+            assert msg_type is None and cmd is None, f'params error: {msg_type}, {cmd}'
             super().__init__(content)
 
     @property  # Override

@@ -112,7 +112,8 @@ class Header:
             if extra is not None:
                 for key in extra:
                     value = extra[key]
-                    pair = '%s=%s' % (key, value)
+                    # TODO: encode(value)
+                    pair = f'{key}={value}'
                     items.append(pair)
             #
             #  3. 'encoding'
@@ -139,7 +140,7 @@ class Header:
         if end < 6:
             # header empty
             return Header(mime_type='')
-        assert end < len(uri) - 1, 'data URI error: %s' % uri
+        assert end < len(uri) - 1, f'data URI error: {uri}'
         array = uri[5:end].split(';')
         # split main info
         mime_type: str = None
@@ -148,14 +149,14 @@ class Header:
         extra: Dict[str, str] = None
         for item in array:
             if len(item) == 0:
-                # assert False, 'header error: %s' % uri
+                # assert False, f'header error: {uri}'
                 continue
             #
             #  2. extra info: 'charset' or 'filename'
             #
             pos = item.find('=')
             if pos >= 0:
-                assert 0 < pos < len(item) - 1, 'header error: %s' % item
+                assert 0 < pos < len(item) - 1, f'header error: {item}'
                 if extra is None:
                     extra = {}
                 name = item[:pos].lower()
@@ -167,14 +168,14 @@ class Header:
             #
             pos = item.find('/')
             if pos >= 0:
-                assert 0 < pos < len(item) - 1, 'header error: %s' % item
-                assert mime_type is None, 'duplicate mime-type: %s' % uri
+                assert 0 < pos < len(item) - 1, f'header error: {item}'
+                assert mime_type is None, f'duplicate mime-type: {uri}'
                 mime_type = item
                 continue
             #
             #  3. 'encoding'
             #
-            assert encoding is None, 'duplicate encoding: %s' % uri
+            assert encoding is None, f'duplicate encoding: {uri}'
             encoding = item
         # OK
         if mime_type is None:
@@ -277,7 +278,7 @@ class DataURI:
             return None
         pos = uri.find(',')
         if pos < 0:
-            # assert False, 'data URI error: %s' % uri
+            # assert False, f'data URI error: {uri}'
             return None
         head = Header.split_header(uri=uri, end=pos)
         body = uri[pos+1:]

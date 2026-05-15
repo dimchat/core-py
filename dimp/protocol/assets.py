@@ -160,7 +160,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
         if content is None:
             # 1. new content with type, currency & amount
             assert currency is not None and amount is not None, \
-                'money content error: %s, %s, %s' % (msg_type, currency, amount)
+                f'money content error: {msg_type}, {currency}, {amount}'
             if msg_type is None:
                 msg_type = ContentType.MONEY
             super().__init__(None, msg_type)
@@ -170,7 +170,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
         else:
             # 2. content info from network
             assert msg_type is None and currency is None and amount is None,\
-                'params error: %s, %s, %s, %s' % (content, msg_type, currency, amount)
+                f'params error: {content}, {msg_type}, {currency}, {amount}'
             super().__init__(content=content)
 
     @property  # Override

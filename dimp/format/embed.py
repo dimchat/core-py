@@ -158,8 +158,8 @@ class EmbedData(BaseData):
             if extra is not None:
                 for key in extra:
                     value = extra[key]
-                    header += ';%s=%s' % (key, value)
-            txt = 'data:%s;base64,%s' % (header, body)
+                    header += f';{key}={value}'
+            txt = f'data:{header};base64,{body}'
             # self._string = txt
         # parse for data URI
         uri = DataURI.parse(uri=txt)

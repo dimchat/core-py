@@ -327,7 +327,7 @@ class BaseFileContent(BaseContent, FileContent):
         else:
             # 2. content from network
             assert msg_type is None and data is None and filename is None and url is None and password is None, \
-                'params error: %s, %s, %s, %s, %s, %s' % (content, msg_type, data, filename, url, password)
+                f'params error: {content}, {msg_type}, {data}, {filename}, {url}, {password}'
             super().__init__(content)
         # access via the wrapper
         wrapper = TransportableFileWrapper.create(content, data=data, filename=filename, url=url, password=password)

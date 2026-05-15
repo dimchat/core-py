@@ -69,14 +69,14 @@ class BaseMeta(Dictionary, Meta, ABC):
         if meta is not None:
             # 0. meta info from network
             assert version is None and public_key is None and seed is None and fingerprint is None, \
-                'params error: %s, %s, %s, %s, %s' % (meta, version, public_key, seed, fingerprint)
+                f'params error: {meta}, {version}, {public_key}, {seed}, {fingerprint}'
             # waiting to verify
             # all metas must be verified before saving into local storage
             status = 0
         elif seed is None or fingerprint is None:
             # 1. new meta with type & public key only
             assert version is not None and public_key is not None, \
-                'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
+                f'meta info error: {version}, {public_key}, {seed}, {fingerprint}'
             assert seed is None and fingerprint is None, 'meta seed/fingerprint error'
             meta = {
                 'type': version,
@@ -88,7 +88,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         else:
             # 2. new meta with type, public key, seed & fingerprint
             assert version is not None and public_key is not None, \
-                'meta info error: %s, %s, %s, %s' % (version, public_key, seed, fingerprint)
+                f'meta info error: {version}, {public_key}, {seed}, {fingerprint}'
             meta = {
                 'type': version,
                 'key': public_key.to_dict(),
@@ -121,7 +121,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         if self.__key is None:
             info = self.get('key')
             self.__key = PublicKey.parse(key=info)
-            assert self.__key is not None, 'meta key error: %s' % info
+            assert self.__key is not None, f'meta key error: {info}'
         return self.__key
 
     # protected
@@ -138,7 +138,7 @@ class BaseMeta(Dictionary, Meta, ABC):
     def seed(self) -> Optional[str]:
         if self.__seed is None and self.has_seed:
             self.__seed = self.get_str(key='seed', default='')
-            assert self.__seed is not None, 'meta.seed empty: %s' % self
+            assert self.__seed is not None, f'meta.seed empty: {self}'
         return self.__seed
 
     @property  # Override
@@ -148,7 +148,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             base64 = self.get('fingerprint')
             assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().to_dict()
             self.__fingerprint = ted = TransportableData.parse(base64)
-            assert ted is not None, 'meta.fingerprint error: %s' % base64
+            assert ted is not None, f'meta.fingerprint error: {base64}'
         return ted
 
     #

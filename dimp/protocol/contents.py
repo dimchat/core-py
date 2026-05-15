@@ -277,7 +277,7 @@ class BaseTextContent(BaseContent, TextContent):
             self['text'] = text
         else:
             # 2. content info from network
-            assert text is None, 'params error: %s, %s' % (content, text)
+            assert text is None, f'params error: {content}, {text}'
             super().__init__(content)
 
     #
@@ -295,7 +295,7 @@ class WebPageContent(BaseContent, PageContent):
                  desc: Optional[str] = None, icon: Optional[TransportableFile] = None):
         if content is None:
             # 1. new content with url, title, desc & icon
-            assert url is not None and title is not None, 'page info error: %s, %s, %s, %s' % (url, title, desc, icon)
+            assert url is not None and title is not None, f'page info error: {url}, {title}, {desc}, {icon}'
             msg_type = ContentType.PAGE
             super().__init__(None, msg_type)
         else:
@@ -410,7 +410,7 @@ class NameCardContent(BaseContent, NameCard):
         if content is None:
             # 1. new content with ID, name & avatar
             assert identifier is not None and name is not None, \
-                'name card info error: %s, %s, %s' % (identifier, name, avatar)
+                f'name card info error: {identifier}, {name}, {avatar}'
             msg_type = ContentType.NAME_CARD
             super().__init__(None, msg_type)
             # ID
@@ -422,7 +422,7 @@ class NameCardContent(BaseContent, NameCard):
         else:
             # 2. content info from network
             assert identifier is None and name is None and avatar is None, \
-                'params error: %s, %s, %s, %s' % (content, identifier, name, avatar)
+                f'params error: {content}, {identifier}, {name}, {avatar}'
             super().__init__(content=content)
         # lazy load
         self.__avatar = avatar

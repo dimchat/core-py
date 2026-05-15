@@ -44,7 +44,7 @@ class Base64Data(BaseData):
         data = self._binary
         if data is None:
             base64 = self._string
-            assert base64 is not None, 'Base64Data error: %s' % self
+            assert base64 is not None, f'Base64Data error: {self}'
             data = base64_decode(string=base64)
             self._binary = data
         return data
@@ -54,7 +54,7 @@ class Base64Data(BaseData):
         base64 = self._string
         if base64 is None or len(base64) == 0:
             data = self._binary
-            assert data is not None, 'Base64Data error: %s' % self
+            assert data is not None, f'Base64Data error: {self}'
             base64 = base64_encode(data=data)
             self._string = base64
         return base64
@@ -82,7 +82,7 @@ class PlainData(BaseData):
         data = self._binary
         if data is None:
             txt = self._string
-            assert txt is not None, 'PlainData error: %s' % self
+            assert txt is not None, f'PlainData error: {self}'
             data = utf8_encode(string=txt)
             self._binary = data
         return data
@@ -92,7 +92,7 @@ class PlainData(BaseData):
         txt = self._string
         if txt is None or len(txt) == 0:
             data = self._binary
-            assert data is not None, 'PlainData error: %s' % self
+            assert data is not None, f'PlainData error: {self}'
             txt = utf8_decode(data=data)
             self._string = txt
         return txt

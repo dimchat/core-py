@@ -67,7 +67,7 @@ class BaseMessage(Dictionary, Message):
             msg = head.to_dict()
         else:
             # 2. message info from network
-            assert head is None, 'params error: %s, %s' % (msg, head)
+            assert head is None, f'params error: {msg}, {head}'
         super().__init__(dictionary=msg)
         # lazy
         self.__envelope = head

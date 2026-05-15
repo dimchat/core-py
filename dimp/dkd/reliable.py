@@ -72,9 +72,9 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
         ted = self.__signature
         if ted is None:
             base64 = self.get('signature')
-            assert base64 is not None, 'message signature cannot be empty: %s' % self
+            assert base64 is not None, f'message signature cannot be empty: {self}'
             ted = TransportableData.parse(base64)
-            assert ted is not None, 'failed to decode message signature: %s' % base64
+            assert ted is not None, f'failed to decode message signature: {base64}'
             self.__signature = ted
         assert ted is not None, 'message signature error: %s' % self.get('signature')
         return ted

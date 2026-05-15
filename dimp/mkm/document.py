@@ -57,7 +57,7 @@ class BaseDocument(Dictionary, Document):
         if document is not None:
             # 0. document info from network
             assert doc_type is None and data is None and signature is None, \
-                'params error: %s, %s, %s, %s' % (document, doc_type, data, signature)
+                f'params error: {document}, {doc_type}, {data}, {signature}'
             properties = None  # lazy
             # waiting to verify
             # all documents must be verified before saving into local storage
@@ -65,9 +65,9 @@ class BaseDocument(Dictionary, Document):
         elif data is None or signature is None:
             # 1. new empty document
             assert doc_type is not None and doc_type != '*', \
-                'document info error: %s, %s, %s' % (doc_type, data, signature)
+                f'document info error: {doc_type}, {data}, {signature}'
             assert data is None and signature is None, \
-                'document info error: %s, %s, %s' % (doc_type, data, signature)
+                f'document info error: {doc_type}, {data}, {signature}'
             document = {
                 'type': doc_type,
             }
@@ -81,7 +81,7 @@ class BaseDocument(Dictionary, Document):
         else:
             # 2. document with data and signature loaded from local storage
             assert doc_type is not None and doc_type != '*', \
-                'document info error: %s, %s, %s' % (doc_type, data, signature)
+                f'document info error: {doc_type}, {data}, {signature}'
             document = {
                 'type': doc_type,
                 'data': data,
@@ -178,9 +178,9 @@ class BaseDocument(Dictionary, Document):
         """
         # if self.__status > 0:
         #     # already signed/verified
-        #     assert self.__json is not None, 'document data error: %s' % self
+        #     assert self.__json is not None, f'document data error: {self}'
         #     signature = self.signature
-        #     assert signature is not None, 'document signature error: %s' % self
+        #     assert signature is not None, f'document signature error: {self}'
         #     return signature
         # 1. update sign time
         self.set_property(name='time', value=DateTime.current_timestamp())
@@ -190,9 +190,9 @@ class BaseDocument(Dictionary, Document):
             # assert False, 'document invalid: %s' % self.to_dict()
             return None
         data = json_encode(info)
-        assert len(data) > 0, 'should not happen: %s' % info
+        assert len(data) > 0, f'should not happen: {info}'
         signature = private_key.sign(data=utf8_encode(string=data))
-        assert len(signature) > 0, 'should not happen: %s' % info
+        assert len(signature) > 0, f'should not happen: {info}'
         ted = Base64Data.create(binary=signature)
         # 3. update 'data' & 'signature' fields
         self['data'] = data                  # JsON string
@@ -222,7 +222,7 @@ class BaseDocument(Dictionary, Document):
             else:
                 # get properties from data
                 info = json_decode(string=data)
-                assert isinstance(info, Dict), 'document data error: %s' % data
+                assert isinstance(info, Dict), f'document data error: {data}'
             self.__properties = info
         return info
 
@@ -236,12 +236,12 @@ class BaseDocument(Dictionary, Document):
     def set_property(self, name: str, value: Optional[Any]):
         """ Update property with key and value """
         # 1. reset status
-        assert self.__status >= 0, 'status error: %s' % self
+        assert self.__status >= 0, f'status error: {self}'
         self.__status = 0
         # 2. update property value with name
         info = self.properties
         if info is None:
-            assert False, 'failed to get properties: %s' % self
+            assert False, f'failed to get properties: {self}'
         elif value is None:
             info.pop(name, None)
         else:

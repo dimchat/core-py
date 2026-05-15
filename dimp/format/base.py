@@ -101,7 +101,8 @@ class BaseString(Stringer):
     def __repr__(self) -> str:
         """ Return repr(self). """
         clazz = self.__class__.__name__
-        return '<%s>%s</%s>' % (clazz, self.to_str(), clazz)
+        text = self.to_str()
+        return f'<{clazz}>{text}</{clazz}>'
 
 
 class BaseData(BaseString, TransportableData, ABC):

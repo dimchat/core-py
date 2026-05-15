@@ -61,12 +61,12 @@ class PlainMessage(BaseMessage, InstantMessage):
                  head: Envelope = None, body: Content = None):
         if msg is None:
             # 1. new instant message with envelope & content
-            assert head is not None and body is not None, 'instant message error: %s, %s' % (head, body)
+            assert head is not None and body is not None, f'instant message error: {head}, {body}'
             super().__init__(None, head)
             # self['content'] = body.to_dict()
         else:
             # 2. message info from network
-            assert head is None and body is None, 'params error: %s, %s, %s' % (msg, head, body)
+            assert head is None and body is None, f'params error: {msg}, {head}, {body}'
             super().__init__(msg, head)
         # lazy
         self.__content = body

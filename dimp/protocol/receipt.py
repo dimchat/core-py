@@ -140,7 +140,7 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand):
                  text: str = None, origin: Dict = None):
         if content is None:
             # 1. new command with text & origin info
-            assert text is not None, 'receipt text should not be None, %s' % origin
+            assert text is not None, f'receipt text should not be None, {origin}'
             cmd = Command.RECEIPT
             super().__init__(cmd=cmd)
             # text message
@@ -153,11 +153,11 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand):
                             'key' in origin or
                             'keys' in origin or
                             'meta' in origin or
-                            'visa' in origin), 'impure envelope: %s' % origin
+                            'visa' in origin), f'impure envelope: {origin}'
                 self['origin'] = origin
         else:
             # 2. command info from network
-            assert text is None and origin is None, 'params error: %s, %s, %s' % (content, text, origin)
+            assert text is None and origin is None, f'params error: {content}, {text}, {origin}'
             # create with command content
             super().__init__(content=content)
         # lazy load

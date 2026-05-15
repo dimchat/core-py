@@ -154,7 +154,7 @@ class SecretContent(BaseContent, ForwardContent):
             #     self['secrets'] = ReliableMessage.revert(messages=messages)
         else:
             # 2. content info from network
-            assert messages is None, 'params error: %s, %s' % (content, messages)
+            assert messages is None, f'params error: {content}, {messages}'
             super().__init__(content)
         # lazy
         self.__secrets = messages
@@ -177,7 +177,7 @@ class SecretContent(BaseContent, ForwardContent):
                 # get from 'secrets'
                 messages = ReliableMessage.convert(array=info)
             else:
-                assert info is None, 'secret messages error: %s' % info
+                assert info is None, f'secret messages error: {info}'
                 # get from 'forward'
                 forward = self.get('forward')
                 msg = ReliableMessage.parse(msg=forward)
@@ -195,14 +195,14 @@ class CombineForwardContent(BaseContent, CombineContent):
                  title: str = None, messages: List[InstantMessage] = None):
         if content is None:
             # 1. new content with message(s)
-            assert not (title is None or messages is None), 'params error: %s, %s' % (title, messages)
+            assert not (title is None or messages is None), f'params error: {title}, {messages}'
             msg_type = ContentType.COMBINE_FORWARD
             super().__init__(None, msg_type)
             self['title'] = title
             self['messages'] = InstantMessage.revert(messages=messages)
         else:
             # 2. content info from network
-            assert title is None and messages is None, 'params error: %s, %s' % (title, messages)
+            assert title is None and messages is None, f'params error: {title}, {messages}'
             super().__init__(content)
         # lazy
         self.__history = messages
@@ -219,7 +219,7 @@ class CombineForwardContent(BaseContent, CombineContent):
             if isinstance(info, List):
                 array = InstantMessage.convert(array=info)
             else:
-                assert info is None, 'combined messages error: %s' % info
+                assert info is None, f'combined messages error: {info}'
                 array = []
             self.__history = array
         return array
@@ -237,7 +237,7 @@ class ListContent(BaseContent, ArrayContent):
             self['contents'] = Content.revert(contents=contents)
         else:
             # 2. content info from network
-            assert contents is None, 'params error: %s, %s' % (content, contents)
+            assert contents is None, f'params error: {content}, {contents}'
             super().__init__(content)
         # lazy
         self.__list = contents

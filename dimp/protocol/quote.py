@@ -115,14 +115,14 @@ class BaseQuoteContent(BaseContent, QuoteContent):
                  text: str = None, origin: Dict = None):
         if content is None:
             # 1. new content with text & origin info
-            assert not (text is None or origin is None), 'quote error: %s, %s' % (text, origin)
+            assert not (text is None or origin is None), f'quote error: {text}, {origin}'
             msg_type = ContentType.QUOTE
             super().__init__(None, msg_type)
             self['text'] = text
             self['origin'] = origin
         else:
             # 2. content info from network
-            assert text is None and origin is None, 'quote error: %s, %s' % (text, origin)
+            assert text is None and origin is None, f'quote error: {text}, {origin}'
             super().__init__(content=content)
         # lazy load
         self.__env: Optional[Envelope] = None

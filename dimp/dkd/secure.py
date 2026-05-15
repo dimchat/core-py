@@ -83,7 +83,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
                 # so return the string data directly
                 ted = PlainData.create(string=text)  # JsON
             else:
-                assert False, 'content data error: %s' % text
+                assert False, f'content data error: {text}'
             self.__data = ted
         assert ted is not None, 'message data error: %s' % self.get('data')
         return ted
@@ -96,6 +96,6 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             if isinstance(keys, Dict):
                 self.__keys = keys
             else:
-                assert keys is None, 'message keys error: %s' % keys
+                assert keys is None, f'message keys error: {keys}'
                 # TODO: get from 'key'
         return keys

@@ -56,7 +56,7 @@ class MessageEnvelope(Dictionary, Envelope):
                  sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
         if envelope is None:
             # 1. new envelope with sender, receiver & time
-            assert sender is not None, 'envelope error: %s, %s' % (receiver, time)
+            assert sender is not None, f'envelope error: {receiver}, {time}'
             if receiver is None:
                 receiver = ANYONE
             if time is None:
@@ -69,7 +69,7 @@ class MessageEnvelope(Dictionary, Envelope):
         else:
             # 2. envelope info from network
             assert sender is None and receiver is None and time is None, \
-                'params error: %s, %s, %s, %s' % (envelope, sender, receiver, time)
+                f'params error: {envelope}, {sender}, {receiver}, {time}'
         # initialize with envelope info
         super().__init__(dictionary=envelope)
         # lazy load

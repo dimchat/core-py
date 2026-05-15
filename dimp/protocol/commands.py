@@ -190,7 +190,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
                  meta: Optional[Meta] = None):
         if content is None:
             # 1. new command with name, ID & meta
-            assert identifier is not None, 'meta command error: %s, %s, %s' % (cmd, identifier, meta)
+            assert identifier is not None, f'meta command error: {cmd}, {identifier}, {meta}'
             if cmd is None:
                 cmd = Command.META
             super().__init__(cmd=cmd)
@@ -200,7 +200,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
         else:
             # 2. command info from network
             assert cmd is None and identifier is None and meta is None, \
-                'params error: %s, %s, %s, %s' % (content, cmd, identifier, meta)
+                f'params error: {content}, {cmd}, {identifier}, {meta}'
             super().__init__(content)
         # lazy load
         self.__meta = meta
@@ -231,7 +231,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
                  last_time: Optional[DateTime] = None):
         if content is None:
             # 1. new command with ID, meta, document & signature
-            assert identifier is not None, 'document command error: %s, %s, %s' % (meta, documents, last_time)
+            assert identifier is not None, f'document command error: {meta}, {documents}, {last_time}'
             cmd = Command.DOCUMENTS
             super().__init__(cmd=cmd, identifier=identifier, meta=meta)
             # respond with document info
@@ -243,7 +243,7 @@ class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
         else:
             # 2. command info from network
             assert identifier is None and meta is None and documents is None and last_time is None, \
-                'params error: %s, %s, %s, %s, %s' % (content, identifier, meta, documents, last_time)
+                f'params error: {content}, {identifier}, {meta}, {documents}, {last_time}'
             super().__init__(content)
         # lazy load
         self.__docs = documents
