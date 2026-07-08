@@ -85,7 +85,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             else:
                 assert False, f'content data error: {text}'
             self.__data = ted
-        assert ted is not None, 'message data error: %s' % self.get('data')
+        assert ted is not None, f'message data error: {self.get("data")}'
         return ted
 
     @property  # Override
@@ -97,5 +97,4 @@ class EncryptedMessage(BaseMessage, SecureMessage):
                 self.__keys = keys
             else:
                 assert keys is None, f'message keys error: {keys}'
-                # TODO: get from 'key'
         return keys

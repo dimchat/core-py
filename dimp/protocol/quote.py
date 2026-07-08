@@ -197,7 +197,6 @@ class QuotePurifier(QuoteHelper):
         origin = envelope.copy_dict(deep_copy=False)
         if 'data' in origin:
             origin.pop('data', None)
-            origin.pop('key', None)
             origin.pop('keys', None)
             origin.pop('meta', None)
             origin.pop('visa', None)

@@ -150,7 +150,6 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand):
             if origin is not None:
                 assert not (len(origin) == 0 or
                             'data' in origin or
-                            'key' in origin or
                             'keys' in origin or
                             'meta' in origin or
                             'visa' in origin), f'impure envelope: {origin}'

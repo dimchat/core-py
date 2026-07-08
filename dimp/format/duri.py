@@ -110,8 +110,7 @@ class Header:
             #  2. extra info: 'charset' & 'filename'
             #
             if extra is not None:
-                for key in extra:
-                    value = extra[key]
+                for key, value in extra.items():
                     # TODO: encode(value)
                     pair = f'{key}={value}'
                     items.append(pair)
@@ -259,9 +258,9 @@ class DataURI:
         if text is None:
             header = self.head.to_str()
             if len(header) == 0:
-                text = 'data:,%s' % self.body
+                text = f'data:,{self.body}'
             else:
-                text = 'data:%s,%s' % (header, self.body)
+                text = f'data:{header},{self.body}'
             self.__uri_string = text
         return text
 

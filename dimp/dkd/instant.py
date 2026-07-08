@@ -93,7 +93,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         if body is None:
             info = self.get('content')
             body = Content.parse(content=info)
-            assert body is not None, 'message content error: %s' % self.to_dict()
+            assert body is not None, f'message content error: {self.to_dict()}'
             self.__content = body
         return body
 

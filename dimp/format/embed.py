@@ -156,8 +156,7 @@ class EmbedData(BaseData):
             header = 'text/plain' if mime_type is None else mime_type
             extra = self.__parameters
             if extra is not None:
-                for key in extra:
-                    value = extra[key]
+                for key, value in extra.items():
                     header += f';{key}={value}'
             txt = f'data:{header};base64,{body}'
             # self._string = txt

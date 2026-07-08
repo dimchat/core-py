@@ -14,7 +14,7 @@ import io
 
 from setuptools import setup, find_packages
 
-__version__ = '2.4.1'
+__version__ = '2.4.2'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
@@ -38,7 +38,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=[
-        'dkd>=2.4.1',
-        'mkm>=2.4.1',
+        'dkd>=2.4.2',
+        'mkm>=2.4.2',
     ]
 )

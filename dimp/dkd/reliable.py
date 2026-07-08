@@ -76,5 +76,5 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
             ted = TransportableData.parse(base64)
             assert ted is not None, f'failed to decode message signature: {base64}'
             self.__signature = ted
-        assert ted is not None, 'message signature error: %s' % self.get('signature')
+        assert ted is not None, f'message signature error: {self.get("signature")}'
         return ted
