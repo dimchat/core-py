@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from collections.abc import MutableMapping
+from typing import Any, List, Dict
 
 from dkd.protocol import Content
 from dkd.protocol import InstantMessage, ReliableMessage
@@ -160,13 +161,13 @@ class SecretContent(BaseContent, ForwardContent):
         self.__secrets = messages
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         # serialize secret messages
         messages = self.__secrets
         if messages is not None and self.get('secrets') is None:
             self['secrets'] = ReliableMessage.revert(messages=messages)
         # OK
-        return super().to_dict()
+        return super().to_map()
 
     @property  # Override
     def secrets(self) -> List[ReliableMessage]:

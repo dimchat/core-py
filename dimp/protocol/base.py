@@ -29,6 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Optional, Union, Any, Dict
 
 from mkm.types import DateTime
@@ -144,7 +145,7 @@ class BaseContent(Dictionary, Content):
         """ message content type: text, image, ... """
         if self.__type is None:
             helper = message_helper()
-            self.__type = helper.get_content_type(content=super().to_dict(), default='')
+            self.__type = helper.get_content_type(content=super().to_map(), default='')
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
 
@@ -189,7 +190,7 @@ class BaseCommand(BaseContent, Command):
     @property  # Override
     def cmd(self) -> str:
         helper = cmd_helper()
-        return helper.get_cmd(content=super().to_dict(), default='')
+        return helper.get_cmd(content=super().to_map(), default='')
         # return self.get_str(key='command', default='')
 
 
@@ -232,7 +233,7 @@ class GeneralCommandHelper(ABC):
     #
 
     @abstractmethod
-    def get_cmd(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
+    def get_cmd(self, content: Mapping, default: Optional[str] = None) -> Optional[str]:
         """ Get command name from content info """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_cmd()'

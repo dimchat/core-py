@@ -40,7 +40,7 @@
         |  time       |     |  time      |     |  time        |
         |             |     |            |     |              |
         |  content    |     |  data      |     |  data        |
-        +-------------+     |  key/keys  |     |  key/keys    |
+        +-------------+     |  keys      |     |  keys        |
                             +------------+     |  signature   |
                                                +--------------+
         Algorithm:
@@ -64,7 +64,7 @@ class BaseMessage(Dictionary, Message):
         if msg is None:
             # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'
-            msg = head.to_dict()
+            msg = head.to_map()
         else:
             # 2. message info from network
             assert head is None, f'params error: {msg}, {head}'
@@ -77,7 +77,7 @@ class BaseMessage(Dictionary, Message):
         env = self.__envelope
         if env is None:
             # let envelope share the same dictionary with message
-            env = Envelope.parse(envelope=super().to_dict())
+            env = Envelope.parse(envelope=super().to_map())
             self.__envelope = env
         return env
 

@@ -48,7 +48,7 @@ from .secure import EncryptedMessage
         "receiver" : "hulk@yyy",
         "time"     : 123.45,
         
-        //-- content data and key/keys
+        //-- content data and keys
         "data"     : "...",    // base64_encode( symmetric_encrypt(content))
         "keys"     : {
             "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))

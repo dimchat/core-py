@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from collections.abc import MutableMapping
+from typing import Optional, Any, Dict
 
 from mkm.types import URI
 from mkm.protocol import ID
@@ -315,13 +316,13 @@ class WebPageContent(BaseContent, PageContent):
             self.icon = icon
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         # serialize 'icon'
         img = self.__icon
         if img is not None and self.get('icon') is None:
             self['icon'] = img.serialize()
         # OK
-        return super().to_dict()
+        return super().to_map()
 
     #
     #   Web Title
@@ -428,13 +429,13 @@ class NameCardContent(BaseContent, NameCard):
         self.__avatar = avatar
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         # serialize 'avatar'
         img = self.__avatar
         if img is not None and self.get('avatar') is None:
             self['avatar'] = img.serialize()
         # OK
-        return super().to_dict()
+        return super().to_map()
 
     @property  # Override
     def identifier(self) -> ID:

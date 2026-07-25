@@ -194,7 +194,7 @@ class QuotePurifier(QuoteHelper):
     def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
         if envelope is None:
             return None
-        origin = envelope.copy_dict(deep_copy=False)
+        origin = envelope.copy_map(deep_copy=False)
         if 'data' in origin:
             origin.pop('data', None)
             origin.pop('keys', None)

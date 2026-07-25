@@ -49,7 +49,7 @@ from .base import BaseMessage
         "receiver" : "hulk@yyy",
         "time"     : 123.45,
         
-        //-- content data and key/keys
+        //-- content data and keys
         "data"     : "...",    // base64_encode( symmetric_encrypt(content))
         "keys"     : {
             "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))
@@ -73,7 +73,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         if ted is None:
             text = self.get('data')
             if text is None:
-                assert False, 'message data not found: %s' % super().to_dict()
+                assert False, 'message data not found: %s' % super().to_map()
             elif not BaseMessage.is_broadcast(msg=self):
                 # message content had been encrypted by a symmetric key,
                 # so the data should be encoded here (with algorithm 'base64' as default).

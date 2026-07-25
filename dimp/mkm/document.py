@@ -187,7 +187,7 @@ class BaseDocument(Dictionary, Document):
         # 2. encode & sign
         info = self.properties
         if info is None:
-            # assert False, 'document invalid: %s' % self.to_dict()
+            # assert False, f'document invalid: {self.to_map()}'
             return None
         data = json_encode(info)
         assert len(data) > 0, f'should not happen: {info}'

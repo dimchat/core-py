@@ -23,6 +23,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+from collections.abc import MutableMapping
 from typing import Optional, Any, Dict
 
 from mkm.types import URI, Mapper, Converter
@@ -39,7 +40,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     def __init__(self, dictionary: Dict):
         super().__init__()
         if isinstance(dictionary, Mapper):
-            dictionary = dictionary.to_dict()
+            dictionary = dictionary.to_map()
         self.__dictionary = dictionary
         # lazy load
         self.__attachment: Optional[TransportableData] = None
@@ -53,7 +54,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
         if value is None:
             self.__dictionary.pop(key, None)
         else:
-            self.__dictionary[key] = value.to_dict()
+            self.__dictionary[key] = value.to_map()
 
     # Override
     def get(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
@@ -95,7 +96,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     __hash__ = None
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         info = self.__dictionary
         # serialize 'data'
         ted = self.__attachment
@@ -104,7 +105,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
         # serialize 'key'
         pwd = self.__password
         if pwd is not None and info.get('key') is None:
-            info['key'] = pwd.to_dict()
+            info['key'] = pwd.to_map()
         # OK
         return info
 
@@ -183,7 +184,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     @password.setter
     def password(self, key: Optional[DecryptKey]):
         self.__dictionary.pop('key', None)
-        # self.__dictionary['key'] = None if key is None else key.to_dict()
+        # self.__dictionary['key'] = None if key is None else key.to_map()
         # self.set_map(key='key', value=key)
         self.__password = key
 

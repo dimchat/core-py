@@ -23,7 +23,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Union, Any, Dict
 
 from mkm.types import URI
 from mkm.types import Dictionary
@@ -37,13 +38,13 @@ from .file_wrapper import TransportableFileWrapper
 
 class PortableNetworkFile(Dictionary, TransportableFile):
 
-    def __init__(self, dictionary: Optional[Dict],
+    def __init__(self, dictionary: Optional[Mapping],
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None,
                  wrapper: Optional[TransportableFileWrapper] = None):
         super().__init__(dictionary=dictionary)
         if wrapper is None:
-            wrapper = TransportableFileWrapper.create(super().to_dict(),
+            wrapper = TransportableFileWrapper.create(super().to_map(),
                                                       data=data, filename=filename,
                                                       url=url, password=password)
         self.__wrapper = wrapper
@@ -53,7 +54,7 @@ class PortableNetworkFile(Dictionary, TransportableFile):
     def uri_string(self) -> Optional[str]:
         # serialize
         wrapper = self.__wrapper
-        info = wrapper.to_dict()
+        info = wrapper.to_map()
         # check 'URL'
         remote = self.url
         if remote is not None and len(remote) > 0:
@@ -98,24 +99,25 @@ class PortableNetworkFile(Dictionary, TransportableFile):
             return uri_string
         # return JSON string
         wrapper = self.__wrapper
-        info = wrapper.to_dict()
+        info = wrapper.to_map()
         return json_encode(info)
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         """ call wrapper to serialize 'data' & 'key" """
         wrapper = self.__wrapper
-        return wrapper.to_dict()
+        return wrapper.to_map()
         # return self.__dictionary
 
     # Override
-    def serialize(self) -> Union[str, dict]:
+    def serialize(self) -> Union[str, Dict]:
         uri_string = self.uri_string
         if uri_string is not None:
             return uri_string
         # return inner map
         wrapper = self.__wrapper
-        return wrapper.to_dict()
+        info = wrapper.to_map()
+        return dict(info)
 
     #
     #   File data

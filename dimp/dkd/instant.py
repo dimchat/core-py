@@ -28,7 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Dict
+from collections.abc import MutableMapping
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.protocol import ID
@@ -63,7 +64,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             # 1. new instant message with envelope & content
             assert head is not None and body is not None, f'instant message error: {head}, {body}'
             super().__init__(None, head)
-            # self['content'] = body.to_dict()
+            # self['content'] = body.to_map()
         else:
             # 2. message info from network
             assert head is None and body is None, f'params error: {msg}, {head}, {body}'
@@ -93,7 +94,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         if body is None:
             info = self.get('content')
             body = Content.parse(content=info)
-            assert body is not None, f'message content error: {self.to_dict()}'
+            assert body is not None, f'message content error: {self.to_map()}'
             self.__content = body
         return body
 
@@ -104,10 +105,10 @@ class PlainMessage(BaseMessage, InstantMessage):
         self.__content = value
 
     # Override
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         # serialize 'content'
         body = self.__content
         if body is not None and self.get('content') is None:
-            self['content'] = body.to_dict()
+            self['content'] = body.to_map()
         # OK
-        return super().to_dict()
+        return super().to_map()

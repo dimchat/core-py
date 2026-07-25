@@ -79,7 +79,7 @@ class BaseVisa(BaseDocument, Visa):
         visa_key = self.__key
         if visa_key is None:
             info = self.get_property(name='key')
-            # assert info is not None, 'visa key not found: %s' % self.to_dict()
+            # assert info is not None, f'visa key not found: {self.to_map()}'
             pub = PublicKey.parse(key=info)
             if isinstance(pub, EncryptKey):
                 visa_key = pub
@@ -90,7 +90,7 @@ class BaseVisa(BaseDocument, Visa):
 
     @public_key.setter  # Override
     def public_key(self, key: EncryptKey):
-        info = None if key is None else key.to_dict()
+        info = None if key is None else key.to_map()
         self.set_property(name='key', value=info)
         self.__key = key
 

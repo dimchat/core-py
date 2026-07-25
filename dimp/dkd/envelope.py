@@ -83,7 +83,7 @@ class MessageEnvelope(Dictionary, Envelope):
         if did is None:
             did = self.get('sender')
             did = ID.parse(identifier=did)
-            assert did is not None, 'message sender error: %s' % super().to_dict()
+            assert did is not None, 'message sender error: %s' % super().to_map()
             self.__sender = did
         return did
 

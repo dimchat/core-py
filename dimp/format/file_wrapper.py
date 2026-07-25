@@ -24,7 +24,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Any
 
 from mkm.types import URI
 from mkm.crypto import DecryptKey
@@ -35,10 +36,10 @@ from mkm.ext import shared_format_extensions
 class TransportableFileWrapper(ABC):
 
     @abstractmethod
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         """ Serialize to map """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_dict()'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_map()'
         )
 
     #
@@ -126,7 +127,7 @@ class TransportableFileWrapper(ABC):
     #
 
     @classmethod
-    def create(cls, content: Dict,
+    def create(cls, content: Mapping,
                data: Optional[TransportableData] = None, filename: Optional[str] = None,
                url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         factory = wrapper_factory()
@@ -139,7 +140,7 @@ class TransportableFileWrapperFactory(ABC):
     """ Wrapper factory """
 
     @abstractmethod
-    def create_transportable_file_wrapper(self, content: Dict,
+    def create_transportable_file_wrapper(self, content: Mapping,
                                           data: Optional[TransportableData],
                                           filename: Optional[str],
                                           url: Optional[URI],

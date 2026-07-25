@@ -24,6 +24,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
+from collections.abc import MutableMapping
 from typing import Optional, Union, Any, Dict
 
 from mkm.types import Mapper
@@ -145,15 +146,15 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
     # Override
     @abstractmethod
-    def to_dict(self) -> Dict:
+    def to_map(self) -> MutableMapping[str, Any]:
         """ Serialize to map """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_dict()'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_map()'
         )
 
     # Override
     @abstractmethod
-    def serialize(self) -> Union[str, dict]:
+    def serialize(self) -> Union[str, Dict]:
         """
         Serializes this PNF to a URL string or a map.
 

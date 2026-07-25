@@ -80,7 +80,7 @@ class BaseMeta(Dictionary, Meta, ABC):
             assert seed is None and fingerprint is None, 'meta seed/fingerprint error'
             meta = {
                 'type': version,
-                'key': public_key.to_dict(),
+                'key': public_key.to_map(),
             }
             # generated meta, or loaded from local storage,
             # no need to verify again.
@@ -91,7 +91,7 @@ class BaseMeta(Dictionary, Meta, ABC):
                 f'meta info error: {version}, {public_key}, {seed}, {fingerprint}'
             meta = {
                 'type': version,
-                'key': public_key.to_dict(),
+                'key': public_key.to_map(),
                 'seed': seed,
                 'fingerprint': fingerprint.serialize(),
             }
@@ -111,7 +111,7 @@ class BaseMeta(Dictionary, Meta, ABC):
     def type(self) -> str:
         if self.__type is None:
             helper = account_helper()
-            info = super().to_dict()
+            info = super().to_map()
             self.__type = helper.get_meta_type(meta=info, default='')
             # self.__type = self.get_int(key='type', default=0)
         return self.__type
@@ -146,7 +146,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         ted = self.__fingerprint
         if ted is None and self.has_seed:
             base64 = self.get('fingerprint')
-            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().to_dict()
+            assert base64 is not None, 'meta.fingerprint should not be empty: %s' % super().to_map()
             self.__fingerprint = ted = TransportableData.parse(base64)
             assert ted is not None, f'meta.fingerprint error: {base64}'
         return ted
@@ -175,7 +175,7 @@ class BaseMeta(Dictionary, Meta, ABC):
         elif self.has_seed:
             # check 'seed' & 'fingerprint'
             pass
-        elif 'seed' in self.to_dict() or 'fingerprint' in self.to_dict():
+        elif 'seed' in self.to_map() or 'fingerprint' in self.to_map():
             # this meta has no seed, so
             # it should not contains 'seed' or 'fingerprint'
             return False
