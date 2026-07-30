@@ -28,10 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
 from typing import Optional
 
+from mkm.types import StrMap
 from mkm.format import TransportableData
+
 from dkd.protocol import ReliableMessage
 
 from .secure import EncryptedMessage
@@ -63,7 +64,7 @@ from .secure import EncryptedMessage
 
 class NetworkMessage(EncryptedMessage, ReliableMessage):
 
-    def __init__(self, msg: Mapping):
+    def __init__(self, msg: StrMap):
         super().__init__(msg=msg)
         # lazy
         self.__signature: Optional[TransportableData] = None

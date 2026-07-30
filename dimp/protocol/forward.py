@@ -29,8 +29,9 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Any, List
+from typing import List
+
+from mkm.types import StrMap, MutableStrMap
 
 from dkd.protocol import Content
 from dkd.protocol import InstantMessage, ReliableMessage
@@ -145,7 +146,7 @@ class ArrayContent(Content, ABC):
 
 class SecretContent(BaseContent, ForwardContent):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  messages: List[ReliableMessage] = None):
         if content is None:
             # 1. new content with message(s)
@@ -161,7 +162,7 @@ class SecretContent(BaseContent, ForwardContent):
         self.__secrets = messages
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize secret messages
         messages = self.__secrets
         if messages is not None and self.get('secrets') is None:
@@ -192,7 +193,7 @@ class SecretContent(BaseContent, ForwardContent):
 
 class CombineForwardContent(BaseContent, CombineContent):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  title: str = None, messages: List[InstantMessage] = None):
         if content is None:
             # 1. new content with message(s)
@@ -228,7 +229,7 @@ class CombineForwardContent(BaseContent, CombineContent):
 
 class ListContent(BaseContent, ArrayContent):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  contents: List[Content] = None):
         if content is None:
             # 1. new content with a list

@@ -28,10 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Any
+from typing import Optional
 
 from mkm.types import DateTime
+from mkm.types import StrMap, MutableStrMap
+
 from mkm.protocol import ID
 from dkd.protocol import Content
 from dkd.protocol import Envelope
@@ -58,7 +59,7 @@ from .base import BaseMessage
 
 class PlainMessage(BaseMessage, InstantMessage):
 
-    def __init__(self, msg: Mapping = None,
+    def __init__(self, msg: StrMap = None,
                  head: Envelope = None, body: Content = None):
         if msg is None:
             # 1. new instant message with envelope & content
@@ -105,7 +106,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         self.__content = value
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize 'content'
         body = self.__content
         if body is not None and self.get('content') is None:

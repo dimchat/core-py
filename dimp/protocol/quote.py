@@ -29,10 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
-from typing import Optional, Dict
+from typing import Optional
 
+from mkm.types import StrMap
 from mkm.types import Converter
+
 from dkd.protocol import Content, Envelope
 from dkd.ext import shared_message_extensions
 
@@ -112,8 +113,8 @@ class QuoteContent(Content, ABC):
 
 class BaseQuoteContent(BaseContent, QuoteContent):
 
-    def __init__(self, content: Mapping = None,
-                 text: str = None, origin: Mapping = None):
+    def __init__(self, content: StrMap = None,
+                 text: str = None, origin: StrMap = None):
         if content is None:
             # 1. new content with text & origin info
             assert not (text is None or origin is None), f'quote error: {text}, {origin}'
@@ -133,7 +134,7 @@ class BaseQuoteContent(BaseContent, QuoteContent):
         return self.get_str(key='text', default='')
 
     @property  # protected
-    def origin(self) -> Optional[Dict]:
+    def origin(self) -> Optional[StrMap]:
         return self.get('origin')
 
     @property  # Override
@@ -161,24 +162,25 @@ class BaseQuoteContent(BaseContent, QuoteContent):
 class QuoteHelper(ABC):
 
     @abstractmethod
-    def purify_for_quote(self, envelope: Envelope, content: Content) -> Dict:
+    def purify_for_quote(self, envelope: Envelope, content: Content) -> StrMap:
         """ Purify message envelope for quoting """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.purify_for_quote()'
         )
 
     @abstractmethod
-    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
+    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[StrMap]:
         """ Purify message envelope for receipt """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.purify_for_receipt()'
         )
 
 
+# @final
 class QuotePurifier(QuoteHelper):
 
     # Override
-    def purify_for_quote(self, envelope: Envelope, content: Content) -> Dict:
+    def purify_for_quote(self, envelope: Envelope, content: Content) -> StrMap:
         source = envelope.sender
         target = content.group
         if target is None:
@@ -192,7 +194,7 @@ class QuotePurifier(QuoteHelper):
         }
 
     # Override
-    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[Dict]:
+    def purify_for_receipt(self, envelope: Optional[Envelope], content: Optional[Content]) -> Optional[StrMap]:
         if envelope is None:
             return None
         origin = envelope.copy_map(deep_copy=False)

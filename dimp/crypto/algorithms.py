@@ -23,7 +23,10 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.types import final
 
+
+@final
 class AsymmetricAlgorithms:
     """ Algorithms for Asymmetric Key """
 
@@ -31,6 +34,7 @@ class AsymmetricAlgorithms:
     ECC = 'ECC'
 
 
+@final
 class SymmetricAlgorithms:
     """ Algorithms for Symmetric Key """
 

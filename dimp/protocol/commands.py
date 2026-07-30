@@ -29,11 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
 from typing import Optional, List
 
+from mkm.types import StrMap
 from mkm.types import DateTime
-from mkm.protocol import ID, Meta, Document
+
+from mkm.protocol import ID
+from mkm.protocol import Meta, Document
 
 from .base import Command
 from .base import BaseCommand
@@ -185,7 +187,7 @@ class DocumentCommand(MetaCommand, ABC):
 
 class BaseMetaCommand(BaseCommand, MetaCommand):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  cmd: str = None,
                  identifier: ID = None,
                  meta: Optional[Meta] = None):
@@ -225,7 +227,7 @@ class BaseMetaCommand(BaseCommand, MetaCommand):
 
 class BaseDocumentCommand(BaseMetaCommand, DocumentCommand):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  identifier: ID = None,
                  meta: Optional[Meta] = None,
                  documents: List[Document] = None,

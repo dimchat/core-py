@@ -24,11 +24,12 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Union, Any
 
+from mkm.types import StrMap, MutableStrMap
 from mkm.types import Mapper
 from mkm.types import URI
+
 from mkm.crypto import DecryptKey
 from mkm.format import TransportableResource
 from mkm.format import TransportableData
@@ -146,7 +147,7 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
     # Override
     @abstractmethod
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         """ Serialize to map """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_map()'
@@ -154,7 +155,7 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
     # Override
     @abstractmethod
-    def serialize(self) -> Union[str, Dict]:
+    def serialize(self) -> Union[str, StrMap]:
         """
         Serializes this PNF to a URL string or a map.
 
@@ -218,7 +219,7 @@ class TransportableFileFactory(ABC):
         )
 
     @abstractmethod
-    def parse_transportable_file(self, pnf: Mapping) -> Optional[TransportableFile]:
+    def parse_transportable_file(self, pnf: StrMap) -> Optional[TransportableFile]:
         """
         Parse map object to PNF
 

@@ -23,8 +23,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
-from typing import Optional, Dict
+from typing import Optional
+from typing import Mapping, MutableMapping
 
 from mkm.format import base64_decode, utf8_encode
 
@@ -146,7 +146,7 @@ class Header:
         mime_type: str = None
         encoding: str = None
         # split extra info
-        extra: Dict[str, str] = None
+        extra: MutableMapping[str, str] = None
         for item in array:
             if len(item) == 0:
                 # assert False, f'header error: {uri}'

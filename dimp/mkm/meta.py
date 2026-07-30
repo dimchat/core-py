@@ -29,10 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
 from typing import Optional
 
+from mkm.types import StrMap
 from mkm.types import Dictionary
+
 from mkm.format import TransportableData
 from mkm.format import utf8_encode
 from mkm.crypto import VerifyKey, PublicKey
@@ -63,7 +64,7 @@ from mkm.ext import GeneralAccountExtension, shared_account_extensions
 
 class BaseMeta(Dictionary, Meta, ABC):
 
-    def __init__(self, meta: Mapping = None,
+    def __init__(self, meta: StrMap = None,
                  version: str = None, public_key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Optional[TransportableData] = None):
         # check parameters

@@ -28,11 +28,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
 from typing import Optional
 
 from mkm.types import DateTime
+from mkm.types import StrMap
 from mkm.types import Dictionary
+
 from mkm.protocol import ID, ANYONE
 from dkd.protocol import Envelope
 
@@ -53,7 +54,7 @@ from dkd.protocol import Envelope
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: Mapping = None,
+    def __init__(self, envelope: StrMap = None,
                  sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
         if envelope is None:
             # 1. new envelope with sender, receiver & time

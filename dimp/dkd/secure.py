@@ -28,10 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
-from typing import Optional, Dict
+from typing import Optional
 
+from mkm.types import Mapping, StrMap
 from mkm.format import TransportableData
+
 from dkd.protocol import SecureMessage
 
 from ..format import PlainData
@@ -62,11 +63,11 @@ from .base import BaseMessage
 
 class EncryptedMessage(BaseMessage, SecureMessage):
 
-    def __init__(self, msg: Mapping):
+    def __init__(self, msg: StrMap):
         super().__init__(msg=msg)
         # lazy
         self.__data: Optional[TransportableData] = None
-        self.__keys: Optional[Dict] = None
+        self.__keys: Optional[StrMap] = None
 
     @property  # Override
     def data(self) -> TransportableData:
@@ -90,11 +91,11 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         return ted
 
     @property  # Override
-    def encrypted_keys(self) -> Optional[Dict]:
+    def encrypted_keys(self) -> Optional[StrMap]:
         keys = self.__keys
         if keys is None:
             keys = self.get('keys')
-            if isinstance(keys, dict):
+            if isinstance(keys, Mapping):
                 self.__keys = keys
             else:
                 assert keys is None, f'message keys error: {keys}'

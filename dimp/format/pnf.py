@@ -23,11 +23,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Union
 
 from mkm.types import URI
+from mkm.types import StrMap, MutableStrMap
 from mkm.types import Dictionary
+
 from mkm.crypto import DecryptKey
 from mkm.format import TransportableData
 from mkm.format import json_encode
@@ -38,7 +39,7 @@ from .file_wrapper import TransportableFileWrapper
 
 class PortableNetworkFile(Dictionary, TransportableFile):
 
-    def __init__(self, dictionary: Optional[Mapping],
+    def __init__(self, dictionary: Optional[StrMap],
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None,
                  wrapper: Optional[TransportableFileWrapper] = None):
@@ -103,14 +104,14 @@ class PortableNetworkFile(Dictionary, TransportableFile):
         return json_encode(info)
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         """ call wrapper to serialize 'data' & 'key" """
         wrapper = self.__wrapper
         return wrapper.to_map()
         # return self.__dictionary
 
     # Override
-    def serialize(self) -> Union[str, Dict]:
+    def serialize(self) -> Union[str, StrMap]:
         uri_string = self.uri_string
         if uri_string is not None:
             return uri_string

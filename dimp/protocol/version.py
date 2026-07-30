@@ -28,7 +28,10 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.types import final
 
+
+@final
 class MetaType:
     """
         @enum MetaType
@@ -69,6 +72,7 @@ class MetaType:
     # ...
 
 
+@final
 class DocumentType:
 
     VISA = 'visa'          # for user info (communicate key)

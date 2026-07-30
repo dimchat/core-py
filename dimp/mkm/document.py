@@ -28,11 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
-from typing import Optional, Any, Dict
+from typing import Optional, Any
 
 from mkm.types import DateTime
-from mkm.types import Dictionary, Converter
+from mkm.types import MutableMapping
+from mkm.types import StrMap, MutableStrMap
+from mkm.types import Dictionary
+from mkm.types import Converter
+
 from mkm.crypto import VerifyKey, SignKey
 from mkm.format import TransportableData
 from mkm.format import json_encode, json_decode, utf8_encode
@@ -51,7 +54,7 @@ from ..format import Base64Data
 
 class BaseDocument(Dictionary, Document):
 
-    def __init__(self, document: Mapping = None,
+    def __init__(self, document: StrMap = None,
                  doc_type: str = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         # check parameters
@@ -209,7 +212,7 @@ class BaseDocument(Dictionary, Document):
     #
 
     @property  # Override
-    def properties(self) -> Optional[Dict[str, Any]]:
+    def properties(self) -> Optional[MutableStrMap]:
         """ Load properties from data """
         if self.__status < 0:
             # invalid
@@ -223,7 +226,7 @@ class BaseDocument(Dictionary, Document):
             else:
                 # get properties from data
                 info = json_decode(string=data)
-                assert isinstance(info, dict), f'document data error: {data}'
+                assert isinstance(info, MutableMapping), f'document data error: {data}'
             self.__properties = info
         return info
 

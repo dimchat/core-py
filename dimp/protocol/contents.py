@@ -29,10 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Any
+from typing import Optional
 
 from mkm.types import URI
+from mkm.types import StrMap, MutableStrMap
+
 from mkm.protocol import ID
 from dkd.protocol import Content
 
@@ -269,7 +270,7 @@ class NameCard(Content, ABC):
 
 class BaseTextContent(BaseContent, TextContent):
 
-    def __init__(self, content: Mapping = None, text: str = None):
+    def __init__(self, content: StrMap = None, text: str = None):
         if content is None:
             # 1. new content with text string
             assert text is not None, 'text should not be None'
@@ -291,7 +292,7 @@ class BaseTextContent(BaseContent, TextContent):
 
 class WebPageContent(BaseContent, PageContent):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  url: URI = None, html: str = None, title: str = None,
                  desc: Optional[str] = None, icon: Optional[TransportableFile] = None):
         if content is None:
@@ -316,7 +317,7 @@ class WebPageContent(BaseContent, PageContent):
             self.icon = icon
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize 'icon'
         img = self.__icon
         if img is not None and self.get('icon') is None:
@@ -405,7 +406,7 @@ class WebPageContent(BaseContent, PageContent):
 
 class NameCardContent(BaseContent, NameCard):
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  identifier: ID = None,
                  name: str = None, avatar: Optional[TransportableFile] = None):
         if content is None:
@@ -429,7 +430,7 @@ class NameCardContent(BaseContent, NameCard):
         self.__avatar = avatar
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize 'avatar'
         img = self.__avatar
         if img is not None and self.get('avatar') is None:

@@ -44,6 +44,12 @@ __all__ = [
 
     'Singleton',
 
+    'final',
+
+    'Mapping', 'MutableMapping',
+    'StrMap', 'MutableStrMap',
+    'AnyList', 'StrList',
+
     'URI', 'DateTime',
 
     'Converter', 'DataConverter', 'BaseConverter',

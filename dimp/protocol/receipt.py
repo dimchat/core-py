@@ -36,10 +36,11 @@
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
-from typing import Optional, Dict
+from typing import Optional
 
+from mkm.types import StrMap
 from mkm.types import Converter
+
 from dkd.protocol import Envelope, Content
 
 from .base import BaseCommand
@@ -137,8 +138,8 @@ class ReceiptCommand(Command, ABC):
 
 class BaseReceiptCommand(BaseCommand, ReceiptCommand):
 
-    def __init__(self, content: Mapping = None,
-                 text: str = None, origin: Mapping = None):
+    def __init__(self, content: StrMap = None,
+                 text: str = None, origin: StrMap = None):
         if content is None:
             # 1. new command with text & origin info
             assert text is not None, f'receipt text should not be None, {origin}'
@@ -170,7 +171,7 @@ class BaseReceiptCommand(BaseCommand, ReceiptCommand):
         return self.get_str(key='text', default='')
 
     @property  # protected
-    def origin(self) -> Optional[Dict]:
+    def origin(self) -> Optional[StrMap]:
         return self.get('origin')
 
     @property  # Override

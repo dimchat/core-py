@@ -23,10 +23,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping, MutableMapping
 from typing import Optional, Any
 
-from mkm.types import URI, Mapper, Converter
+from mkm.types import URI
+from mkm.types import StrMap, MutableStrMap
+from mkm.types import Mapper, Converter
+
 from mkm.crypto import SymmetricKey, DecryptKey
 from mkm.format import TransportableData
 
@@ -37,7 +39,7 @@ from .file_wrapper import set_wrapper_factory
 
 class PortableNetworkFileWrapper(TransportableFileWrapper):
 
-    def __init__(self, dictionary: Mapping):
+    def __init__(self, dictionary: StrMap):
         super().__init__()
         if isinstance(dictionary, Mapper):
             dictionary = dictionary.to_map()
@@ -96,7 +98,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
     __hash__ = None
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         info = self.__dictionary
         # serialize 'data'
         ted = self.__attachment
@@ -197,7 +199,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
 class _PNFWrapperFactory(TransportableFileWrapperFactory):
 
     # Override
-    def create_transportable_file_wrapper(self, content: Mapping,
+    def create_transportable_file_wrapper(self, content: StrMap,
                                           data: Optional[TransportableData],
                                           filename: Optional[str],
                                           url: Optional[URI],

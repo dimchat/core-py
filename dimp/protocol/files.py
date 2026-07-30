@@ -29,10 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Any
+from typing import Optional
 
 from mkm.types import URI
+from mkm.types import StrMap, MutableStrMap
+
 from mkm.format import TransportableData
 from mkm.crypto import DecryptKey
 from dkd.protocol import Content
@@ -315,7 +316,7 @@ class VideoContent(FileContent, ABC):
 class BaseFileContent(BaseContent, FileContent):
     """ File Message Content """
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  msg_type: str = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
@@ -335,7 +336,7 @@ class BaseFileContent(BaseContent, FileContent):
         self.__wrapper = wrapper
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         """ call wrapper to serialize 'data' & 'key" """
         wrapper = self.__wrapper
         return wrapper.to_map()
@@ -391,7 +392,7 @@ class BaseFileContent(BaseContent, FileContent):
 class ImageFileContent(BaseFileContent, ImageContent):
     """ Image Message Content """
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.IMAGE if content is None else None
@@ -400,7 +401,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
         self.__thumbnail: Optional[TransportableFile] = None
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize 'thumbnail'
         img = self.__thumbnail
         if img is not None and self.get('thumbnail') is None:
@@ -436,7 +437,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
 class AudioFileContent(BaseFileContent, AudioContent):
     """ Audio Message Content """
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.AUDIO if content is None else None
@@ -454,7 +455,7 @@ class AudioFileContent(BaseFileContent, AudioContent):
 class VideoFileContent(BaseFileContent, VideoContent):
     """ Video Message Content """
 
-    def __init__(self, content: Mapping = None,
+    def __init__(self, content: StrMap = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.VIDEO if content is None else None
@@ -463,7 +464,7 @@ class VideoFileContent(BaseFileContent, VideoContent):
         self.__snapshot: Optional[TransportableFile] = None
 
     # Override
-    def to_map(self) -> MutableMapping[str, Any]:
+    def to_map(self) -> MutableStrMap:
         # serialize 'snapshot'
         img = self.__snapshot
         if img is not None and self.get('snapshot') is None:

@@ -23,8 +23,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
 from typing import Optional
+from typing import Mapping
 
 from mkm.format import base64_encode
 

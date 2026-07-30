@@ -28,11 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
+from mkm.types import final
+
 
 def i2s(value: int) -> str:
     return '%d' % value
 
 
+@final
 class ContentType:
     """
         @enum ContentType

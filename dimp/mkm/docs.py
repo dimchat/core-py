@@ -28,10 +28,11 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import Mapping
 from typing import Optional
 
+from mkm.types import StrMap
 from mkm.types import Converter
+
 from mkm.crypto import PublicKey, EncryptKey
 from mkm.format import TransportableData
 from mkm.protocol import ID
@@ -45,7 +46,7 @@ from .document import BaseDocument
 
 class BaseVisa(BaseDocument, Visa):
 
-    def __init__(self, document: Optional[Mapping] = None,
+    def __init__(self, document: Optional[StrMap] = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is not None:
             # 0. document from network
@@ -122,7 +123,7 @@ class BaseVisa(BaseDocument, Visa):
 
 class BaseBulletin(BaseDocument, Bulletin):
 
-    def __init__(self, document: Optional[Mapping] = None,
+    def __init__(self, document: Optional[StrMap] = None,
                  data: Optional[str] = None, signature: Optional[TransportableData] = None):
         if document is not None:
             # 0. document from network
