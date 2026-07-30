@@ -49,8 +49,8 @@
             signature = sender.private_key.sign(data)
 """
 
-
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -60,7 +60,7 @@ from dkd.protocol import Envelope, Message
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: Dict = None, head: Envelope = None):
+    def __init__(self, msg: Mapping = None, head: Envelope = None):
         if msg is None:
             # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'

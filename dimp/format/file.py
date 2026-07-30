@@ -24,7 +24,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import MutableMapping
+from collections.abc import Mapping, MutableMapping
 from typing import Optional, Union, Any, Dict
 
 from mkm.types import Mapper
@@ -218,7 +218,7 @@ class TransportableFileFactory(ABC):
         )
 
     @abstractmethod
-    def parse_transportable_file(self, pnf: Dict) -> Optional[TransportableFile]:
+    def parse_transportable_file(self, pnf: Mapping) -> Optional[TransportableFile]:
         """
         Parse map object to PNF
 

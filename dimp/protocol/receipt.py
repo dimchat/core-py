@@ -36,6 +36,7 @@
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Optional, Dict
 
 from mkm.types import Converter
@@ -136,8 +137,8 @@ class ReceiptCommand(Command, ABC):
 
 class BaseReceiptCommand(BaseCommand, ReceiptCommand):
 
-    def __init__(self, content: Dict = None,
-                 text: str = None, origin: Dict = None):
+    def __init__(self, content: Mapping = None,
+                 text: str = None, origin: Mapping = None):
         if content is None:
             # 1. new command with text & origin info
             assert text is not None, f'receipt text should not be None, {origin}'

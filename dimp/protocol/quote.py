@@ -29,6 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Optional, Dict
 
 from mkm.types import Converter
@@ -111,8 +112,8 @@ class QuoteContent(Content, ABC):
 
 class BaseQuoteContent(BaseContent, QuoteContent):
 
-    def __init__(self, content: Dict = None,
-                 text: str = None, origin: Dict = None):
+    def __init__(self, content: Mapping = None,
+                 text: str = None, origin: Mapping = None):
         if content is None:
             # 1. new content with text & origin info
             assert not (text is None or origin is None), f'quote error: {text}, {origin}'

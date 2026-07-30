@@ -29,8 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import MutableMapping
-from typing import Optional, Any, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Any
 
 from mkm.types import URI
 from mkm.format import TransportableData
@@ -315,7 +315,7 @@ class VideoContent(FileContent, ABC):
 class BaseFileContent(BaseContent, FileContent):
     """ File Message Content """
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  msg_type: str = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
@@ -391,7 +391,7 @@ class BaseFileContent(BaseContent, FileContent):
 class ImageFileContent(BaseFileContent, ImageContent):
     """ Image Message Content """
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.IMAGE if content is None else None
@@ -436,7 +436,7 @@ class ImageFileContent(BaseFileContent, ImageContent):
 class AudioFileContent(BaseFileContent, AudioContent):
     """ Audio Message Content """
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.AUDIO if content is None else None
@@ -454,7 +454,7 @@ class AudioFileContent(BaseFileContent, AudioContent):
 class VideoFileContent(BaseFileContent, VideoContent):
     """ Video Message Content """
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  data: Optional[TransportableData] = None, filename: Optional[str] = None,
                  url: Optional[URI] = None, password: Optional[DecryptKey] = None):
         msg_type = ContentType.VIDEO if content is None else None

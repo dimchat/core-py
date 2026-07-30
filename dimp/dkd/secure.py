@@ -28,6 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+from collections.abc import Mapping
 from typing import Optional, Dict
 
 from mkm.format import TransportableData
@@ -61,7 +62,7 @@ from .base import BaseMessage
 
 class EncryptedMessage(BaseMessage, SecureMessage):
 
-    def __init__(self, msg: Dict):
+    def __init__(self, msg: Mapping):
         super().__init__(msg=msg)
         # lazy
         self.__data: Optional[TransportableData] = None
@@ -93,7 +94,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         keys = self.__keys
         if keys is None:
             keys = self.get('keys')
-            if isinstance(keys, Dict):
+            if isinstance(keys, dict):
                 self.__keys = keys
             else:
                 assert keys is None, f'message keys error: {keys}'

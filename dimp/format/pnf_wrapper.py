@@ -23,8 +23,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from collections.abc import MutableMapping
-from typing import Optional, Any, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Any
 
 from mkm.types import URI, Mapper, Converter
 from mkm.crypto import SymmetricKey, DecryptKey
@@ -37,7 +37,7 @@ from .file_wrapper import set_wrapper_factory
 
 class PortableNetworkFileWrapper(TransportableFileWrapper):
 
-    def __init__(self, dictionary: Dict):
+    def __init__(self, dictionary: Mapping):
         super().__init__()
         if isinstance(dictionary, Mapper):
             dictionary = dictionary.to_map()
@@ -197,7 +197,7 @@ class PortableNetworkFileWrapper(TransportableFileWrapper):
 class _PNFWrapperFactory(TransportableFileWrapperFactory):
 
     # Override
-    def create_transportable_file_wrapper(self, content: Dict,
+    def create_transportable_file_wrapper(self, content: Mapping,
                                           data: Optional[TransportableData],
                                           filename: Optional[str],
                                           url: Optional[URI],

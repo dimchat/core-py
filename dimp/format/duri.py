@@ -23,6 +23,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+from collections.abc import Mapping
 from typing import Optional, Dict
 
 from mkm.format import base64_decode, utf8_encode
@@ -39,7 +40,7 @@ from mkm.format import base64_decode, utf8_encode
 
 class Header:
 
-    def __init__(self, mime_type: str, encoding: str = None, extra: Dict[str, str] = None):
+    def __init__(self, mime_type: str, encoding: str = None, extra: Mapping[str, str] = None):
         super().__init__()
         self.__mime_type = mime_type
         self.__encoding = encoding
@@ -58,7 +59,7 @@ class Header:
         return self.__encoding
 
     @property
-    def extra(self) -> Optional[Dict[str, str]]:
+    def extra(self) -> Optional[Mapping[str, str]]:
         """ extra parameters """
         return self.__extra
 
@@ -78,7 +79,7 @@ class Header:
         else:
             name = name.lower()
         # get value by name in lowercase
-        return extra[name]
+        return extra.get(name)
 
     # Override
     def __str__(self) -> str:
@@ -202,7 +203,7 @@ class DataURI:
         return self.__body
 
     @property
-    def parameters(self) -> Optional[Dict[str, str]]:
+    def parameters(self) -> Optional[Mapping[str, str]]:
         """ extra parameters """
         return self.head.extra
 

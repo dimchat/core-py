@@ -33,7 +33,8 @@
 ```python
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from dimp import *
 
@@ -136,7 +137,7 @@ class HandshakeCommand(Command, ABC):
 
 class BaseHandshakeCommand(BaseCommand, HandshakeCommand):
 
-    def __init__(self, content: Dict = None, title: str = None, session: str = None):
+    def __init__(self, content: Mapping = None, title: str = None, session: str = None):
         if content is None:
             # 1. new command with title & session key
             assert title is not None, 'handshake command error: %s' % session
@@ -236,14 +237,14 @@ class CustomizedContent(Content, ABC):
 ```
 
 ```python
-from typing import Dict
+from collections.abc import Mapping
 
 from dimp import *
 
 
 class AppCustomizedContent(BaseContent, AppContent, CustomizedContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  msg_type: str = None,
                  app: str = None, mod: str = None, act: str = None):
         if content is None:

@@ -30,7 +30,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Union, Any
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -95,7 +95,7 @@ class CommandFactory(ABC):
     """ Command Factory """
 
     @abstractmethod
-    def parse_command(self, content: Dict) -> Optional[Command]:
+    def parse_command(self, content: Mapping) -> Optional[Command]:
         """
         Parse map object to command
 
@@ -116,7 +116,7 @@ class CommandFactory(ABC):
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Dict = None, msg_type: str = None):
+    def __init__(self, content: Mapping = None, msg_type: str = None):
         # check parameters
         if content is None:
             # 1. new content with type
@@ -173,7 +173,7 @@ class BaseContent(Dictionary, Content):
 
 class BaseCommand(BaseContent, Command):
 
-    def __init__(self, content: Dict = None, msg_type: str = None, cmd: str = None):
+    def __init__(self, content: Mapping = None, msg_type: str = None, cmd: str = None):
         # check parameters
         if content is None:
             # 1. new command with type & name

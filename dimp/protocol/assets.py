@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Dict
+from collections.abc import Mapping
+from typing import Optional, Union
 
 from mkm.types import Converter
 from mkm.protocol import ID
@@ -154,7 +155,7 @@ class TransferContent(MoneyContent, ABC):
 
 class BaseMoneyContent(BaseContent, MoneyContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  msg_type: str = None,
                  currency: str = None, amount: Union[int, float] = None):
         if content is None:
@@ -195,7 +196,7 @@ class BaseMoneyContent(BaseContent, MoneyContent):
 
 class TransferMoneyContent(BaseMoneyContent, TransferContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  currency: str = None, amount: Union[int, float] = None):
         msg_type = ContentType.TRANSFER if content is None else None
         super().__init__(content, msg_type, currency=currency, amount=amount)

@@ -38,7 +38,8 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict
+from collections.abc import Mapping
+from typing import Optional, List
 
 from mkm.protocol import ID
 
@@ -185,7 +186,7 @@ class ResetCommand(GroupCommand, ABC):
 
 class BaseHistoryCommand(BaseCommand, HistoryCommand):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  msg_type: str = None, cmd: str = None):
         if content is None:
             if msg_type is None:
@@ -196,7 +197,7 @@ class BaseHistoryCommand(BaseCommand, HistoryCommand):
 
 class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  cmd: str = None, group: ID = None, members: List[ID] = None):
         super().__init__(content, None, cmd=cmd)
         if group is not None:
@@ -227,7 +228,7 @@ class BaseGroupCommand(BaseHistoryCommand, GroupCommand):
 
 class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  group: ID = None, members: List[ID] = None):
         cmd = GroupCommand.INVITE if content is None else None
         super().__init__(content, cmd=cmd, group=group, members=members)
@@ -236,7 +237,7 @@ class InviteGroupCommand(BaseGroupCommand, InviteCommand):
 class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
     """ Deprecated, use 'reset' instead """
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  group: ID = None, members: List[ID] = None):
         cmd = GroupCommand.EXPEL if content is None else None
         super().__init__(content, cmd=cmd, group=group, members=members)
@@ -244,20 +245,20 @@ class ExpelGroupCommand(BaseGroupCommand, ExpelCommand):
 
 class JoinGroupCommand(BaseGroupCommand, JoinCommand):
 
-    def __init__(self, content: Dict = None, group: ID = None):
+    def __init__(self, content: Mapping = None, group: ID = None):
         cmd = GroupCommand.JOIN if content is None else None
         super().__init__(content, cmd=cmd, group=group)
 
 
 class QuitGroupCommand(BaseGroupCommand, QuitCommand):
 
-    def __init__(self, content: Dict = None, group: ID = None):
+    def __init__(self, content: Mapping = None, group: ID = None):
         cmd = GroupCommand.QUIT if content is None else None
         super().__init__(content, cmd=cmd, group=group)
 
 
 class ResetGroupCommand(BaseGroupCommand, ResetCommand):
 
-    def __init__(self, content: Dict = None, group: ID = None, members: List[ID] = None):
+    def __init__(self, content: Mapping = None, group: ID = None, members: List[ID] = None):
         cmd = GroupCommand.RESET if content is None else None
         super().__init__(content, cmd=cmd, group=group, members=members)

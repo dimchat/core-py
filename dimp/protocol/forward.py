@@ -29,8 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import MutableMapping
-from typing import Any, List, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Any, List
 
 from dkd.protocol import Content
 from dkd.protocol import InstantMessage, ReliableMessage
@@ -145,7 +145,7 @@ class ArrayContent(Content, ABC):
 
 class SecretContent(BaseContent, ForwardContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  messages: List[ReliableMessage] = None):
         if content is None:
             # 1. new content with message(s)
@@ -174,7 +174,7 @@ class SecretContent(BaseContent, ForwardContent):
         messages = self.__secrets
         if messages is None:
             info = self.get('secrets')
-            if isinstance(info, List):
+            if isinstance(info, list):
                 # get from 'secrets'
                 messages = ReliableMessage.convert(array=info)
             else:
@@ -192,7 +192,7 @@ class SecretContent(BaseContent, ForwardContent):
 
 class CombineForwardContent(BaseContent, CombineContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  title: str = None, messages: List[InstantMessage] = None):
         if content is None:
             # 1. new content with message(s)
@@ -217,7 +217,7 @@ class CombineForwardContent(BaseContent, CombineContent):
         array = self.__history
         if array is None:
             info = self.get('messages')
-            if isinstance(info, List):
+            if isinstance(info, list):
                 array = InstantMessage.convert(array=info)
             else:
                 assert info is None, f'combined messages error: {info}'
@@ -228,7 +228,7 @@ class CombineForwardContent(BaseContent, CombineContent):
 
 class ListContent(BaseContent, ArrayContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  contents: List[Content] = None):
         if content is None:
             # 1. new content with a list
@@ -248,7 +248,7 @@ class ListContent(BaseContent, ArrayContent):
         array = self.__list
         if array is None:
             info = self.get('contents')
-            if isinstance(info, List):
+            if isinstance(info, list):
                 array = Content.convert(array=info)
             else:
                 array = []

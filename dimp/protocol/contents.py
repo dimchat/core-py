@@ -29,8 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import MutableMapping
-from typing import Optional, Any, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Any
 
 from mkm.types import URI
 from mkm.protocol import ID
@@ -269,7 +269,7 @@ class NameCard(Content, ABC):
 
 class BaseTextContent(BaseContent, TextContent):
 
-    def __init__(self, content: Dict = None, text: str = None):
+    def __init__(self, content: Mapping = None, text: str = None):
         if content is None:
             # 1. new content with text string
             assert text is not None, 'text should not be None'
@@ -291,7 +291,7 @@ class BaseTextContent(BaseContent, TextContent):
 
 class WebPageContent(BaseContent, PageContent):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  url: URI = None, html: str = None, title: str = None,
                  desc: Optional[str] = None, icon: Optional[TransportableFile] = None):
         if content is None:
@@ -405,7 +405,7 @@ class WebPageContent(BaseContent, PageContent):
 
 class NameCardContent(BaseContent, NameCard):
 
-    def __init__(self, content: Dict = None,
+    def __init__(self, content: Mapping = None,
                  identifier: ID = None,
                  name: str = None, avatar: Optional[TransportableFile] = None):
         if content is None:

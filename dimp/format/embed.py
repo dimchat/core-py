@@ -23,7 +23,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from mkm.format import base64_encode
 
@@ -46,7 +47,7 @@ class EmbedData(BaseData):
         # lazy load
         self.__data_uri: Optional[DataURI] = None
         self.__mime_type: Optional[str] = None     # default is "text/plain"
-        self.__parameters: Optional[Dict[str, str]] = None
+        self.__parameters: Optional[Mapping[str, str]] = None
 
     @property
     def encoding(self) -> Optional[str]:
@@ -84,7 +85,7 @@ class EmbedData(BaseData):
     def header_value(self, name: str) -> Optional[str]:
         extra = self.parameters
         if extra is not None:
-            value = extra[name]
+            value = extra.get(name)
             if value is not None:
                 # charset
                 # filename
@@ -98,7 +99,7 @@ class EmbedData(BaseData):
         #     return self.encoding
 
     @property
-    def parameters(self) -> Optional[Dict[str, str]]:
+    def parameters(self) -> Optional[Mapping[str, str]]:
         extra = self.__parameters
         if extra is not None:
             return extra
@@ -171,7 +172,7 @@ class EmbedData(BaseData):
 
     @classmethod
     def new(cls, string: Optional[str], binary: Optional[bytes],
-            uri: DataURI = None, mime_type: str = None, parameters: Dict[str, str] = None):
+            uri: DataURI = None, mime_type: str = None, parameters: Mapping[str, str] = None):
         if parameters is None and uri is not None:
             parameters = uri.parameters
         embed = EmbedData(string=string, binary=binary)

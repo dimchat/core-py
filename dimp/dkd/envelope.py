@@ -28,7 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from mkm.types import DateTime
 from mkm.types import Dictionary
@@ -52,7 +53,7 @@ from dkd.protocol import Envelope
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: Dict = None,
+    def __init__(self, envelope: Mapping = None,
                  sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
         if envelope is None:
             # 1. new envelope with sender, receiver & time

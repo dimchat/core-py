@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from mkm.types import Dictionary
 from mkm.format import TransportableData
@@ -62,7 +63,7 @@ from mkm.ext import GeneralAccountExtension, shared_account_extensions
 
 class BaseMeta(Dictionary, Meta, ABC):
 
-    def __init__(self, meta: Dict = None,
+    def __init__(self, meta: Mapping = None,
                  version: str = None, public_key: VerifyKey = None,
                  seed: Optional[str] = None, fingerprint: Optional[TransportableData] = None):
         # check parameters
