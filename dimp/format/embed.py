@@ -24,13 +24,13 @@
 # ==============================================================================
 
 from typing import Optional
-from typing import Mapping
 
 from mkm.format import base64_encode
 
 from .base import EncodeAlgorithms
 from .base import BaseData
 from .duri import DataURI
+from .duri import StringPairing
 
 
 class EmbedData(BaseData):
@@ -47,7 +47,7 @@ class EmbedData(BaseData):
         # lazy load
         self.__data_uri: Optional[DataURI] = None
         self.__mime_type: Optional[str] = None     # default is "text/plain"
-        self.__parameters: Optional[Mapping[str, str]] = None
+        self.__parameters: Optional[StringPairing] = None
 
     @property
     def encoding(self) -> Optional[str]:
@@ -99,7 +99,7 @@ class EmbedData(BaseData):
         #     return self.encoding
 
     @property
-    def parameters(self) -> Optional[Mapping[str, str]]:
+    def parameters(self) -> Optional[StringPairing]:
         extra = self.__parameters
         if extra is not None:
             return extra
@@ -172,7 +172,7 @@ class EmbedData(BaseData):
 
     @classmethod
     def new(cls, string: Optional[str], binary: Optional[bytes],
-            uri: DataURI = None, mime_type: str = None, parameters: Mapping[str, str] = None):
+            uri: DataURI = None, mime_type: str = None, parameters: StringPairing = None):
         if parameters is None and uri is not None:
             parameters = uri.parameters
         embed = EmbedData(string=string, binary=binary)

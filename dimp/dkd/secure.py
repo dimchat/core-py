@@ -28,9 +28,10 @@
 # SOFTWARE.
 # ==============================================================================
 
+from collections.abc import Mapping
 from typing import Optional
 
-from mkm.types import Mapping, StrMap
+from mkm.types import StrMap
 from mkm.format import TransportableData
 
 from dkd.protocol import SecureMessage

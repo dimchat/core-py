@@ -28,10 +28,10 @@
 # SOFTWARE.
 # ==============================================================================
 
+from collections.abc import MutableMapping
 from typing import Optional, Any
 
 from mkm.types import DateTime
-from mkm.types import MutableMapping
 from mkm.types import StrMap, MutableStrMap
 from mkm.types import Dictionary
 from mkm.types import Converter

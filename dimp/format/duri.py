@@ -24,9 +24,22 @@
 # ==============================================================================
 
 from typing import Optional
-from typing import Mapping, MutableMapping
 
 from mkm.format import base64_decode, utf8_encode
+
+
+"""
+    Generic for String Map
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
+try:
+    import collections.abc as abc
+    StringPairing = abc.Mapping[str, str]
+    MutableStringPairing = abc.MutableMapping[str, str]
+except TypeError:
+    import typing
+    StringPairing = typing.Mapping[str, str]
+    MutableStringPairing = typing.MutableMapping[str, str]
 
 
 """
@@ -40,7 +53,7 @@ from mkm.format import base64_decode, utf8_encode
 
 class Header:
 
-    def __init__(self, mime_type: str, encoding: str = None, extra: Mapping[str, str] = None):
+    def __init__(self, mime_type: str, encoding: str = None, extra: StringPairing = None):
         super().__init__()
         self.__mime_type = mime_type
         self.__encoding = encoding
@@ -59,7 +72,7 @@ class Header:
         return self.__encoding
 
     @property
-    def extra(self) -> Optional[Mapping[str, str]]:
+    def extra(self) -> Optional[StringPairing]:
         """ extra parameters """
         return self.__extra
 
@@ -146,7 +159,7 @@ class Header:
         mime_type: str = None
         encoding: str = None
         # split extra info
-        extra: MutableMapping[str, str] = None
+        extra: MutableStringPairing = None
         for item in array:
             if len(item) == 0:
                 # assert False, f'header error: {uri}'
@@ -203,7 +216,7 @@ class DataURI:
         return self.__body
 
     @property
-    def parameters(self) -> Optional[Mapping[str, str]]:
+    def parameters(self) -> Optional[StringPairing]:
         """ extra parameters """
         return self.head.extra
 

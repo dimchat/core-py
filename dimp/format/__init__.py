@@ -26,6 +26,7 @@
 from mkm.types import *
 from mkm.format import *
 
+from .duri import StringPairing, MutableStringPairing
 from .duri import Header, DataURI
 
 from .base import EncodeAlgorithms
@@ -48,7 +49,6 @@ __all__ = [
 
     'final',
 
-    'Mapping', 'MutableMapping',
     'StrMap', 'MutableStrMap',
     'AnyList', 'StrList',
 
@@ -87,6 +87,7 @@ __all__ = [
 
     # ----------------------------------------------------------------
 
+    'StringPairing', 'MutableStringPairing',
 
     'Header', 'DataURI',
 

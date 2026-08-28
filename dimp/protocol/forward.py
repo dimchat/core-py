@@ -163,7 +163,7 @@ class SecretContent(BaseContent, ForwardContent):
 
     # Override
     def to_map(self) -> MutableStrMap:
-        # serialize secret messages
+        # serialize top-secret messages
         messages = self.__secrets
         if messages is not None and self.get('secrets') is None:
             self['secrets'] = ReliableMessage.revert(messages=messages)
@@ -201,13 +201,23 @@ class CombineForwardContent(BaseContent, CombineContent):
             msg_type = ContentType.COMBINE_FORWARD
             super().__init__(None, msg_type)
             self['title'] = title
-            self['messages'] = InstantMessage.revert(messages=messages)
+            # if messages is not None:
+            #     self['messages'] = InstantMessage.revert(messages=messages)
         else:
             # 2. content info from network
             assert title is None and messages is None, f'params error: {title}, {messages}'
             super().__init__(content)
         # lazy
         self.__history = messages
+
+    # Override
+    def to_map(self) -> MutableStrMap:
+        # serialize history messages
+        messages = self.__history
+        if messages is not None and self.get('messages') is None:
+            self['messages'] = InstantMessage.revert(messages=messages)
+        # OK
+        return super().to_map()
 
     @property  # Override
     def title(self) -> str:
@@ -236,13 +246,23 @@ class ListContent(BaseContent, ArrayContent):
             assert contents is not None, 'content list should no be None'
             msg_type = ContentType.ARRAY
             super().__init__(None, msg_type)
-            self['contents'] = Content.revert(contents=contents)
+            # if contents is not None:
+            #     self['contents'] = Content.revert(contents=contents)
         else:
             # 2. content info from network
             assert contents is None, f'params error: {content}, {contents}'
             super().__init__(content)
         # lazy
         self.__list = contents
+
+    # Override
+    def to_map(self) -> MutableStrMap:
+        # serialize message contents
+        contents = self.__list
+        if contents is not None and self.get('contents') is None:
+            self['contents'] = Content.revert(contents=contents)
+        # OK
+        return super().to_map()
 
     @property  # Override
     def contents(self) -> List[Content]:

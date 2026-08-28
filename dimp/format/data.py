@@ -25,6 +25,7 @@
 
 from typing import Optional
 
+from mkm.types import final
 from mkm.format import base64_encode, base64_decode
 from mkm.format import utf8_encode, utf8_decode
 
@@ -70,6 +71,7 @@ class Base64Data(BaseData):
         return Base64Data(string=string, binary=binary)
 
 
+@final
 class PlainData(BaseData):
     """ UTF-8 encoding """
 
