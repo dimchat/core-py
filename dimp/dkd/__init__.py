@@ -37,17 +37,12 @@ from ..protocol.base import BaseContent, BaseCommand
 # from ..protocol.base import CommandExtension, CmdExtension
 
 from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
-from ..protocol.assets import BaseMoneyContent, TransferMoneyContent
-from ..protocol.files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
 from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
 from ..protocol.quote import BaseQuoteContent
 # from ..protocol.quote import QuoteHelper, QuotePurifier, QuoteExtension
 
 from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
 from ..protocol.receipt import BaseReceiptCommand
-from ..protocol.groups import BaseHistoryCommand, BaseGroupCommand
-from ..protocol.groups import InviteGroupCommand, ExpelGroupCommand
-from ..protocol.groups import JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
 
 from .envelope import MessageEnvelope
 from .base import BaseMessage
@@ -85,16 +80,11 @@ __all__ = [
     'Command', 'CommandFactory',
 
     'TextContent', 'PageContent', 'NameCard',
-    'MoneyContent', 'TransferContent',
-    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
     'QuoteContent',
 
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
-
-    'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
 
     #
     #   Implementations
@@ -105,16 +95,12 @@ __all__ = [
     # 'CommandExtension', 'CmdExtension',
 
     'BaseTextContent', 'WebPageContent', 'NameCardContent',
-    'BaseMoneyContent', 'TransferMoneyContent',
-    'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
     'SecretContent', 'CombineForwardContent', 'ListContent',
     'BaseQuoteContent',
     # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     'BaseMetaCommand', 'BaseDocumentCommand',
     'BaseReceiptCommand',
-    'BaseHistoryCommand', 'BaseGroupCommand',
-    'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
 
     #
     #   Messages

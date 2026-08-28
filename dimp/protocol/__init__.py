@@ -52,12 +52,6 @@ from .base import Command, CommandFactory
 from .contents import TextContent, PageContent, NameCard
 # from .contents import BaseTextContent, WebPageContent, NameCardContent
 
-from .assets import MoneyContent, TransferContent
-# from .assets import BaseMoneyContent, TransferMoneyContent
-
-from .files import FileContent, ImageContent, AudioContent, VideoContent
-# from .files import BaseFileContent, ImageFileContent, AudioFileContent, VideoFileContent
-
 from .forward import ForwardContent, CombineContent, ArrayContent
 # from .forward import SecretContent, CombineForwardContent, ListContent
 
@@ -71,11 +65,6 @@ from .commands import MetaCommand, DocumentCommand
 
 from .receipt import ReceiptCommand
 # from .receipt import BaseReceiptCommand
-
-from .groups import HistoryCommand, GroupCommand
-from .groups import InviteCommand, ExpelCommand, JoinCommand, QuitCommand, ResetCommand
-# from .groups import BaseHistoryCommand, BaseGroupCommand
-# from .groups import InviteGroupCommand, ExpelGroupCommand, JoinGroupCommand, QuitGroupCommand, ResetGroupCommand
 
 
 __all__ = [
@@ -146,8 +135,6 @@ __all__ = [
     #
 
     'TextContent', 'PageContent', 'NameCard',
-    'MoneyContent', 'TransferContent',
-    'FileContent', 'ImageContent', 'AudioContent', 'VideoContent',
     'ForwardContent', 'CombineContent', 'ArrayContent',
     'QuoteContent',
 
@@ -157,9 +144,6 @@ __all__ = [
 
     'MetaCommand', 'DocumentCommand',
     'ReceiptCommand',
-
-    'HistoryCommand', 'GroupCommand',
-    'InviteCommand', 'ExpelCommand', 'JoinCommand', 'QuitCommand', 'ResetCommand',
 
 
     ################################
