@@ -58,12 +58,6 @@ class Command(Content, ABC):
         }
     """
 
-    # -------- command names begin --------
-    META = 'meta'
-    DOCUMENTS = 'documents'
-    RECEIPT = 'receipt'
-    # -------- command names end --------
-
     @property
     @abstractmethod
     def cmd(self) -> str:

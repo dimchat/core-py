@@ -34,7 +34,7 @@ from typing import List
 from mkm.types import StrMap, MutableStrMap
 
 from dkd.protocol import Content
-from dkd.protocol import InstantMessage, ReliableMessage
+from dkd.protocol import ReliableMessage
 
 from .types import ContentType
 from .base import BaseContent
@@ -68,44 +68,6 @@ class ForwardContent(Content, ABC):
     @classmethod
     def create(cls, messages: List[ReliableMessage]):
         return SecretContent(messages=messages)
-
-
-class CombineContent(Content, ABC):
-    """
-        Combine Forward message
-        ~~~~~~~~~~~~~~~~~~~~~~~
-
-        data format: {
-            "type" : i2s(0xCF),
-            "sn"   : 67890,
-
-            "title"    : "...",  // chat title
-            "messages" : [...]   // chat history
-        }
-    """
-
-    @property
-    @abstractmethod
-    def title(self) -> str:
-        """ Get chat title """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.title getter'
-        )
-
-    @property
-    @abstractmethod
-    def messages(self) -> List[InstantMessage]:
-        """ Get chat history """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.messages getter'
-        )
-
-    #
-    #   Factory methods
-    #
-    @classmethod
-    def create(cls, title: str, messages: List[InstantMessage]):
-        return CombineForwardContent(title=title, messages=messages)
 
 
 class ArrayContent(Content, ABC):
@@ -189,52 +151,6 @@ class SecretContent(BaseContent, ForwardContent):
                     messages = [msg]
             self.__secrets = messages
         return messages
-
-
-class CombineForwardContent(BaseContent, CombineContent):
-
-    def __init__(self, content: StrMap = None,
-                 title: str = None, messages: List[InstantMessage] = None):
-        if content is None:
-            # 1. new content with message(s)
-            assert not (title is None or messages is None), f'params error: {title}, {messages}'
-            msg_type = ContentType.COMBINE_FORWARD
-            super().__init__(None, msg_type)
-            self['title'] = title
-            # if messages is not None:
-            #     self['messages'] = InstantMessage.revert(messages=messages)
-        else:
-            # 2. content info from network
-            assert title is None and messages is None, f'params error: {title}, {messages}'
-            super().__init__(content)
-        # lazy
-        self.__history = messages
-
-    # Override
-    def to_map(self) -> MutableStrMap:
-        # serialize history messages
-        messages = self.__history
-        if messages is not None and self.get('messages') is None:
-            self['messages'] = InstantMessage.revert(messages=messages)
-        # OK
-        return super().to_map()
-
-    @property  # Override
-    def title(self) -> str:
-        return self.get_str(key='title', default='')
-
-    @property  # Override
-    def messages(self) -> List[InstantMessage]:
-        array = self.__history
-        if array is None:
-            info = self.get('messages')
-            if isinstance(info, list):
-                array = InstantMessage.convert(array=info)
-            else:
-                assert info is None, f'combined messages error: {info}'
-                array = []
-            self.__history = array
-        return array
 
 
 class ListContent(BaseContent, ArrayContent):
