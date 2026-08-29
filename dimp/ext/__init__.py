@@ -38,9 +38,6 @@ from ..format.file_wrapper import TransportableFileWrapperExtension
 from ..protocol.base import CommandHelper, GeneralCommandHelper
 from ..protocol.base import CommandExtension, CmdExtension
 
-from ..protocol.quote import QuoteHelper, QuotePurifier
-from ..protocol.quote import QuoteExtension
-
 __all__ = [
 
     #
@@ -96,8 +93,5 @@ __all__ = [
 
     'CommandHelper', 'GeneralCommandHelper',
     'CommandExtension', 'CmdExtension',
-
-    'QuoteHelper', 'QuotePurifier',
-    'QuoteExtension',
 
 ]

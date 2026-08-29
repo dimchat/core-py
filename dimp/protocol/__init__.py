@@ -55,16 +55,8 @@ from .contents import TextContent, PageContent, NameCard
 from .forward import ForwardContent, CombineContent, ArrayContent
 # from .forward import SecretContent, CombineForwardContent, ListContent
 
-from .quote import QuoteContent
-# from .quote import BaseQuoteContent
-# from .quote import QuoteHelper, QuotePurifier
-# from .quote import QuoteExtension
-
 from .commands import MetaCommand, DocumentCommand
 # from .commands import BaseMetaCommand, BaseDocumentCommand
-
-from .receipt import ReceiptCommand
-# from .receipt import BaseReceiptCommand
 
 
 __all__ = [
@@ -136,14 +128,12 @@ __all__ = [
 
     'TextContent', 'PageContent', 'NameCard',
     'ForwardContent', 'CombineContent', 'ArrayContent',
-    'QuoteContent',
 
     #
     #  Command Extends
     #
 
     'MetaCommand', 'DocumentCommand',
-    'ReceiptCommand',
 
 
     ################################

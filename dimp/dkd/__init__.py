@@ -38,11 +38,8 @@ from ..protocol.base import BaseContent, BaseCommand
 
 from ..protocol.contents import BaseTextContent, WebPageContent, NameCardContent
 from ..protocol.forward import SecretContent, CombineForwardContent, ListContent
-from ..protocol.quote import BaseQuoteContent
-# from ..protocol.quote import QuoteHelper, QuotePurifier, QuoteExtension
 
 from ..protocol.commands import BaseMetaCommand, BaseDocumentCommand
-from ..protocol.receipt import BaseReceiptCommand
 
 from .envelope import MessageEnvelope
 from .base import BaseMessage
@@ -81,10 +78,8 @@ __all__ = [
 
     'TextContent', 'PageContent', 'NameCard',
     'ForwardContent', 'CombineContent', 'ArrayContent',
-    'QuoteContent',
 
     'MetaCommand', 'DocumentCommand',
-    'ReceiptCommand',
 
     #
     #   Implementations
@@ -96,11 +91,8 @@ __all__ = [
 
     'BaseTextContent', 'WebPageContent', 'NameCardContent',
     'SecretContent', 'CombineForwardContent', 'ListContent',
-    'BaseQuoteContent',
-    # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
 
     'BaseMetaCommand', 'BaseDocumentCommand',
-    'BaseReceiptCommand',
 
     #
     #   Messages

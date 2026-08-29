@@ -36,7 +36,7 @@ from mkm.types import StrMap
 from mkm.types import Dictionary
 
 from mkm.protocol import ID
-from dkd.protocol import Content
+from dkd.protocol import Envelope, Content
 from dkd.protocol import InstantMessage
 from dkd.ext import GeneralMessageHelper
 from dkd.ext import GeneralMessageExtension, shared_message_extensions
@@ -238,6 +238,16 @@ class GeneralCommandHelper(ABC):
         """ Get command name from content info """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_cmd()'
+        )
+
+    #
+    #   Receipt
+    #
+
+    @abstractmethod
+    def create_receipt(self, text: str, envelope: Envelope, content: Optional[Content]) -> Command:
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_receipt()'
         )
 
 
