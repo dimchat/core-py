@@ -97,18 +97,6 @@ __all__ = [
     'Base64Data', 'PlainData',
     'EmbedData',
 
-    #
-    #   PNF
-    #
-
-    'TransportableFile', 'TransportableFileFactory',
-    # 'TransportableFileHelper', 'TransportableFileExtension',
-    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
-    # 'TransportableFileWrapperExtension',
-
-    'PortableNetworkFile',
-    'PortableNetworkFileWrapper',
-
 
     # ================================================================
 
@@ -238,10 +226,6 @@ __all__ = [
     'GeneralAccountHelper', 'GeneralAccountExtension',
 
     'GeneralMessageHelper', 'GeneralMessageExtension',
-
-    'TransportableFileHelper',
-    'TransportableFileExtension',
-    'TransportableFileWrapperExtension',
 
     'CommandHelper', 'GeneralCommandHelper',
     'CommandExtension', 'CmdExtension',
