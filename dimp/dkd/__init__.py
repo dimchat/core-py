@@ -3,7 +3,6 @@
 #   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
-#
 # ==============================================================================
 # MIT License
 #
@@ -29,14 +28,7 @@
 # ==============================================================================
 
 from dkd.protocol import *
-
 from ..protocol import *
-
-from ..protocol.base import BaseContent, BaseCommand
-# from ..protocol.base import CommandHelper, GeneralCommandHelper
-# from ..protocol.base import CommandExtension, CmdExtension
-
-from ..protocol.forward import SecretContent, ListContent
 
 from .envelope import MessageEnvelope
 from .base import BaseMessage
@@ -48,49 +40,23 @@ from .reliable import NetworkMessage
 __all__ = [
 
     #
-    #   Protocol
+    #   Import from dkd & dimp
     #
-
-    'Content', 'Envelope',
-    'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-
-    'ContentFactory', 'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-
-    # 'ContentHelper', 'EnvelopeHelper',
-    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
-
-    # 'ContentExtension',
-    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    # 'MessageExtensions', 'shared_message_extensions',
-
-
-    # ----------------------------------------------------------------
-
-
-    'ContentType',
-
-    'Command', 'CommandFactory',
-
-    'ForwardContent', 'ArrayContent',
+    # dkd.protocol
+    'Envelope', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'Content',
+    'EnvelopeFactory', 'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'ContentFactory',
 
     #
-    #   Implementations
-    #
-
-    'BaseContent', 'BaseCommand',
-    # 'CommandHelper', 'GeneralCommandHelper',
-    # 'CommandExtension', 'CmdExtension',
-
-    'SecretContent', 'ListContent',
-
-    #
-    #   Messages
+    #   Message
     #
 
     'MessageEnvelope',
+
     'BaseMessage',
-    'PlainMessage', 'EncryptedMessage', 'NetworkMessage',
+    'PlainMessage',
+    'EncryptedMessage',
+    'NetworkMessage',
 
 ]

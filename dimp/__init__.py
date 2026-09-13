@@ -3,7 +3,6 @@
 #   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
-#
 # ==============================================================================
 # MIT License
 #
@@ -36,6 +35,9 @@ from .protocol import *
 from .dkd import *
 from .ext import *
 
+from .cmd_ext import GeneralCommandHelper, CmdExtension
+from .cmd_ext import message_extensions, message_helper, cmd_helper
+
 
 name = "DIMP"
 
@@ -43,21 +45,11 @@ __author__ = 'Albert Moky'
 
 __all__ = [
 
-    'Singleton',
-
-    'final',
-
     'StrMap', 'MutableStrMap',
-    'AnyList', 'StrList',
 
     'URI', 'DateTime',
 
-    'Converter', 'DataConverter', 'BaseConverter',
-
-    'Copier',
-    'Wrapper', 'Stringer', 'Mapper',
-    'ConstantString',  # 'String',
-    'Dictionary',
+    'Stringer', 'Mapper',
 
     #
     #   Format
@@ -68,12 +60,6 @@ __all__ = [
     'MapCoder', 'JSONMap',
     'StringCoder', 'UTF8',
 
-    'hex_encode', 'hex_decode',
-    'base58_encode', 'base58_decode',
-    'base64_encode', 'base64_decode',
-    'json_encode', 'json_decode',
-    'utf8_encode', 'utf8_decode',
-
     'TransportableResource',
     'TransportableData',
 
@@ -82,20 +68,21 @@ __all__ = [
     'TransportableDataHelper',
     'FormatExtensions', 'shared_format_extensions',
 
-    'StringPairing', 'MutableStringPairing',
-
-    'Header', 'DataURI',
-
     #
     #   TED
     #
 
-    'EncodeAlgorithms',
-
     'BaseString', 'BaseData',
 
-    'Base64Data', 'PlainData',
-    'EmbedData',
+    'PlainData',
+
+    #
+    #   PNF
+    #
+
+    'TransportableFile', 'TransportableFileFactory',
+    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+    'TransportableFileHelper',
 
 
     # ================================================================
@@ -107,7 +94,6 @@ __all__ = [
 
     'MessageDigester',
     'SHA256', 'KECCAK256', 'RIPEMD160',
-    'sha256', 'keccak256', 'ripemd160',
 
     #
     #   Crypto
@@ -125,12 +111,6 @@ __all__ = [
     'SymmetricKeyExtension', 'PublicKeyExtension', 'PrivateKeyExtension',
     'CryptoExtensions', 'shared_crypto_extensions',
 
-    #
-    #   Algorithms
-    #
-
-    'AsymmetricAlgorithms', 'SymmetricAlgorithms',
-
 
     # ================================================================
 
@@ -139,15 +119,9 @@ __all__ = [
     #   Ming-Ke-Ming
     #
 
-    'EntityType',
     'Address', 'ID',
-    'Meta', 'TAI', 'Document',
+    'Meta', 'Document',
 
-    'AddressFactory', 'IDFactory',
-    'MetaFactory', 'DocumentFactory',
-
-    'ANYWHERE', 'EVERYWHERE',
-    'ANYONE', 'EVERYONE', 'FOUNDER',
     'BroadcastAddress', 'Identifier',
 
     'AddressHelper', 'IDHelper',
@@ -157,12 +131,14 @@ __all__ = [
     'MetaExtension', 'DocumentExtension',
     'AccountExtensions', 'shared_account_extensions',
 
+    'CryptoKeyHandler', 'GeneralCryptoExtension',
+    'AccountHandler', 'GeneralAccountExtension',
+
     #
     #   Dao-Ke-Dao
     #
 
     'Content', 'Envelope',
-    'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     'ContentFactory', 'EnvelopeFactory',
@@ -174,41 +150,20 @@ __all__ = [
     'ContentExtension',
     'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     'MessageExtensions', 'shared_message_extensions',
+    'MessageHandler', 'MessageHandlerExtension',
 
     #
     #   Core Protocols
     #
 
-    'MetaType',
-    'DocumentType',
-    'Visa', 'Bulletin',
-
     'ContentType',
 
     'Command', 'CommandFactory',
+    'CommandHelper', 'GeneralCommandHelper',
+    'CommandExtension', 'CmdExtension',
 
-    # 'CommandHelper', 'GeneralCommandHelper',
-    # 'CommandExtension', 'CmdExtension',
-
-    #
-    #  Contents
-    #
-
-    'ForwardContent', 'ArrayContent',
-
-
-    # ================================================================
-
-
-    #
-    #   Content Implementations
-    #
-
-    'BaseContent', 'BaseCommand',
-    # 'CommandHelper', 'GeneralCommandHelper',
-    # 'CommandExtension', 'CmdExtension',
-
-    'SecretContent', 'ListContent',
+    'message_extensions', 'message_helper', 'cmd_helper',
+    'command_helper',
 
     #
     #   Message Implementations
@@ -217,17 +172,5 @@ __all__ = [
     'MessageEnvelope',
     'BaseMessage',
     'PlainMessage', 'EncryptedMessage', 'NetworkMessage',
-
-
-    # ================================================================
-
-
-    'GeneralCryptoHelper', 'GeneralCryptoExtension',
-    'GeneralAccountHelper', 'GeneralAccountExtension',
-
-    'GeneralMessageHelper', 'GeneralMessageExtension',
-
-    'CommandHelper', 'GeneralCommandHelper',
-    'CommandExtension', 'CmdExtension',
 
 ]

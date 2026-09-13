@@ -3,7 +3,6 @@
 #   DIMP : Decentralized Instant Messaging Protocol
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
-#
 # ==============================================================================
 # MIT License
 #
@@ -28,118 +27,40 @@
 # SOFTWARE.
 # ==============================================================================
 
-"""
-    DIMP - Message Contents & Commands
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    Define universal message types as contents and commands
-"""
-
 from mkm.protocol import *
 from dkd.protocol import *
 
-from .version import MetaType
-from .version import DocumentType
-from .docs import Visa, Bulletin
-
 from .types import ContentType
-
-from .base import Command, CommandFactory
-# from .base import BaseContent, BaseCommand
-# from .base import CommandHelper, GeneralCommandHelper
-# from .base import CommandExtension, CmdExtension
-
-from .forward import ForwardContent, ArrayContent
-# from .forward import SecretContent, ListContent
+from .command import Command, CommandFactory
+# from .command import CommandHelper
+# from .command import message_extensions, command_helper
 
 
 __all__ = [
 
-
-    ################################
     #
-    #   Ming-Ke-Ming
+    #   Import from mkm & dkd
     #
-    ################################
-
-    'EntityType',
+    # mkm.protocol
     'Address', 'ID',
-    'Meta', 'TAI', 'Document',
+    'Meta', 'Document',
+    # 'AddressFactory', 'IDFactory',
+    # 'MetaFactory', 'DocumentFactory',
 
-    'AddressFactory', 'IDFactory',
-    'MetaFactory', 'DocumentFactory',
+    # dkd.protocol
+    'Envelope', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    'Content',
+    'EnvelopeFactory', 'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'ContentFactory',
 
-    'ANYWHERE', 'EVERYWHERE',
-    'ANYONE', 'EVERYONE', 'FOUNDER',
-    # 'BroadcastAddress', 'Identifier',
-
-    # 'AddressHelper', 'IDHelper',
-    # 'MetaHelper', 'DocumentHelper',
-
-    # 'AddressExtension', 'IDExtension',
-    # 'MetaExtension', 'DocumentExtension',
-    # 'AccountExtensions', 'shared_account_extensions',
-
-
-    ################################
     #
-    #   Dao-Ke-Dao
+    #   Protocol
     #
-    ################################
-
-    'Content', 'Envelope',
-    'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-
-    'ContentFactory', 'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-
-    # 'ContentHelper', 'EnvelopeHelper',
-    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
-
-    # 'ContentExtension',
-    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    # 'MessageExtensions', 'shared_message_extensions',
-
-
-    ################################
-    #
-    #   Core Protocols
-    #
-    ################################
-
-    'MetaType',
-    'DocumentType',
-    'Visa', 'Bulletin',
 
     'ContentType',
 
     'Command', 'CommandFactory',
-
-    #
-    #  Content Extends
-    #
-
-    'ForwardContent', 'ArrayContent',
-
-    ################################
-    #
-    #   Core Implementations
-    #
-    ################################
-
-    # 'BaseContent', 'BaseCommand',
-    # 'CommandHelper', 'GeneralCommandHelper',
-    # 'CommandExtension', 'CmdExtension',
-
-    # 'BaseMoneyContent', 'TransferMoneyContent',
-    # 'BaseFileContent', 'ImageFileContent', 'AudioFileContent', 'VideoFileContent',
-    # 'SecretContent', 'ListContent',
-    # 'BaseQuoteContent',
-    # 'QuoteHelper', 'QuotePurifier', 'QuoteExtension',
-
-    # 'BaseReceiptCommand',
-    # 'BaseHistoryCommand', 'BaseGroupCommand',
-    # 'InviteGroupCommand', 'ExpelGroupCommand', 'JoinGroupCommand', 'QuitGroupCommand', 'ResetGroupCommand',
+    # 'CommandHelper',
+    # 'message_extensions', 'command_helper',
 
 ]

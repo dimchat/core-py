@@ -26,14 +26,12 @@
 from mkm.types import *
 from mkm.format import *
 
-from .duri import StringPairing, MutableStringPairing
-from .duri import Header, DataURI
-
-from .base import EncodeAlgorithms
 from .base import BaseString, BaseData
+from .data import PlainData
 
-from .data import Base64Data, PlainData
-from .embed import EmbedData
+from .pnf import TransportableFile, TransportableFileFactory
+from .pnf_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
+# from .pnf import TransportableFileHelper
 
 
 __all__ = [
@@ -48,9 +46,10 @@ __all__ = [
     'URI', 'DateTime',
 
     'Converter', 'DataConverter', 'BaseConverter',
+    'Copier', 'DataCopier', 'BaseCopier',
+    'Wrapper', 'DataWrapper', 'BaseWrapper',
 
-    'Copier',
-    'Wrapper', 'Stringer', 'Mapper',
+    'Stringer', 'Mapper',
     'ConstantString',  # 'String',
     'Dictionary',
 
@@ -63,36 +62,28 @@ __all__ = [
     'MapCoder', 'JSONMap',
     'StringCoder', 'UTF8',
 
-    'hex_encode', 'hex_decode',
-    'base58_encode', 'base58_decode',
-    'base64_encode', 'base64_decode',
-    'json_encode', 'json_decode',
-    'utf8_encode', 'utf8_decode',
-
     'TransportableResource',
     'TransportableData',
 
     'TransportableDataFactory',
 
     # 'TransportableDataHelper',
-    # 'FormatExtensions', 'shared_format_extensions',
-
-
-    # ----------------------------------------------------------------
-
-    'StringPairing', 'MutableStringPairing',
-
-    'Header', 'DataURI',
+    #  'FormatExtensions', 'shared_format_extensions',
 
     #
-    #   TED
+    #   TED - Transportable Encoded Data
     #
-
-    'EncodeAlgorithms',
 
     'BaseString', 'BaseData',
 
-    'Base64Data', 'PlainData',
-    'EmbedData',
+    'PlainData',
+
+    #
+    #   PNF - Portable Network File
+    #
+
+    'TransportableFile', 'TransportableFileFactory',
+    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+    # 'TransportableFileHelper',
 
 ]

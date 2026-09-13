@@ -35,6 +35,7 @@ from mkm.types import StrMap
 from mkm.format import TransportableData
 
 from dkd.protocol import SecureMessage
+from dkd.ext import shared_message_extensions
 
 from ..format import PlainData
 
@@ -77,14 +78,14 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             text = self.get('data')
             if text is None:
                 assert False, 'message data not found: %s' % super().to_map()
-            elif not BaseMessage.is_broadcast(msg=self):
+            elif not shared_message_extensions.handler.is_broadcast(self):
                 # message content had been encrypted by a symmetric key,
                 # so the data should be encoded here (with algorithm 'base64' as default).
                 ted = TransportableData.parse(text)
             elif isinstance(text, str):
                 # broadcast message content will not be encrypted (just encoded to JsON),
                 # so return the string data directly
-                ted = PlainData.create(string=text)  # JsON
+                ted = PlainData.create_with_string(string=text)  # JsON
             else:
                 assert False, f'content data error: {text}'
             self.__data = ted

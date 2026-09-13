@@ -85,7 +85,8 @@ class ContentType:
             (All above are just some advices to help choosing numbers :P)
     """
 
-    ANY = i2s(0x00)        # 0000 0000 (Undefined)
+    ANY = '*'
+    # UNKNOWN = i2s(0x00)  # 0000 0000 (Undefined)
 
     TEXT = i2s(0x01)       # 0000 0001
 
