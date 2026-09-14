@@ -29,14 +29,14 @@
 
 from mkm import BroadcastAddress, Identifier
 
+from .types import *
 from .format import *
 from .crypto import *
 from .protocol import *
 from .dkd import *
 from .ext import *
 
-from .cmd_ext import GeneralCommandHelper, CmdExtension
-from .cmd_ext import message_extensions, message_helper, cmd_helper
+from .ext.cmd_ext import CommandHandler, GeneralCommandExtension
 
 
 name = "DIMP"
@@ -45,11 +45,23 @@ __author__ = 'Albert Moky'
 
 __all__ = [
 
+    'Singleton',
+
+    'final',
+
     'StrMap', 'MutableStrMap',
+    'AnyList', 'StrList',
 
     'URI', 'DateTime',
 
+    'Converter', 'DataConverter', 'BaseConverter',
+    'Copier', 'DataCopier', 'BaseCopier',
+    'Wrapper', 'DataWrapper', 'BaseWrapper',
+
     'Stringer', 'Mapper',
+    'ConstantString',  # 'String',
+
+    'Dictionary',
 
     #
     #   Format
@@ -112,6 +124,9 @@ __all__ = [
     'CryptoExtensions', 'shared_crypto_extensions',
 
 
+    'EncryptedBundleHandler', 'DefaultBundleHandler',
+    'BundleExtension',
+
     # ================================================================
 
 
@@ -119,9 +134,15 @@ __all__ = [
     #   Ming-Ke-Ming
     #
 
+    'EntityType',
     'Address', 'ID',
-    'Meta', 'Document',
+    'Meta', 'TAI', 'Document',
 
+    'AddressFactory', 'IDFactory',
+    'MetaFactory', 'DocumentFactory',
+
+    'ANYWHERE', 'EVERYWHERE',
+    'ANYONE', 'EVERYONE', 'FOUNDER',
     'BroadcastAddress', 'Identifier',
 
     'AddressHelper', 'IDHelper',
@@ -139,6 +160,7 @@ __all__ = [
     #
 
     'Content', 'Envelope',
+    'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     'ContentFactory', 'EnvelopeFactory',
@@ -150,7 +172,6 @@ __all__ = [
     'ContentExtension',
     'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     'MessageExtensions', 'shared_message_extensions',
-    'MessageHandler', 'MessageHandlerExtension',
 
     #
     #   Core Protocols
@@ -159,11 +180,10 @@ __all__ = [
     'ContentType',
 
     'Command', 'CommandFactory',
-    'CommandHelper', 'GeneralCommandHelper',
-    'CommandExtension', 'CmdExtension',
+    'CommandHelper',
 
-    'message_extensions', 'message_helper', 'cmd_helper',
-    'command_helper',
+    'CommandHandler',
+    'CommandExtension',
 
     #
     #   Message Implementations

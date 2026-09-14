@@ -31,27 +31,54 @@ from mkm.protocol import *
 from dkd.protocol import *
 
 from .types import ContentType
+
 from .command import Command, CommandFactory
 # from .command import CommandHelper
-# from .command import message_extensions, command_helper
+# from .command import CommandExtension
 
 
 __all__ = [
 
     #
-    #   Import from mkm & dkd
+    #   Ming-Ke-Ming
     #
-    # mkm.protocol
-    'Address', 'ID',
-    'Meta', 'Document',
-    # 'AddressFactory', 'IDFactory',
-    # 'MetaFactory', 'DocumentFactory',
 
-    # dkd.protocol
-    'Envelope', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'Content',
-    'EnvelopeFactory', 'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-    'ContentFactory',
+    'EntityType',
+    'Address', 'ID',
+    'Meta', 'TAI', 'Document',
+
+    'AddressFactory', 'IDFactory',
+    'MetaFactory', 'DocumentFactory',
+
+    'ANYWHERE', 'EVERYWHERE',
+    'ANYONE', 'EVERYONE', 'FOUNDER',
+    # 'BroadcastAddress', 'Identifier',
+
+    # 'AddressHelper', 'IDHelper',
+    # 'MetaHelper', 'DocumentHelper',
+
+    # 'AddressExtension', 'IDExtension',
+    # 'MetaExtension', 'DocumentExtension',
+    # 'AccountExtensions', 'shared_account_extensions',
+
+
+    #
+    #   Dao-Ke-Dao
+    #
+
+    'Content', 'Envelope',
+    'Message',
+    'InstantMessage', 'SecureMessage', 'ReliableMessage',
+
+    'ContentFactory', 'EnvelopeFactory',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    # 'ContentHelper', 'EnvelopeHelper',
+    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    # 'ContentExtension',
+    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
+    # 'MessageExtensions', 'shared_message_extensions',
 
     #
     #   Protocol
@@ -61,6 +88,6 @@ __all__ = [
 
     'Command', 'CommandFactory',
     # 'CommandHelper',
-    # 'message_extensions', 'command_helper',
+    # 'CommandExtension',
 
 ]

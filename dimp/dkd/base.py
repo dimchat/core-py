@@ -57,7 +57,7 @@ from mkm.types import StrMap
 from mkm.protocol import ID
 from dkd.protocol import Envelope, Message
 
-from ..type import Dictionary
+from ..types import Dictionary
 
 
 class BaseMessage(Dictionary, Message):

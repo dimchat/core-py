@@ -27,9 +27,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-from dkd.protocol import *
-from ..protocol import *
-
 from .envelope import MessageEnvelope
 from .base import BaseMessage
 from .instant import PlainMessage
@@ -38,15 +35,6 @@ from .reliable import NetworkMessage
 
 
 __all__ = [
-
-    #
-    #   Import from dkd & dimp
-    #
-    # dkd.protocol
-    'Envelope', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'Content',
-    'EnvelopeFactory', 'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-    'ContentFactory',
 
     #
     #   Message

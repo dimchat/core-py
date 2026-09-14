@@ -171,21 +171,82 @@ class BaseData(BaseString, TransportableData, ABC):
         return hash(data)
 
     # Override
-    def __eq__(self, other) -> bool:
-        if other is None:
-            return False
-        elif self is other:
+    def __eq__(self, x: str) -> bool:
+        """ Return self==value. """
+        if self is x:
             # same object
             return True
-        # compare as binary
-        data = self.to_bytes()
-        if isinstance(other, bytes):
-            return data == other
-        elif isinstance(other, BaseData):
-            return data == other.to_bytes()
-        else:
-            return False
+        elif isinstance(x, BaseData):
+            if x.is_empty:
+                return self.is_empty
+            # compare as base data
+            return _data_equals(this=self, that=x)
+        elif isinstance(x, TransportableData):
+            if x.is_empty:
+                return self.is_empty
+            # compare as ted
+            return _ted_equals(this=self, that=x)
+        elif isinstance(x, Stringer):
+            if x.is_empty:
+                return self.is_empty
+            # compare with inner string
+            return self.to_str() == x.to_str()
+        elif isinstance(x, str):
+            if x == '':
+                return self.is_empty
+        # compare with encoded string
+        return self.to_str() == x
 
     # Override
-    def __ne__(self, other) -> bool:
-        return not self.__eq__(other)
+    def __ne__(self, x: str) -> bool:
+        """ Return self!=value. """
+        if self is x:
+            # same object
+            return False
+        elif isinstance(x, BaseData):
+            if x.is_empty:
+                return not self.is_empty
+            # compare as base data
+            return not _data_equals(this=self, that=x)
+        elif isinstance(x, TransportableData):
+            if x.is_empty:
+                return not self.is_empty
+            # compare as ted
+            return not _ted_equals(this=self, that=x)
+        elif isinstance(x, Stringer):
+            if x.is_empty:
+                return not self.is_empty
+            # compare with inner string
+            return self.to_str() != x.to_str()
+        elif isinstance(x, str):
+            if x == '':
+                return not self.is_empty
+        # compare with encoded string
+        return self.to_str() != x
+
+
+def _data_equals(this: BaseData, that: BaseData) -> bool:
+    assert not (that is None or that.is_empty), f'base data error {that}'
+    # compare with inner string
+    this_string = this.inner_string
+    that_string = that.inner_string
+    if this_string is not None and that_string is not None:
+        if len(this_string) > 0 and len(that_string) > 0:
+            return this_string == that_string
+    # compare with inner bytes
+    this_bytes = this.inner_binary
+    that_bytes = that.inner_binary
+    if this_bytes is not None and that_bytes is not None:
+        return this_bytes == that_bytes
+    # compare with decoded bytes
+    return this.to_bytes() == that.to_bytes()
+
+
+def _ted_equals(this: BaseData, that: TransportableData) -> bool:
+    assert not (that is None or that.is_empty), f'base data error {that}'
+    # compare with encoded string
+    this_string = this.inner_string
+    if this_string is not None and len(this_string) > 0:
+        return this_string == that.to_str()
+    # compare with encoded bytes
+    return this.inner_binary == that.to_bytes()

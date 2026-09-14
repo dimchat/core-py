@@ -32,12 +32,14 @@ from typing import Optional
 
 from mkm.types import StrMap
 
-from dkd.protocol import Envelope, ReliableMessage
+from dkd.protocol import Envelope
 from dkd.protocol import Content
-from dkd.ext import MessageExtensions, MessageHandler, shared_message_extensions
+from dkd.ext import MessageExtensions, shared_message_extensions
+
+from ..protocol import Command
 
 
-class GeneralCommandHelper(ABC):
+class CommandHandler(ABC):
     """ General Command Helper """
 
     @abstractmethod
@@ -54,7 +56,7 @@ class GeneralCommandHelper(ABC):
         )
 
     @abstractmethod
-    def create_receipt(self, text: str, envelope: Envelope, content: Optional[Content]) -> ReliableMessage:
+    def create_receipt(self, text: str, envelope: Envelope, content: Optional[Content]) -> Command:
         """
         Create receipt command
 
@@ -68,35 +70,30 @@ class GeneralCommandHelper(ABC):
         )
 
 
-class CmdExtension:
+class GeneralCommandExtension:
 
     @property
-    def cmd_helper(self) -> Optional[GeneralCommandHelper]:
+    def command_handler(self) -> Optional[CommandHandler]:
         """ Get command helper """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd_helper getter'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_handler getter'
         )
 
-    @cmd_helper.setter
-    def cmd_helper(self, helper: GeneralCommandHelper):
+    @command_handler.setter
+    def command_handler(self, helper: CommandHandler):
         """ Set command helper """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd_helper setter'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_handler setter'
         )
 
 
-shared_message_extensions.cmd_helper: Optional[GeneralCommandHelper] = None
+shared_message_extensions.command_handler: Optional[CommandHandler] = None
 
 
 def message_extensions() -> MessageExtensions:
     return shared_message_extensions
 
 
-def message_helper() -> MessageHandler:
+def command_handler() -> CommandHandler:
     ext = message_extensions()
-    return ext.handler
-
-
-def cmd_helper() -> GeneralCommandHelper:
-    ext = message_extensions()
-    return ext.cmd_helper
+    return ext.command_handler

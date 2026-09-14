@@ -36,7 +36,7 @@ from mkm.types import StrMap
 from mkm.protocol import ID, ANYONE
 from dkd.protocol import Envelope
 
-from ..type import Dictionary
+from ..types import Dictionary
 
 
 """
