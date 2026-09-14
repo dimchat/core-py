@@ -32,10 +32,11 @@ from typing import Optional
 
 from mkm.types import DateTime
 from mkm.types import StrMap
-from mkm.types import Dictionary
 
 from mkm.protocol import ID, ANYONE
 from dkd.protocol import Envelope
+
+from ..type import Dictionary
 
 
 """

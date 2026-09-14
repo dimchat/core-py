@@ -53,10 +53,11 @@ from typing import Optional
 
 from mkm.types import DateTime
 from mkm.types import StrMap
-from mkm.types import Dictionary
 
 from mkm.protocol import ID
 from dkd.protocol import Envelope, Message
+
+from ..type import Dictionary
 
 
 class BaseMessage(Dictionary, Message):
@@ -101,14 +102,3 @@ class BaseMessage(Dictionary, Message):
     @property  # Override
     def type(self) -> Optional[str]:
         return self.envelope.type
-
-    @classmethod
-    def is_broadcast(cls, msg: Message) -> bool:
-        if msg.receiver.is_broadcast:
-            return True
-        # check exposed group
-        overt_group = msg.get('group')
-        if overt_group is None:
-            return False
-        group = ID.parse(identifier=overt_group)
-        return group is not None and group.is_broadcast
