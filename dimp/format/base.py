@@ -155,6 +155,18 @@ class BaseData(BaseString, TransportableData, ABC):
         # assert len(data) > 0, 'transportable data empty'
         return len(data)
 
+    # Override
+    def __len__(self) -> int:
+        """ Return len(self). """
+        # s = self.to_str()
+        # return s.__len__()
+        data = self.to_bytes()
+        if data is None:
+            # assert False, 'transportable data error'
+            return 0
+        # assert len(data) > 0, 'transportable data empty'
+        return data.__len__()
+
     @abstractmethod
     def to_bytes(self) -> Optional[bytes]:
         raise NotImplementedError(
@@ -168,7 +180,7 @@ class BaseData(BaseString, TransportableData, ABC):
     # Override
     def __hash__(self) -> int:
         data = self.to_bytes()
-        return hash(data)
+        return 0 if data is None else hash(data)
 
     # Override
     def __eq__(self, x: str) -> bool:

@@ -30,6 +30,7 @@
 
 from mkm.digest import *
 from mkm.crypto import *
+from dkd.crypto import *
 
 
 __all__ = [
@@ -56,5 +57,17 @@ __all__ = [
 
     # 'SymmetricKeyExtension', 'PublicKeyExtension', 'PrivateKeyExtension',
     # 'CryptoExtensions', 'shared_crypto_extensions',
+
+
+    #
+    #   Encrypted Key Bundle
+    #
+
+    'BytesMap',
+
+    'EncryptedBundle', 'UserEncryptedBundle',
+
+    # 'EncryptedBundleHandler', 'DefaultBundleHandler',
+    # 'BundleExtension',
 
 ]

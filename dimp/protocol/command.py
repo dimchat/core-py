@@ -33,7 +33,6 @@ from typing import Any, Optional
 from mkm.types import StrMap
 
 from dkd.protocol import Content
-from dkd.protocol import ContentFactory
 from dkd.ext import MessageExtensions, shared_message_extensions
 
 
@@ -45,7 +44,7 @@ class Command(Content, ABC):
 
         data format: {
             type : ...,
-            sn   : 123,
+            sn   : 12345,
 
             command : "...",      // command name
             ...                   // extra parameters
@@ -73,21 +72,31 @@ class Command(Content, ABC):
     #
 
     @classmethod
-    def parse(cls, content: Any) -> Optional[Content]:
+    def parse(cls, content: Any):  # -> Optional[Command]:
         helper = command_helper()
         return helper.parse_command(content=content)
 
+    @classmethod
+    def get_factory(cls, cmd: str):  # -> Optional[CommandFactory]:
+        helper = command_helper()
+        return helper.get_command_factory(cmd=cmd)
 
-class CommandFactory(ContentFactory, ABC):
+    @classmethod
+    def set_factory(cls, cmd: str, factory):
+        helper = command_helper()
+        helper.set_command_factory(cmd=cmd, factory=factory)
+
+
+class CommandFactory(ABC):
     """ Command Factory """
 
     @abstractmethod
-    def parse_command(self, content: StrMap) -> Optional[Content]:
+    def parse_command(self, content: StrMap) -> Optional[Command]:
         """
         Parse a command content object from a network dictionary
 
         :param content: command info
-        :return: Content (Command) object
+        :return: Command object
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_command()'
@@ -103,11 +112,11 @@ class CommandHelper(ABC):
     """ Command Helper """
 
     @abstractmethod
-    def set_command_factory(self, name: str, factory: CommandFactory):
+    def set_command_factory(self, cmd: str, factory: CommandFactory):
         """
         Register command factory with command name
 
-        :param name:    command name
+        :param cmd:     command name
         :param factory: command factory
         """
         raise NotImplementedError(
@@ -115,24 +124,24 @@ class CommandHelper(ABC):
         )
 
     @abstractmethod
-    def get_command_factory(self, name: str) -> Optional[CommandFactory]:
+    def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
         """
         Get command factory with command name
 
-        :param name: command name
-        :return: ContentFactory
+        :param cmd: command name
+        :return: CommandFactory
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_command_factory()'
         )
 
     @abstractmethod
-    def parse_command(self, content: StrMap) -> Optional[Content]:
+    def parse_command(self, content: Any) -> Optional[Command]:
         """
         Parse command content
 
         :param content: command info
-        :return: Content (Command) object
+        :return: Command object
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_command()'

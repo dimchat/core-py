@@ -54,9 +54,12 @@ class PlainData(BaseData):
         txt = self._string
         if txt is None or len(txt) == 0:
             data = self._binary
-            assert data is not None, f'PlainData error: {self}'
-            txt = UTF8.decode(data=data)
-            self._string = txt
+            if data is None:
+                assert False, f'PlainData error: {self}'
+            else:
+                txt = UTF8.decode(data=data)
+                self._string = txt
+            assert txt is not None and len(txt) > 0, f'PlainData error: {data}'
         return txt
 
     #
@@ -69,11 +72,11 @@ class PlainData(BaseData):
 
     @classmethod
     def create_with_string(cls, string: str):
-        return PlainData(string=string)
+        return PlainData(string=string, binary=None)
 
     @classmethod
     def create_with_bytes(cls, binary: bytes):
-        return PlainData(binary=binary)
+        return PlainData(string='', binary=binary)
 
     @classmethod
     def zero(cls):
