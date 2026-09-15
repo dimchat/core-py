@@ -23,6 +23,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    DIMP
+    ~~~~
+
+    Decentralized Instant Messaging Protocol
+"""
+
 from mkm.format import *
 
 from .base import BaseString, BaseData

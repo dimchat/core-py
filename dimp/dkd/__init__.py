@@ -27,6 +27,14 @@
 # SOFTWARE.
 # ==============================================================================
 
+
+"""
+    Dao-Ke-Dao
+    ~~~~~~~~~~
+
+    Universal Message Module
+"""
+
 from .envelope import MessageEnvelope
 from .base import BaseMessage
 from .instant import PlainMessage

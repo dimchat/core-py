@@ -39,24 +39,28 @@ from dkd.protocol import Envelope
 from ..types import Dictionary
 
 
-"""
+class MessageEnvelope(Dictionary, Envelope):
+    """
     Envelope for message
     ~~~~~~~~~~~~~~~~~~~~
     This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
-    
+
     data format: {
         "sender"   : "moki@xxx",
         "receiver" : "hulk@yyy",
         "time"     : 123.45
     }
-"""
-
-
-class MessageEnvelope(Dictionary, Envelope):
+    """
 
     def __init__(self, envelope: StrMap = None,
                  sender: ID = None, receiver: Optional[ID] = None, time: Optional[DateTime] = None):
+        """Create a new envelope with sender, receiver and time.
+
+        `sender` is the message sender (required).
+        `receiver` is the message receiver, default is ANYONE.
+        `time` is the message time, default is now.
+        """
         if envelope is None:
             # 1. new envelope with sender, receiver & time
             assert sender is not None, f'envelope error: {receiver}, {time}'
@@ -107,6 +111,13 @@ class MessageEnvelope(Dictionary, Envelope):
             self.__time = self.get_datetime(key='time')
         return self.__time
 
+    #
+    #  Group ID
+    #  ~~~~~~~~
+    #  when a group message was split/trimmed to a single message
+    #  the 'receiver' will be changed to a member ID, and
+    #  the group ID will be saved as 'group'.
+    #
     @property  # Override
     def group(self) -> Optional[ID]:
         gid = self.get('group')
@@ -116,6 +127,14 @@ class MessageEnvelope(Dictionary, Envelope):
     def group(self, gid: ID):
         self.set_string(key='group', value=gid)
 
+    #
+    #  Message Type
+    #  ~~~~~~~~~~~~
+    #  because the message content will be encrypted, so
+    #  the intermediate nodes(station) cannot recognize what kind of it.
+    #  we pick out the content type and set it in envelope
+    #  to let the station do its job.
+    #
     @property  # Override
     def type(self) -> Optional[str]:
         return self.get_str(key='type')

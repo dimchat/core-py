@@ -38,17 +38,24 @@ from dkd.ext import MessageExtensions, shared_message_extensions
 
 class Command(Content, ABC):
     """
-        Command Protocol
-        ~~~~~~~~~~~~~~~~
-        This class is defined for the command message
+        Command message content interface.
 
-        data format: {
-            type : ...,
-            sn   : 12345,
+        Base interface for all command-type messages, which are used to send
+        operational instructions with parameters between entities.
 
-            command : "...",      // command name
-            ...                   // extra parameters
+        JSON format:
+        ```json
+        {
+          "type"  : i2s(0x88),
+          "sn"    : 12345,
+
+          "time"  : 123.45,
+          "group" : "group@zzz",
+
+          "command" : "...",  // Unique command name/identifier
+          "extra"   : info    // Optional command parameters (dynamic structure)
         }
+        ```
     """
 
     #
@@ -61,7 +68,9 @@ class Command(Content, ABC):
         """
         Get command name
 
-        :return: text string
+        Returns the command/method/declaration name.
+
+        :return: command/method/declaration name
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.cmd getter'
@@ -73,30 +82,44 @@ class Command(Content, ABC):
 
     @classmethod
     def parse(cls, content: Any):  # -> Optional[Command]:
+        """
+        Parse any object to command
+        """
         helper = command_helper()
         return helper.parse_command(content=content)
 
     @classmethod
     def get_factory(cls, cmd: str):  # -> Optional[CommandFactory]:
+        """
+        Get command factory for name (cmd)
+        """
         helper = command_helper()
         return helper.get_command_factory(cmd=cmd)
 
     @classmethod
     def set_factory(cls, cmd: str, factory):
+        """
+        Set command factory for name (cmd)
+        """
         helper = command_helper()
         helper.set_command_factory(cmd=cmd, factory=factory)
 
 
 class CommandFactory(ABC):
-    """ Command Factory """
+    """
+    Factory interface for parsing command messages from map objects.
+
+    Provides a standardized way to convert raw map data (from JSON) into
+    strongly-typed `Command` instances.
+    """
 
     @abstractmethod
     def parse_command(self, content: StrMap) -> Optional[Command]:
         """
-        Parse a command content object from a network dictionary
+        Parses a map object (from JSON) into a `Command` instance.
 
-        :param content: command info
-        :return: Command object
+        :param content: raw map data containing command information
+        :return: `Command` instance if parsing succeeds, None otherwise
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_command()'
@@ -109,12 +132,17 @@ class CommandFactory(ABC):
 
 
 class CommandHelper(ABC):
-    """ Command Helper """
+    """
+    General Helper
+
+    Helper interface for registering and using command factories
+    to parse command messages from raw content.
+    """
 
     @abstractmethod
     def set_command_factory(self, cmd: str, factory: CommandFactory):
         """
-        Register command factory with command name
+        Set command factory for name (cmd)
 
         :param cmd:     command name
         :param factory: command factory
@@ -126,7 +154,7 @@ class CommandHelper(ABC):
     @abstractmethod
     def get_command_factory(self, cmd: str) -> Optional[CommandFactory]:
         """
-        Get command factory with command name
+        Get command factory for name (cmd)
 
         :param cmd: command name
         :return: CommandFactory
@@ -138,7 +166,7 @@ class CommandHelper(ABC):
     @abstractmethod
     def parse_command(self, content: Any) -> Optional[Command]:
         """
-        Parse command content
+        Parse any object to command
 
         :param content: command info
         :return: Command object
@@ -149,6 +177,7 @@ class CommandHelper(ABC):
 
 
 class CommandExtension:
+    """ Command Extension """
 
     @property
     def command_helper(self) -> Optional[CommandHelper]:

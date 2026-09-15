@@ -34,11 +34,52 @@ from mkm.format import TransportableData
 from mkm.ext import shared_format_extensions
 
 
+# -----------------------------------------------------------------------------
+#  PNF Wrapper
+# -----------------------------------------------------------------------------
+
 class TransportableFileWrapper(ABC):
+    """
+    A wrapper interface for serializing/deserializing `TransportableFile`
+    data to/from a Map.
+
+    The serialized Map follows this structure:
+
+    .. code-block:: json
+
+        {
+          "data": "<base64-encoded file content>", // From `TransportableData`
+          "filename": "photo.png",                 // Original file name
+
+          "URL": "http://example.com/photo.png",   // Remote CDN URL (alternative to `data`)
+          "key": {                                 // Symmetric decryption key (for encrypted CDN content)
+            "algorithm": "AES",                    // Encryption algorithm (e.g., "AES", "DES")
+            "data": "<base64-encoded key data>"    // Key material (base64 encoded)
+          }
+        }
+
+    Key notes:
+    - `data` and `URL` are mutually exclusive for large files
+      (prefer `URL` to reduce payload size)
+    - `key` is required only if the CDN-hosted content is encrypted
+    """
 
     @abstractmethod
     def to_map(self) -> MutableStrMap:
-        """ Serialize to map """
+        """
+        Converts the wrapper's state to a structured Map
+        (matches the format defined in this class).
+
+        Core logic:
+        - Serializes the `data` property (TransportableData) into the "data"
+          field of the Map
+        - Subclasses may override this method to implement lazy serialization
+          for other properties (e.g., defer encoding large file data until
+          this method is called)
+
+        Returns a serialized Map containing the file metadata and
+        serialized `data`.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_map()'
         )
@@ -50,7 +91,11 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def data(self) -> Optional[TransportableData]:
-        """ Get binary file content """
+        """
+        Binary file data (encoded as `TransportableData`).
+
+        For large files, use `url` instead to avoid large payloads.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
         )
@@ -70,7 +115,7 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def filename(self) -> Optional[str]:
-        """ Get filename """
+        """ Original filename of the file (e.g., "avatar.png"). """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename getter'
         )
@@ -90,7 +135,10 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        """ Get download URL from CDN """
+        """
+        Remote CDN URL to download the file (alternative to `data`
+        for large files).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
         )
@@ -110,7 +158,12 @@ class TransportableFileWrapper(ABC):
     @property
     @abstractmethod
     def password(self) -> Optional[DecryptKey]:
-        """ Get password """
+        """
+        Symmetric decryption key for encrypted file content from `url`.
+
+        Aliased as `password` for legacy compatibility
+        (actual value is a `DecryptKey`).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.password getter'
         )
@@ -140,7 +193,12 @@ class TransportableFileWrapper(ABC):
 
 
 class TransportableFileWrapperFactory(ABC):
-    """ Wrapper factory """
+    """
+    Factory interface for creating `TransportableFileWrapper` instances.
+
+    Implement this interface to provide custom wrapper implementations
+    (e.g., for different serialization formats).
+    """
 
     @abstractmethod
     def create_transportable_file_wrapper(self, content: StrMap,
@@ -148,7 +206,18 @@ class TransportableFileWrapperFactory(ABC):
                                           filename: Optional[str],
                                           url: Optional[URI],
                                           password: Optional[DecryptKey]) -> TransportableFileWrapper:
-        """ Create PNF wrapper """
+        """
+        Creates a `TransportableFileWrapper` instance with the given parameters.
+
+        `content` is the base Map to initialize the wrapper
+        (may contain partial metadata).
+        `data` is the binary file data (overrides ``content["data"]`` if provided).
+        `filename` is the original file name (overrides ``content["filename"]`` if provided).
+        `url` is the remote CDN URL (overrides ``content["URL"]`` if provided).
+        `password` is the decryption key (overrides ``content["key"]`` if provided).
+
+        Returns a custom `TransportableFileWrapper` implementation.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_transportable_file_wrapper()'
         )
@@ -163,14 +232,14 @@ class TransportableFileWrapperExtension:
 
     @property
     def pnf_wrapper_factory(self) -> Optional[TransportableFileWrapperFactory]:
-        """ Get factory for PNF wrapper """
+        """ Get PNF wrapper factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_wrapper_factory getter'
         )
 
     @pnf_wrapper_factory.setter
     def pnf_wrapper_factory(self, factory: TransportableFileWrapperFactory):
-        """ Set factory for PNF wrapper """
+        """ Set PNF wrapper factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.pnf_wrapper_factory setter'
         )

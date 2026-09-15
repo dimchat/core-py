@@ -61,8 +61,29 @@ from ..types import Dictionary
 
 
 class BaseMessage(Dictionary, Message):
+    """
+    Message with Envelope
+    ~~~~~~~~~~~~~~~~~~~~~
+
+    Base classes for messages
+    This class is used to create a message
+    with the envelope fields, such as 'sender', 'receiver', and 'time'
+
+    data format: {
+        //-- envelope
+        "sender"   : "moki@xxx",
+        "receiver" : "hulk@yyy",
+        "time"     : 123.45,
+
+        //-- body
+        ...
+    }
+    """
 
     def __init__(self, msg: StrMap = None, head: Envelope = None):
+        """Create a message with an existing envelope (shares its dictionary),
+        or decode from a network dictionary.
+        """
         if msg is None:
             # 1. new message with envelope
             assert head is not None, 'message envelope should not be empty'
@@ -82,6 +103,8 @@ class BaseMessage(Dictionary, Message):
             env = Envelope.parse(envelope=super().to_map())
             self.__envelope = env
         return env
+
+    # --------
 
     @property  # Override
     def sender(self) -> ID:

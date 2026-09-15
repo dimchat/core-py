@@ -38,23 +38,26 @@ from mkm.ext import shared_format_extensions
 
 class TransportableFile(Mapper, TransportableResource, ABC):
     """
-        Transportable File
-        ~~~~~~~~~~~~~~~~~~
-        PNF - Portable Network File
+        Portable Network File (PNF) - transportable file with metadata
+        and encryption support.
 
-            2. "https://..."
-            3. {
-                data     : "...",        // base64_encode(fileContent)
-                filename : "avatar.png",
+        Extends `TransportableResource` to represent files with additional
+        metadata (filename, URL, encryption key) for network transmission.
 
-                URL      : "http://...", // download from CDN
-                // before fileContent uploaded to a public CDN,
-                // it can be encrypted by a symmetric key
-                key      : {             // symmetric key to decrypt file content
-                    algorithm : "AES",   // "DES", ...
-                    data      : "{BASE64_ENCODE}",
-                    ...
-                }
+        Supported formats (extends `TransportableResource`):
+         2. Data URI format: ``"data:image/png;base64,{BASE64_ENCODE}"``
+         3. Structured JSON object (with metadata and encryption):
+
+        .. code-block:: json
+
+            {
+              "data"     : "...",         // Base64-encoded file content
+              "filename" : "avatar.png",
+              "URL"      : "http://...",  // CDN download URL (alternative to inline data)
+              "key"      : {              // Symmetric encryption key (for encrypted content)
+                "algorithm" : "AES",      // Encryption algorithm (e.g., "AES", "DES")
+                "data"      : "{BASE64_ENCODE}"
+              }
             }
     """
 
@@ -65,7 +68,12 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def data(self) -> Optional[TransportableData]:
-        """ Get file data """
+        """
+        Binary file data (encoded as `TransportableData`).
+
+        For large files, it's recommended to use `url` instead of inline `data`
+        to reduce payload size (upload to CDN first, then reference via URL).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
         )
@@ -81,7 +89,7 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def filename(self) -> Optional[str]:
-        """ Get filename """
+        """ Original filename of the file (e.g., "avatar.png"). """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.filename getter'
         )
@@ -100,7 +108,11 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def url(self) -> Optional[URI]:
-        """ Get download URL from CDN """
+        """
+        Remote URL to download the file (typically from CDN).
+
+        Alternative to inline `data` for large files.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.url getter'
         )
@@ -120,7 +132,12 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @property
     @abstractmethod
     def password(self) -> Optional[DecryptKey]:
-        """ Get password """
+        """
+        Decryption key for encrypted file content from CDN.
+
+        Defaults to a plain key (returns original data when decrypted)
+        if not specified.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.password getter'
         )
@@ -137,7 +154,10 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @abstractmethod
     def __str__(self) -> str:
         """
-        Get encoded string
+        Returns string representation of the PNF.
+
+        Returns the URL string (if only `url` and `filename` are present),
+        or the JSON string of the structured object (for full metadata).
 
         :return: 'URL', or JSON string: '{...}'
         """
@@ -148,7 +168,20 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     # Override
     @abstractmethod
     def to_map(self) -> MutableStrMap:
-        """ Serialize to map """
+        """
+        Converts the PNF to a structured Map (format 3).
+
+        Core logic:
+        - Serializes the `data` property (TransportableData) into the "data"
+          field of the Map
+        - Subclasses may override this method to implement lazy serialization
+          for other properties (e.g., defer encoding large file data until
+          this method is called)
+        - Updates internal state with the serialized `data` before returning
+          the Map
+
+        Returns a Map representation of the PNF (matches JSON structure).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_map()'
         )
@@ -157,7 +190,11 @@ class TransportableFile(Mapper, TransportableResource, ABC):
     @abstractmethod
     def serialize(self) -> Union[str, StrMap]:
         """
-        Serializes this PNF to a URL string or a map.
+        Serializes the PNF to a transportable format.
+
+        Serialization logic:
+        - If only `url` and `filename` exist: returns URL string (str())
+        - Otherwise: returns structured Map (to_map())
 
         :return: str or dict
         """
@@ -171,10 +208,12 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
     @classmethod
     def create_from_url(cls, url: URI, password: Optional[DecryptKey]):
+        """ Create from remote URL """
         return cls.create(url=url, password=password)
 
     @classmethod
     def create_from_data(cls, data: TransportableData, filename: Optional[str]):
+        """ Create from file data """
         return cls.create(data=data, filename=filename)
 
     @classmethod
@@ -200,12 +239,18 @@ class TransportableFile(Mapper, TransportableResource, ABC):
 
 
 class TransportableFileFactory(ABC):
-    """ PNF factory """
+    """
+    Factory interface for creating `TransportableFile` (PNF) instances.
+    """
 
     @abstractmethod
     def parse_transportable_file(self, pnf: StrMap) -> Optional[TransportableFile]:
         """
-        Parse map object to PNF
+        Parses a structured Map into a `TransportableFile` instance.
+
+        `pnf` is the Map representation of PNF (matches format 3 JSON structure).
+
+        Returns a `TransportableFile` instance, or None if parsing fails.
 
         :param pnf: PNF info
         :return: PNF object
@@ -218,7 +263,14 @@ class TransportableFileFactory(ABC):
     def create_transportable_file(self, data: Optional[TransportableData], filename: Optional[str],
                                   url: Optional[URI], password: Optional[DecryptKey]) -> TransportableFile:
         """
-        Create PNF
+        Creates a `TransportableFile` instance with the given parameters.
+
+        `data` is the encoded file content (null if using `url` instead).
+        `filename` is the original filename of the file.
+        `url` is the CDN download URL (alternative to `data`).
+        `password` is the decryption key for encrypted content.
+
+        Returns a new `TransportableFile` instance.
 
         :param data:     file data (not encrypted)
         :param filename: file name
@@ -237,18 +289,23 @@ class TransportableFileFactory(ABC):
 
 
 class TransportableFileHelper(ABC):
-    """ General Helper """
+    """
+    Helper interface for creating/parsing `TransportableFile` instances.
+
+    Provides factory methods to abstract the creation logic of
+    `TransportableFile` implementations.
+    """
 
     @abstractmethod
     def set_transportable_file_factory(self, factory: TransportableFileFactory):
-        """ Set PNF factory """
+        """ Set transportable file factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_transportable_file_factory()'
         )
 
     @abstractmethod
     def get_transportable_file_factory(self) -> Optional[TransportableFileFactory]:
-        """ Get PNF factory """
+        """ Get transportable file factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_transportable_file_factory()'
         )
@@ -256,14 +313,32 @@ class TransportableFileHelper(ABC):
     @abstractmethod
     def create_transportable_file(self, data: Optional[TransportableData], filename: Optional[str],
                                   url: Optional[URI], password: Optional[DecryptKey]) -> TransportableFile:
-        """ Create PNF """
+        """
+        Creates a `TransportableFile` instance with the given metadata.
+
+        `data` is the binary file data (encoded as `TransportableData`).
+        `filename` is the original file name (e.g., "document.pdf").
+        `url` is the remote CDN URL (alternative to `data` for large files).
+        `password` is the decryption key for encrypted CDN content.
+
+        Returns an initialized `TransportableFile` instance.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_transportable_file()'
         )
 
     @abstractmethod
     def parse_transportable_file(self, pnf: Any) -> Optional[TransportableFile]:
-        """ Parse any object to PNF """
+        """
+        Parses a raw object into a `TransportableFile` instance.
+
+        Converts arbitrary raw data (e.g., string, map) into a standardized
+        TransportableFile object.
+
+        `pnf` is the raw data object to parse.
+
+        Returns a parsed `TransportableFile` instance (null if parsing fails).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_transportable_file()'
         )

@@ -38,7 +38,8 @@ from dkd.protocol import ReliableMessage
 from .secure import EncryptedMessage
 
 
-"""
+class NetworkMessage(EncryptedMessage, ReliableMessage):
+    """
     Reliable Message signed by an asymmetric key
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     This class is used to sign the SecureMessage
@@ -49,32 +50,31 @@ from .secure import EncryptedMessage
         "sender"   : "moki@xxx",
         "receiver" : "hulk@yyy",
         "time"     : 123.45,
-        
+
         //-- content data and keys
         "data"     : "...",    // base64_encode( symmetric_encrypt(content))
         "keys"     : {
-            "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))
+            "{ID}"   : "...",  // base64_encode(asymmetric_encrypt(pwd))
             "digest" : "..."   // hash(pwd.data)
         },
         //-- signature
-        "signature:" "..."     // base64_encode(asymmetric_sign(data))
+        "signature": "..."     // base64_encode(asymmetric_sign(data))
     }
-"""
-
-
-class NetworkMessage(EncryptedMessage, ReliableMessage):
+    """
 
     def __init__(self, msg: StrMap):
+        """Create a network message from dictionary."""
         super().__init__(msg=msg)
         # lazy
         self.__signature: Optional[TransportableData] = None
 
     @property  # Override
     def signature(self) -> TransportableData:
+        """Get message signature (signed by sender's private key)."""
         ted = self.__signature
         if ted is None:
             base64 = self.get('signature')
-            assert base64 is not None, f'message signature cannot be empty: {self}'
+            assert base64 is not None, f'message signature cannot be empty: {self.to_map()}'
             ted = TransportableData.parse(base64)
             assert ted is not None, f'failed to decode message signature: {base64}'
             self.__signature = ted

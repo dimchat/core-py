@@ -27,6 +27,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    DIMP
+    ~~~~
+
+    Decentralized Instant Messaging Protocol
+"""
+
 # from mkm import BroadcastAddress
 from mkm import Identifier
 

@@ -42,7 +42,8 @@ from ..format import PlainData
 from .base import BaseMessage
 
 
-"""
+class EncryptedMessage(BaseMessage, SecureMessage):
+    """
     Secure Message
     ~~~~~~~~~~~~~~
     Instant Message encrypted by a symmetric key
@@ -52,20 +53,18 @@ from .base import BaseMessage
         "sender"   : "moki@xxx",
         "receiver" : "hulk@yyy",
         "time"     : 123.45,
-        
+
         //-- content data and keys
         "data"     : "...",    // base64_encode( symmetric_encrypt(content))
         "keys"     : {
-            "ID1"    : "key1", // base64_encode(asymmetric_encrypt(password))
+            "{ID}"   : "...",  // base64_encode(asymmetric_encrypt(pwd))
             "digest" : "..."   // hash(pwd.data)
         }
     }
-"""
-
-
-class EncryptedMessage(BaseMessage, SecureMessage):
+    """
 
     def __init__(self, msg: StrMap):
+        """Create an encrypted message from dictionary."""
         super().__init__(msg=msg)
         # lazy
         self.__data: Optional[TransportableData] = None
@@ -73,6 +72,11 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 
     @property  # Override
     def data(self) -> TransportableData:
+        """Get encrypted content data.
+
+        If this is a broadcast message, the content will not be encrypted
+        (just encoded to JsON), so return the string data directly.
+        """
         ted = self.__data
         if ted is None:
             text = self.get('data')
@@ -94,6 +98,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 
     @property  # Override
     def encrypted_keys(self) -> Optional[StrMap]:
+        """Get encrypted keys map: {ID: base64(key)}, plus a "digest" item."""
         keys = self.__keys
         if keys is None:
             keys = self.get('keys')

@@ -37,7 +37,7 @@ class PlainData(BaseData):
 
     @property
     def encoding(self) -> str:
-        return ''  # 'PLAIN'
+        return ''  # no encoding, 'PLAIN'
 
     # Override
     def to_bytes(self) -> Optional[bytes]:
@@ -68,14 +68,17 @@ class PlainData(BaseData):
 
     @classmethod
     def new(cls, string: str, binary: bytes):
+        """ Create with encoded string and decoded bytes. """
         return PlainData(string=string, binary=binary)
 
     @classmethod
     def create_with_string(cls, string: str):
+        """ Create with encoded string only (decode lazily). """
         return PlainData(string=string, binary=None)
 
     @classmethod
     def create_with_bytes(cls, binary: bytes):
+        """ Create with decoded bytes only (encode lazily). """
         return PlainData(string='', binary=binary)
 
     @classmethod

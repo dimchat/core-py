@@ -27,6 +27,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    DIMP
+    ~~~~
+
+    Decentralized Instant Messaging Protocol
+"""
+
 from mkm.protocol import *
 from dkd.protocol import *
 

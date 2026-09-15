@@ -43,15 +43,15 @@ _SENTINEL = object()
 
 class Dictionary(Mapper):
     """
-        Mutable Map Wrapper
-        ~~~~~~~~~~~~~~~~~~~
-        A map wrapper with typed getters (get_str/get_bool/get_int/...) and
-        `MutableMapping` support.
+    Wraps a mutable map, invariant: **all keys must be real `str` instances**.
 
-        A container sharing the same inner dictionary
+    Debug-mode: assert checks every key on construction.
+    Release: no runtime checking, caller must guarantee pre-condition.
+    Warning: do NOT mutate the map returned by `to_map`, it aliases internal storage.
     """
 
     def __init__(self, dictionary: Optional[StrMap] = None):
+        """ Type Erasure. """
         super().__init__()
         if dictionary is None:
             dictionary = {}
@@ -69,7 +69,7 @@ class Dictionary(Mapper):
                 # same object
                 return True
             o = o.to_map()
-        # check inner map
+        # compare with inner map
         return self.__dictionary.__eq__(o)
 
     def __ne__(self, o: object) -> bool:
@@ -79,7 +79,7 @@ class Dictionary(Mapper):
                 # same object
                 return False
             o = o.to_map()
-        # check inner map
+        # compare with inner map
         return self.__dictionary.__ne__(o)
 
     def __repr__(self) -> str:

@@ -39,31 +39,55 @@ from dkd.ext import MessageExtensions, shared_message_extensions
 from ..protocol import Command
 
 
+# -----------------------------------------------------------------------------
+#  General Command Helpers
+# -----------------------------------------------------------------------------
+
+
 class CommandHandler(ABC):
-    """ General Command Helper """
+    """A helper interface for extracting command names from structured command content.
+
+    This interface provides a standardized way to retrieve command identifiers
+    from command payloads (typically Map-based), with support for default values.
+
+    Corresponds to the Java interface ``chat.dim.ext.CommandHandler``.
+    """
+
+    #
+    #  CMD - Command, Method, Declaration
+    #
 
     @abstractmethod
     def get_cmd(self, content: StrMap, default: str = None) -> Optional[str]:
-        """
-        Get command name from content
+        """Retrieves the command name from a structured command content Map.
 
-        :param content: command content
-        :param default: default command name
-        :return: command name
+        Looks up the command name key (e.g., "command") in the ``content`` Map
+        and returns its value. If the key is not found or the value is null,
+        returns the ``default`` (if provided).
+
+        :param content: structured command payload (Map) to extract the command name from
+        :param default: optional fallback value if the command name is not found
+        :return: extracted command name, or the ``default``, or None if neither exists
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_cmd()'
         )
 
+    #
+    #  Receipt
+    #
+
     @abstractmethod
     def create_receipt(self, text: str, envelope: Envelope, content: Optional[Content]) -> Command:
-        """
-        Create receipt command
+        """Create ReceiptCommand with original envelope info.
 
-        :param text: receipt text
+        Extracts and cleans up metadata from the original message envelope/content
+        to form the "origin" field in receipt commands (removes sensitive/redundant fields).
+
+        :param text: message
         :param envelope: original message envelope
-        :param content:  original message content
-        :return: ReliableMessage
+        :param content: original instant message content (optional)
+        :return: ``Command`` receipt
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_receipt()'
@@ -71,17 +95,29 @@ class CommandHandler(ABC):
 
 
 class GeneralCommandExtension:
+    """General Extensions.
+
+    (Command Handler extension)
+    """
 
     @property
     def command_handler(self) -> Optional[CommandHandler]:
-        """ Get command helper """
+        """Get the general command handler.
+
+        Corresponds to the Java static field ``SharedCommandExtensions.handler``.
+        (Named ``command_handler`` to avoid conflict with the ``handler`` getter
+        of ``MessageHandler`` defined in the dkd package.)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_handler getter'
         )
 
     @command_handler.setter
     def command_handler(self, helper: CommandHandler):
-        """ Set command helper """
+        """Set the general command handler.
+
+        Corresponds to the Java static field ``SharedCommandExtensions.handler``.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.command_handler setter'
         )

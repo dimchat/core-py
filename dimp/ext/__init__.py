@@ -27,6 +27,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    DIMP
+    ~~~~
+
+    Decentralized Instant Message Plugins
+"""
+
 from mkm.ext import *
 from dkd.ext import *
 

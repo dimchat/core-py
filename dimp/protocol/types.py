@@ -38,38 +38,36 @@ def i2s(value: int) -> str:
 @final
 class ContentType:
     """
-        @enum ContentType
+        A flag to indicate what kind of message content this is.
 
-        @abstract A flag to indicate what kind of message content this is.
+        A message is something send from one place to another one,
+        it can be an instant message, a system command, or something else.
 
-        @discussion A message is something send from one place to another one,
-            it can be an instant message, a system command, or something else.
+        `TEXT` indicates this is a normal message with plaintext.
 
-            ContentType_Text indicates this is a normal message with plaintext.
+        `FILE` indicates this is a file, it may include filename
+        and file data, but usually the file data will be encrypted and upload
+        to somewhere, and here is just a URL to retrieve it.
 
-            ContentType_File indicates this is a file, it may include filename
-            and file data, but usually the file data will encrypted and upload to
-            somewhere and here is just a URL to retrieve it.
+        `IMAGE` indicates this is an image, it may send the image
+        data directly (encode the image data with Base64), but we suggest to
+        include a URL for this image just like the 'File' message, of course
+        you can get a thumbnail of this image here.
 
-            ContentType_Image indicates this is an image, it may send the image
-            data directly(encode the image data with Base64), but we suggest to
-            include a URL for this image just like the 'File' message, of course
-            you can get a thumbnail of this image here.
+        `AUDIO` indicates this is a voice message, you can get
+        a URL to retrieve the voice data just like the 'File' message.
 
-            ContentType_Audio indicates this is a voice message, you can get
-            a URL to retrieve the voice data just like the 'File' message.
+        `VIDEO` indicates this is a video file.
 
-            ContentType_Video indicates this is a video file.
+        `PAGE` indicates this is a web page.
 
-            ContentType_Page indicates this is a web page.
+        `QUOTE` indicates this message has quoted another message,
+        and the message content should be a plaintext.
 
-            ContentType_Quote indicates this message has quoted another message
-            and the message content should be a plaintext.
+        `COMMAND` indicates this is a command message.
 
-            ContentType_Command indicates this is a command message.
-
-            ContentType_Forward indicates here contains a TOP-SECRET message
-            which needs your help to redirect it to the true receiver.
+        `FORWARD` indicates here contains a TOP-SECRET message,
+        which needs your help to redirect it to the true receiver.
 
         Bits:
             0000 0001 - this message contains plaintext you can read.
@@ -79,10 +77,10 @@ class ContentType:
 
             0001 0000 - this message's main part is in somewhere else.
             0010 0000 - this message contains the 3rd party content.
-            0100 0000 - this message contains digital assets
+            0100 0000 - this message contains digital assets.
             1000 0000 - this is a message send by the system, not human.
 
-            (All above are just some advices to help choosing numbers :P)
+        (All above are just some advices to help choosing numbers :P)
     """
 
     ANY = '*'

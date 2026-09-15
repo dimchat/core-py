@@ -34,9 +34,19 @@ class BaseString(Stringer):
     """
         Base String
         ~~~~~~~~~~~
+
+        Wrapper class for a plain string, implementing the `Stringer`
+        interface.
+
+        Provides character sequence operations (index, substring, trim, etc.)
+        by delegating to the inner string value.
+
+        Contract: if `is_empty` returns false, `to_str` is guaranteed to
+        return a non-empty string.
     """
 
     def __init__(self, string: Optional[str]):
+        """ Create string wrapper with the encoded string. """
         super().__init__()
         # encoded string
         self._string = string
@@ -115,11 +125,28 @@ class BaseString(Stringer):
 
 class BaseData(BaseString, TransportableData, ABC):
     """
-        Base Data
-        ~~~~~~~~~
+        Base Transportable Data
+        ~~~~~~~~~~~~~~~~~~~~~~
+
+        Base class for transportable data.
+
+        Holds both an encoded string representation (e.g. base64 string)
+        and the decoded binary bytes; the missing side is lazy loaded.
+
+        The `Stringer` / CharSequence delegation lives in the superclass
+        `BaseString`.
+
+        Semantics: the encoded string is a lossless encoding of the decoded
+        bytes, so they are one-to-one — equal (non-empty) strings imply equal
+        bytes, and vice versa.
     """
 
     def __init__(self, string: Optional[str], binary: Optional[bytes]):
+        """ Create data with encoded string and (optional) decoded bytes.
+
+        :param string: the encoded string.
+        :param binary: the decoded bytes (lazy loaded if None).
+        """
         super().__init__(string=string)
         # decoded bytes
         self._binary = binary
@@ -145,6 +172,10 @@ class BaseData(BaseString, TransportableData, ABC):
         # 2. check inner string
         string = self.inner_string
         return string is None or len(string) == 0
+
+    #
+    #  TransportableData
+    #
 
     @property
     def length_in_bytes(self) -> int:
@@ -173,9 +204,17 @@ class BaseData(BaseString, TransportableData, ABC):
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.to_bytes()'
         )
 
+    #
+    #  TransportableResource
+    #
+
     def serialize(self) -> str:
-        """ Encode to bytes """
+        """ Encode to string """
         return self.to_str()
+
+    #
+    #  IObject
+    #
 
     # Override
     def __hash__(self) -> int:
@@ -238,6 +277,11 @@ class BaseData(BaseString, TransportableData, ABC):
 
 
 def _data_equals(this: BaseData, that: BaseData) -> bool:
+    """ Check whether two `BaseData` instances are equal (element-wise).
+
+    Compares inner strings first; if both are unavailable,
+    compares inner bytes, then decoded bytes as fallback.
+    """
     assert not (that is None or that.is_empty), f'base data error {that}'
     # compare with inner string
     this_string = this.inner_string
@@ -255,10 +299,14 @@ def _data_equals(this: BaseData, that: BaseData) -> bool:
 
 
 def _ted_equals(this: BaseData, that: TransportableData) -> bool:
+    """ Check whether `BaseData` equals a `TransportableData` (element-wise).
+
+    Compares the encoded string first; otherwise compares decoded bytes.
+    """
     assert not (that is None or that.is_empty), f'base data error {that}'
     # compare with encoded string
     this_string = this.inner_string
     if this_string is not None and len(this_string) > 0:
         return this_string == that.to_str()
-    # compare with encoded bytes
+    # compare with decoded bytes
     return this.inner_binary == that.to_bytes()

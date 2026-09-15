@@ -41,7 +41,8 @@ from dkd.protocol import InstantMessage
 from .base import BaseMessage
 
 
-"""
+class PlainMessage(BaseMessage, InstantMessage):
+    """
     Instant Message
     ~~~~~~~~~~~~~~~
 
@@ -50,17 +51,15 @@ from .base import BaseMessage
         "sender"   : "moki@xxx",
         "receiver" : "hulk@yyy",
         "time"     : 123.45,
-        
+
         //-- content
         "content"  : {...}
     }
-"""
-
-
-class PlainMessage(BaseMessage, InstantMessage):
+    """
 
     def __init__(self, msg: StrMap = None,
                  head: Envelope = None, body: Content = None):
+        """Create a new instant message with envelope and content."""
         if msg is None:
             # 1. new instant message with envelope & content
             assert head is not None and body is not None, f'instant message error: {head}, {body}'
@@ -70,7 +69,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             # 2. message info from network
             assert head is None and body is None, f'params error: {msg}, {head}, {body}'
             super().__init__(msg, head)
-        # lazy
+        # lazy; message body
         self.__content = body
 
     @property  # Override
@@ -101,6 +100,11 @@ class PlainMessage(BaseMessage, InstantMessage):
 
     @content.setter  # protected
     def content(self, value: Content):
+        """Set message body (content).
+
+        Removes the 'content' field from the dictionary first and keeps
+        the body in memory only; it will be serialized in `to_map`.
+        """
         self.pop('content', None)
         # self.set_map(key='content', value=value)
         self.__content = value
