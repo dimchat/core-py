@@ -248,10 +248,10 @@ class TransportableFileWrapperExtension:
 shared_format_extensions.pnf_wrapper_factory: Optional[TransportableFileWrapperFactory] = None
 
 
-def format_extensions() -> TransportableFileWrapperExtension:
+def _file_wrapper_extension() -> TransportableFileWrapperExtension:
     return shared_format_extensions
 
 
 def wrapper_factory() -> TransportableFileWrapperFactory:
-    ext = format_extensions()
+    ext = _file_wrapper_extension()
     return ext.pnf_wrapper_factory

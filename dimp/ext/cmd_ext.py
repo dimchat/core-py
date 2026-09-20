@@ -34,7 +34,7 @@ from mkm.types import StrMap
 
 from dkd.protocol import Envelope
 from dkd.protocol import Content
-from dkd.ext import MessageExtensions, shared_message_extensions
+from dkd.ext import shared_message_extensions
 
 from ..protocol import Command
 
@@ -126,10 +126,10 @@ class GeneralCommandExtension:
 shared_message_extensions.command_handler: Optional[CommandHandler] = None
 
 
-def message_extensions() -> MessageExtensions:
+def _command_extension() -> GeneralCommandExtension:
     return shared_message_extensions
 
 
 def command_handler() -> CommandHandler:
-    ext = message_extensions()
+    ext = _command_extension()
     return ext.command_handler

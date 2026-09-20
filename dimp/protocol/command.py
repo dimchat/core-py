@@ -33,7 +33,7 @@ from typing import Any, Optional
 from mkm.types import StrMap
 
 from dkd.protocol import Content
-from dkd.ext import MessageExtensions, shared_message_extensions
+from dkd.ext import shared_message_extensions
 
 
 class Command(Content, ABC):
@@ -197,10 +197,10 @@ class CommandExtension:
 shared_message_extensions.command_helper: Optional[CommandHelper] = None
 
 
-def message_extensions() -> MessageExtensions:
+def _command_extension() -> CommandExtension:
     return shared_message_extensions
 
 
 def command_helper() -> CommandHelper:
-    ext = message_extensions()
+    ext = _command_extension()
     return ext.command_helper

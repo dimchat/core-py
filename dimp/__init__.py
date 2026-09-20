@@ -101,6 +101,8 @@ __all__ = [
     'TransportableFile', 'TransportableFileFactory',
     'TransportableFileWrapper', 'TransportableFileWrapperFactory',
     'TransportableFileHelper',
+    # 'format_extensions',
+    'pnf_helper', 'wrapper_factory',
 
 
     # ================================================================
@@ -138,7 +140,7 @@ __all__ = [
     'EncryptedBundle', 'UserEncryptedBundle',
 
     'EncryptedBundleHandler', 'DefaultBundleHandler',
-    'BundleExtension',
+    'EncryptedBundleExtension',
 
     # ================================================================
 
@@ -199,6 +201,8 @@ __all__ = [
 
     'CommandHelper', 'CommandHandler',
     'CommandExtension', 'GeneralCommandExtension',
+    # 'command_extensions',
+    'command_handler',
 
     #
     #   Message Implementations

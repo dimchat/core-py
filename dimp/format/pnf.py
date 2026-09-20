@@ -364,10 +364,10 @@ class TransportableFileExtension:
 shared_format_extensions.pnf_helper: Optional[TransportableFileHelper] = None
 
 
-def format_extensions() -> TransportableFileExtension:
+def _file_extension() -> TransportableFileExtension:
     return shared_format_extensions
 
 
 def pnf_helper() -> TransportableFileHelper:
-    ext = format_extensions()
+    ext = _file_extension()
     return ext.pnf_helper

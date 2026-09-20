@@ -77,6 +77,6 @@ __all__ = [
     'EncryptedBundle', 'UserEncryptedBundle',
 
     # 'EncryptedBundleHandler', 'DefaultBundleHandler',
-    # 'BundleExtension',
+    # 'EncryptedBundleExtension',
 
 ]

@@ -36,8 +36,14 @@ from .base import BaseString, BaseData
 from .data import PlainData
 
 from .pnf import TransportableFile, TransportableFileFactory
-from .pnf_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
 # from .pnf import TransportableFileHelper
+# from .pnf import TransportableFileExtension
+# from .pnf import format_extensions
+# from .pnf import pnf_helper
+from .pnf_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
+# from .pnf_wrapper import TransportableFileWrapperExtension
+# from .pnf_wrapper import format_extensions
+# from .pnf_wrapper import wrapper_factory
 
 
 __all__ = [
@@ -69,7 +75,13 @@ __all__ = [
     #
 
     'TransportableFile', 'TransportableFileFactory',
-    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
     # 'TransportableFileHelper',
+    # 'TransportableFileExtension',
+    # 'format_extensions',
+    # 'pnf_helper',
+    'TransportableFileWrapper', 'TransportableFileWrapperFactory',
+    # 'TransportableFileWrapperExtension',
+    # 'format_extensions',
+    # 'wrapper_factory',
 
 ]
