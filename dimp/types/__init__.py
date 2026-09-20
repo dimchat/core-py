@@ -39,12 +39,17 @@ __all__ = [
 
     'URI', 'DateTime',
 
+    'Stringer',
+    'ConstantString',  # 'String',
+    'Mapper',
+
     'Converter', 'DataConverter', 'BaseConverter',
     'Copier', 'DataCopier', 'BaseCopier',
     'Wrapper', 'DataWrapper', 'BaseWrapper',
 
-    'Stringer', 'Mapper',
-    'ConstantString',  # 'String',
+    #
+    #   Map Wrapper
+    #
 
     'Dictionary',
 

@@ -15,6 +15,8 @@
 
 ## Dependencies
 
+* Latest Versions
+
 | Name | Version | Description |
 |------|---------|-------------|
 | [Ming Ke Ming (名可名)](https://github.com/dimchat/mkm-py) | [![Version](https://img.shields.io/pypi/v/mkm)](https://pypi.org/project/mkm) | Decentralized User Identity Authentication |
@@ -33,7 +35,6 @@
 ```python
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from collections.abc import Mapping
 from typing import Optional
 
 from dimp import *
@@ -68,9 +69,9 @@ class HandshakeCommand(Command, ABC):
             "type" : i2s(0x88),
             "sn"   : 12345,
 
-            "command" : "handshake",    // command name
-            "title"   : "Hello world!", // "DIM?", "DIM!"
-            "session" : "{SESSION_ID}", // session key
+            "command" : "handshake",     // command name
+            "title"   : "Hello world!",  // "DIM?", "DIM!"
+            "session" : "{SESSION_KEY}", // session key
         }
     """
     HANDSHAKE = 'handshake'
@@ -133,6 +134,13 @@ class HandshakeCommand(Command, ABC):
     again = ask         # (2. S->C) ask client to handshake with new session key
     restart = offer     # (3. C->S) handshake with new session key
     success = accepted  # (4. S->C) notice the client that handshake accepted
+```
+
+```python
+from collections.abc import Mapping
+from typing import Optional
+
+from dimp import *
 
 
 class BaseHandshakeCommand(BaseCommand, HandshakeCommand):

@@ -40,8 +40,9 @@ from dkd.protocol import *
 from .types import ContentType
 
 from .command import Command, CommandFactory
-# from .command import CommandHelper
 # from .command import CommandExtension
+# from .command import CommandHelper
+# from .command import command_helper
 
 
 __all__ = [
@@ -51,50 +52,75 @@ __all__ = [
     #
 
     'EntityType',
-    'Address', 'ID',
-    'Meta', 'TAI', 'Document',
+    # 'AccountExtensions',
+    # 'shared_account_extensions',
 
-    'AddressFactory', 'IDFactory',
-    'MetaFactory', 'DocumentFactory',
+    'Address', 'AddressFactory',
+    # 'AddressExtension',
+    # 'AddressHelper',
+    # 'address_helper',
+
+    'ID', 'IDFactory',
+    # 'IDExtension',
+    # 'IDHelper',
+    # 'id_helper',
+
+    'Meta', 'MetaFactory',
+    # 'MetaExtension',
+    # 'MetaHelper',
+    # 'meta_helper',
+
+    'TAI',
+    'Document', 'DocumentFactory',
+    # 'DocumentExtension',
+    # 'DocumentHelper',
+    # 'doc_helper',
 
     'ANYWHERE', 'EVERYWHERE',
     'ANYONE', 'EVERYONE', 'FOUNDER',
-    # 'BroadcastAddress', 'Identifier',
-
-    # 'AddressHelper', 'IDHelper',
-    # 'MetaHelper', 'DocumentHelper',
-
-    # 'AddressExtension', 'IDExtension',
-    # 'MetaExtension', 'DocumentExtension',
-    # 'AccountExtensions', 'shared_account_extensions',
-
+    'Identifier',  # 'BroadcastAddress',
 
     #
     #   Dao-Ke-Dao
     #
 
-    'Content', 'Envelope',
     'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    # 'MessageExtensions',
+    # 'shared_message_extensions',
 
-    'ContentFactory', 'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'Envelope', 'EnvelopeFactory',
+    # 'EnvelopeHelper',
+    # 'envelope_helper',
 
-    # 'ContentHelper', 'EnvelopeHelper',
-    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    'InstantMessage', 'InstantMessageFactory',
+    # 'InstantMessageExtension',
+    # 'InstantMessageHelper',
+    # 'instant_helper',
 
+    'SecureMessage', 'SecureMessageFactory',
+    # 'SecureMessageExtension',
+    # 'SecureMessageHelper',
+    # 'secure_helper',
+
+    'ReliableMessage', 'ReliableMessageFactory',
+    # 'ReliableMessageExtension',
+    # 'ReliableMessageHelper',
+    # 'reliable_helper',
+
+    'Content', 'ContentFactory',
     # 'ContentExtension',
-    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    # 'MessageExtensions', 'shared_message_extensions',
+    # 'ContentHelper',
+    # 'content_helper',
 
     #
-    #   Protocol
+    #   Core Protocol
     #
 
     'ContentType',
 
     'Command', 'CommandFactory',
-    # 'CommandHelper',
     # 'CommandExtension',
+    # 'CommandHelper',
+    # 'command_helper',
 
 ]

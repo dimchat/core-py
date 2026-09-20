@@ -36,31 +36,27 @@ from .base import BaseString, BaseData
 from .data import PlainData
 
 from .pnf import TransportableFile, TransportableFileFactory
-# from .pnf import TransportableFileHelper
 # from .pnf import TransportableFileExtension
-# from .pnf import format_extensions
+# from .pnf import TransportableFileHelper
 # from .pnf import pnf_helper
 from .pnf_wrapper import TransportableFileWrapper, TransportableFileWrapperFactory
 # from .pnf_wrapper import TransportableFileWrapperExtension
-# from .pnf_wrapper import format_extensions
-# from .pnf_wrapper import wrapper_factory
+# from .pnf_wrapper import pnf_wrapper_factory
 
 
 __all__ = [
 
     'DataCoder', 'Hex', 'Base58', 'Base64',
+
     'ObjectCoder', 'JSON',
     'MapCoder', 'JSONMap',
     'StringCoder', 'UTF8',
 
     'TransportableResource',
-    'TransportableData',
-
-    'TransportableDataFactory',
-
+    'TransportableData', 'TransportableDataFactory',
+    # 'FormatExtensions',
     # 'TransportableDataHelper',
-    #  'FormatExtensions', 'shared_format_extensions',
-
+    # 'shared_format_extensions', 'ted_helper',
 
     #
     #   TED - Transportable Encoded Data
@@ -75,13 +71,11 @@ __all__ = [
     #
 
     'TransportableFile', 'TransportableFileFactory',
-    # 'TransportableFileHelper',
     # 'TransportableFileExtension',
-    # 'format_extensions',
+    # 'TransportableFileHelper',
     # 'pnf_helper',
     'TransportableFileWrapper', 'TransportableFileWrapperFactory',
     # 'TransportableFileWrapperExtension',
-    # 'format_extensions',
-    # 'wrapper_factory',
+    # 'pnf_wrapper_factory',
 
 ]

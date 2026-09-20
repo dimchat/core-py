@@ -186,7 +186,7 @@ class TransportableFileWrapper(ABC):
                filename: Optional[str] = None,
                url: Optional[URI] = None,
                password: Optional[DecryptKey] = None):
-        factory = wrapper_factory()
+        factory = pnf_wrapper_factory()
         return factory.create_transportable_file_wrapper(content,
                                                          data=data, filename=filename,
                                                          url=url, password=password)
@@ -248,10 +248,10 @@ class TransportableFileWrapperExtension:
 shared_format_extensions.pnf_wrapper_factory: Optional[TransportableFileWrapperFactory] = None
 
 
-def _file_wrapper_extension() -> TransportableFileWrapperExtension:
+def _pnf_wrapper_extension() -> TransportableFileWrapperExtension:
     return shared_format_extensions
 
 
-def wrapper_factory() -> TransportableFileWrapperFactory:
-    ext = _file_wrapper_extension()
+def pnf_wrapper_factory() -> TransportableFileWrapperFactory:
+    ext = _pnf_wrapper_extension()
     return ext.pnf_wrapper_factory
